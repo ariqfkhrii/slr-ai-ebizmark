@@ -3,6 +3,10 @@
 @import 'tw-animate-css';
 
 @source '../views';
+@source '../js/**/*.tsx';
+@source '../js/**/*.ts';
+@source '../js/**/*.jsx';
+@source '../js/**/*.js';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @custom-variant dark (&:is(.dark *));

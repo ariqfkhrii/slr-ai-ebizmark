@@ -21,6 +21,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::delete('/research-plans/{researchPlan}', [ResearchPlanController::class, 'destroy'])
         ->name('research-plans.destroy');
+        
+    Route::inertia('prisma', 'prisma/index')->name('prisma');
 });
 
 require __DIR__.'/settings.php';

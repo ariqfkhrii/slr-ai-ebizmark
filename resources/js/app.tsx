@@ -1,41 +1,69 @@
-import './bootstrap';
+import { initializeTheme } from '@/hooks/use-appearance';
+import { store } from '@/lib/store';
+import { createInertiaApp } from '@inertiajs/react';
+import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { Provider } from 'react-redux';
 import '../css/app.css';
+import './bootstrap';
 
 import { createRoot, hydrateRoot } from 'react-dom/client';
-import { createInertiaApp } from '@inertiajs/react';
+
+const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+const muiTheme = createTheme({
+  palette: {
+    mode: 'light',
+    background: {
+      default: '#f9fafb',
+    },
+    text: {
+      primary: '#111827',
+      secondary: '#6b7280',
+    },
+  },
+});
 
 createInertiaApp({
+  resolve: (name: string) => {
+    const pages = import.meta.glob<{ default: React.ComponentType<any> }>(
+      './pages/**/*.tsx',
+      { eager: true },
+    );
 
-    resolve: (name: string) => {
+    const tryPaths = [
+      `./pages/${name}.tsx`,
+      `./pages/${name}.jsx`,
+      `./pages/${name}/index.tsx`,
+      `./pages/${name}/index.jsx`,
+    ];
 
-        const pages = import.meta.glob<{ default: React.ComponentType<any> }>(
-            './pages/**/*.tsx',
-            { eager: true }
-        );
+    for (const p of tryPaths) {
+      if (pages[p]) return pages[p].default;
+    }
 
-        const tryPaths = [
-            `./pages/${name}.tsx`,
-            `./pages/${name}.jsx`,
-            `./pages/${name}/index.tsx`,
-            `./pages/${name}/index.jsx`,
-        ];
+    throw new Error(`Page not found: ${name} (tried: ${tryPaths.join(', ')})`);
+  },
 
-        for (const p of tryPaths) {
-            if (pages[p]) return pages[p].default;
-        }
+  setup({ el, App, props }) {
+    const root = (
+      <Provider store={store}>
+        <ThemeProvider theme={muiTheme}>
+          <CssBaseline />
+          <App {...props} />
+        </ThemeProvider>
+      </Provider>
+    );
 
-        throw new Error(`Page not found: ${name} (tried: ${tryPaths.join(', ')})`);
-    },
+    if (typeof window !== 'undefined' && el && (el as Element).nodeType === 1) {
+      const container = el as Element;
 
-    setup({ el, App, props }) {
-        if (typeof window !== 'undefined' && el && (el as Element).nodeType === 1) {
-            const container = el as Element;
-
-            if (container.hasChildNodes()) {
-                hydrateRoot(container, <App {...props} />);
-            } else {
-                createRoot(container).render(<App {...props} />);
-            }
-        }
-    },
+      if (container.hasChildNodes()) {
+        hydrateRoot(container, root);
+      } else {
+        createRoot(container).render(root);
+      }
+    }
+  },
 });
+
+initializeTheme();

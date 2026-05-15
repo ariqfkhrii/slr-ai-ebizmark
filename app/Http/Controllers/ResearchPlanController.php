@@ -15,7 +15,7 @@ class ResearchPlanController extends Controller
             ->latest()
             ->get();
 
-        return Inertia::render('Dashboard', [
+        return Inertia::render('dashboard', [
             'researchPlans' => $researchPlans,
             'auth' => [
                 'user' => $request->user()

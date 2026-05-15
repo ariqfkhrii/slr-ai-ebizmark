@@ -5,7 +5,6 @@ import {
   FormControlLabel,
   Menu,
   Stack,
-  Switch,
   TextField,
   Typography,
 } from '@mui/material';
@@ -141,35 +140,6 @@ export default function FetchParameterDialog({
           />
         ))}
       </Stack>
-
-      <Typography
-        sx={{
-          fontSize: 10,
-          fontWeight: 800,
-          color: 'text.secondary',
-          mb: 0.75,
-        }}
-      >
-        OPSI
-      </Typography>
-
-      <FormControlLabel
-        control={
-          <Switch
-            size="small"
-            checked={includeAbstract}
-            onChange={(e) => setIncludeAbstract(e.target.checked)}
-          />
-        }
-        label="Include Abstract"
-        sx={{
-          mb: 2,
-          '& .MuiFormControlLabel-label': {
-            fontSize: 12,
-            fontWeight: 600,
-          },
-        }}
-      />
 
       <Button
         fullWidth

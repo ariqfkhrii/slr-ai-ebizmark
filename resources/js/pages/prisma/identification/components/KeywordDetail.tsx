@@ -1,11 +1,12 @@
 import { Box, Button, Typography } from '@mui/material';
 import { ArrowDownFromLine, RotateCcw, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { Keyword } from '../types';
+import { FetchHistory, Keyword } from '../types';
 import DeleteKeywordConfirmationDialog from './dialog/DeleteKeywordConfirmationDialog';
 import FetchParameterDialog, {
   FetchParams,
 } from './dialog/FetchParameterDialog';
+import FetchHistoryPanel from './FetchHistoryPanel';
 import KeywordTabs, { TabValue } from './KeywordTabs';
 import RawArticleTable from './RawArticleTable';
 import WordCloudTitle from './WordCloudTitle';
@@ -14,12 +15,14 @@ type Props = {
   keyword: Keyword | null;
   onFetchMetadata: (keywordId: number, params: FetchParams) => void;
   onDeleteKeyword: (id: number) => void;
+  histories: FetchHistory[];
 };
 
 export default function KeywordDetail({
   keyword,
   onFetchMetadata,
   onDeleteKeyword,
+  histories,
 }: Props) {
   const hasMetadata = (keyword?.retrievedCount ?? 0) > 0;
   const articles = keyword?.articles ?? [];
@@ -129,9 +132,7 @@ export default function KeywordDetail({
 
       {tab === 'wordCloud' && <WordCloudTitle articles={articles} />}
 
-      {tab === 'history' && (
-        <Box sx={{ p: 2 }}>Riwayat fetch metadata nanti di sini</Box>
-      )}
+      {tab === 'history' && <FetchHistoryPanel histories={histories} />}
 
       {/* DELETE DIALOG */}
       <DeleteKeywordConfirmationDialog

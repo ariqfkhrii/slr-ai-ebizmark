@@ -15,9 +15,10 @@ import { RawArticle } from '../types';
 
 type Props = {
   articles: RawArticle[];
+  maxHeight?: number | string;
 };
 
-export default function RawArticleTable({ articles }: Props) {
+export default function RawArticleTable({ articles, maxHeight }: Props) {
   {
     return (
       <TableContainer
@@ -25,7 +26,8 @@ export default function RawArticleTable({ articles }: Props) {
         variant="outlined"
         sx={{
           borderRadius: 2,
-          overflow: 'hidden',
+          overflow: 'auto',
+          maxHeight: maxHeight ?? 'none',
         }}
       >
         <Table size="small">

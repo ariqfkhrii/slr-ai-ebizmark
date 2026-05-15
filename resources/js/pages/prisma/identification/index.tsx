@@ -13,6 +13,7 @@ export default function Identification() {
     selectKeyword,
     updateKeyword,
     fetchMetadata,
+    histories,
   } = useIdentification();
 
   return (
@@ -36,9 +37,10 @@ export default function Identification() {
         keyword={selectedKeyword}
         onFetchMetadata={fetchMetadata}
         onDeleteKeyword={deleteKeyword}
+        histories={histories}
       />
 
-      <GlobalPanel />
+      <GlobalPanel keywords={keywords} />
     </Box>
   );
 }

@@ -20,3 +20,17 @@ export type IdentificationState = {
   keywords: Keyword[];
   selectedKeyword: Keyword | null;
 };
+
+export type FetchHistory = {
+  id: number;
+  keywordId: number;
+  keywordName: string;
+  action: 'fetch' | 'update';
+  yearFrom: number;
+  yearTo: number;
+  tiers: string[];
+  includeAbstract: boolean;
+  resultCount: number;
+  status: 'success' | 'failed';
+  createdAt: string;
+};

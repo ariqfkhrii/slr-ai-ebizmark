@@ -1,12 +1,27 @@
 import { initializeTheme } from '@/hooks/use-appearance';
+import { store } from '@/lib/store';
 import { createInertiaApp } from '@inertiajs/react';
-import { createTheme } from '@mui/material';
+import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { Provider } from 'react-redux';
 import '../css/app.css';
 import './bootstrap';
 
 import { createRoot, hydrateRoot } from 'react-dom/client';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+const muiTheme = createTheme({
+  palette: {
+    mode: 'light',
+    background: {
+      default: '#f9fafb',
+    },
+    text: {
+      primary: '#111827',
+      secondary: '#6b7280',
+    },
+  },
+});
 
 createInertiaApp({
   resolve: (name: string) => {
@@ -30,30 +45,25 @@ createInertiaApp({
   },
 
   setup({ el, App, props }) {
+    const root = (
+      <Provider store={store}>
+        <ThemeProvider theme={muiTheme}>
+          <CssBaseline />
+          <App {...props} />
+        </ThemeProvider>
+      </Provider>
+    );
+
     if (typeof window !== 'undefined' && el && (el as Element).nodeType === 1) {
       const container = el as Element;
 
       if (container.hasChildNodes()) {
-        hydrateRoot(container, <App {...props} />);
+        hydrateRoot(container, root);
       } else {
-        createRoot(container).render(<App {...props} />);
+        createRoot(container).render(root);
       }
     }
   },
 });
 
-const muiTheme = createTheme({
-  palette: {
-    mode: 'light',
-    background: {
-      default: '#f9fafb',
-    },
-    text: {
-      primary: '#111827',
-      secondary: '#6b7280',
-    },
-  },
-});
-
-// This will set light / dark mode on load...
 initializeTheme();

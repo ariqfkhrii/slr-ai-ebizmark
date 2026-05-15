@@ -2,7 +2,7 @@ import { useForm, router, Link } from '@inertiajs/react'
 import React, { useState } from 'react'
 import { usePage } from '@inertiajs/react'
 
-export default function Dashboard({
+export default function dashboard({
     auth,
     researchPlans = [],
 }: any){
@@ -14,7 +14,7 @@ export default function Dashboard({
     const [selectedPlan, setSelectedPlan] = useState<any>(null)
     const { flash } = usePage<{ flash?: { success?: string } }>().props
 
-    const { data, setData, post, processing, reset } = useForm({
+    const { data, setData, post, put, processing, reset, errors } = useForm({
         title: '',
     })
 
@@ -42,14 +42,11 @@ export default function Dashboard({
     }
 
     function updatePlan(e: React.FormEvent) {
-
         e.preventDefault()
 
         if (!selectedPlan || !selectedPlan.research_plan_id) return;
 
-        router.put(`/research-plans/${selectedPlan.research_plan_id}`, {
-            title: data.title,
-        }, {
+        put(`/research-plans/${selectedPlan.research_plan_id}`, {
             onSuccess: () => {
                 reset()
                 setShowEditModal(false)
@@ -261,7 +258,6 @@ export default function Dashboard({
                             </div>
 
                             <form onSubmit={submit}>
-
                                 <div className="mb-4">
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Research Title
@@ -274,10 +270,15 @@ export default function Dashboard({
                                         onChange={(e) => setData('title', e.target.value)}
                                         className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                                     />
+
+                                    {errors.title && (
+                                        <p className="mt-2 text-sm text-red-500">
+                                            {errors.title}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div className="flex justify-end gap-2">
-
                                     <button
                                         type="button"
                                         onClick={() => setShowModal(false)}
@@ -326,6 +327,11 @@ export default function Dashboard({
                                         onChange={(e) => setData('title', e.target.value)}
                                         className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                                     />
+                                    {errors.title && (
+                                        <p className="mt-2 text-sm text-red-500">
+                                            {errors.title}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div className="flex justify-end gap-2">

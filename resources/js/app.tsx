@@ -1,40 +1,41 @@
-import { createInertiaApp } from '@inertiajs/react';
-import { Toaster } from '@/components/ui/sonner';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { initializeTheme } from '@/hooks/use-appearance';
-import AppLayout from '@/layouts/app-layout';
-import AuthLayout from '@/layouts/auth-layout';
-import SettingsLayout from '@/layouts/settings/layout';
+import './bootstrap';
+import '../css/app.css';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+import { createRoot, hydrateRoot } from 'react-dom/client';
+import { createInertiaApp } from '@inertiajs/react';
 
 createInertiaApp({
-    title: (title) => (title ? `${title} - ${appName}` : appName),
-    layout: (name) => {
-        switch (true) {
-            case name === 'welcome':
-                return null;
-            case name.startsWith('auth/'):
-                return AuthLayout;
-            case name.startsWith('settings/'):
-                return [AppLayout, SettingsLayout];
-            default:
-                return AppLayout;
+
+    resolve: (name: string) => {
+
+        const pages = import.meta.glob<{ default: React.ComponentType<any> }>(
+            './pages/**/*.tsx',
+            { eager: true }
+        );
+
+        const tryPaths = [
+            `./pages/${name}.tsx`,
+            `./pages/${name}.jsx`,
+            `./pages/${name}/index.tsx`,
+            `./pages/${name}/index.jsx`,
+        ];
+
+        for (const p of tryPaths) {
+            if (pages[p]) return pages[p].default;
+        }
+
+        throw new Error(`Page not found: ${name} (tried: ${tryPaths.join(', ')})`);
+    },
+
+    setup({ el, App, props }) {
+        if (typeof window !== 'undefined' && el && (el as Element).nodeType === 1) {
+            const container = el as Element;
+
+            if (container.hasChildNodes()) {
+                hydrateRoot(container, <App {...props} />);
+            } else {
+                createRoot(container).render(<App {...props} />);
+            }
         }
     },
-    strictMode: true,
-    withApp(app) {
-        return (
-            <TooltipProvider delayDuration={0}>
-                {app}
-                <Toaster />
-            </TooltipProvider>
-        );
-    },
-    progress: {
-        color: '#4B5563',
-    },
 });
-
-// This will set light / dark mode on load...
-initializeTheme();

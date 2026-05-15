@@ -29,7 +29,6 @@ export type FetchHistory = {
   yearFrom: number;
   yearTo: number;
   tiers: string[];
-  includeAbstract: boolean;
   resultCount: number;
   status: 'success' | 'failed';
   createdAt: string;

@@ -19,4 +19,12 @@ class ResearchPlan extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function keywords()
+    {
+        return $this->belongsToMany(Keyword::class)
+            ->using(ResearchPlanKeyword::class)
+            ->withPivot('article_count')
+            ->withTimestamps();
+    }
 }

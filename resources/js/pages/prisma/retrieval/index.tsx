@@ -32,7 +32,7 @@ import type {
 const shortcutPresets = [
   {
     label: 'Sci-Hub',
-    value: 'https://sci-hub.se/',
+    value: 'https://sci-hub.box/',
   },
   {
     label: 'DOI',

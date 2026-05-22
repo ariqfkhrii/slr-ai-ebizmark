@@ -2,8 +2,9 @@ import { Head } from '@inertiajs/react';
 import { Box, Paper, Typography } from '@mui/material';
 import PrismaStepper from './components/PrismaStepper';
 import Identification from './identification';
+import Retrieval from './retrieval';
 
-export default function Prisma() {
+export default function Prisma(props: any) { {
   return (
     <>
       <Head title="PRISMA" />
@@ -67,9 +68,10 @@ export default function Prisma() {
         </Paper>
 
         <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-          <Identification />
+          {/* <Identification /> */}
+          <Retrieval {...props} />
         </Box>
       </Box>
     </>
   );
-}
+}}

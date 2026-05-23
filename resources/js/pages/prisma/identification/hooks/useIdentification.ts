@@ -1,43 +1,126 @@
 import { useAppDispatch } from '@/lib/store/hooks';
 import { showSuccess } from '@/lib/store/snackbarSlice';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FetchParams } from '../components/dialog/FetchParameterDialog';
 import { getRandomArticles } from '../mock/randomArticles';
 import { FetchHistory, Keyword } from '../types';
 
-export function useIdentification() {
+type ApiKeyword = {
+  id: number;
+  name: string;
+  article_count: number;
+};
+
+const getCsrfToken = () =>
+  document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ??
+  '';
+
+export function useIdentification(researchPlanId: number) {
   const dispatch = useAppDispatch();
+
   const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [histories, setHistories] = useState<FetchHistory[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [loadingKeywords, setLoadingKeywords] = useState(false);
 
   const selectedKeyword = keywords.find((k) => k.id === selectedId) || null;
 
-  const addKeyword = (name: string) => {
-    if (!name.trim()) return;
+  const fetchKeywords = async () => {
+    if (!researchPlanId) return;
 
-    const newKeyword: Keyword = {
-      id: Date.now(),
-      name,
-      retrievedCount: 0,
-    };
+    setLoadingKeywords(true);
 
-    setKeywords((prev) => [...prev, newKeyword]);
+    try {
+      const res = await fetch(`/research-plans/${researchPlanId}/keywords`, {
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+
+      if (!res.ok) throw new Error('Gagal mengambil keyword');
+
+      const data: ApiKeyword[] = await res.json();
+
+      setKeywords(
+        data.map((item) => ({
+          id: item.id,
+          name: item.name,
+          retrievedCount: item.article_count ?? 0,
+        })),
+      );
+    } finally {
+      setLoadingKeywords(false);
+    }
   };
 
-  const deleteKeyword = (id: number) => {
-    setKeywords((prev) => prev.filter((k) => k.id !== id));
-    dispatch(showSuccess('Keyword berhasil dihapus!'));
-    if (selectedId === id) setSelectedId(null);
+  useEffect(() => {
+    fetchKeywords();
+  }, [researchPlanId]);
+
+  const addKeyword = async (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    const res = await fetch(`/research-plans/${researchPlanId}/keywords`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-CSRF-TOKEN': getCsrfToken(),
+      },
+      body: JSON.stringify({ keyword: trimmed }),
+    });
+
+    if (!res.ok) throw new Error('Gagal menambah keyword');
+
+    await fetchKeywords();
+
+    dispatch(showSuccess('Keyword berhasil ditambahkan!'));
   };
 
-  const updateKeyword = (id: number, name: string) => {
-    setKeywords((prev) =>
-      prev.map((keyword) =>
-        keyword.id === id ? { ...keyword, name } : keyword,
-      ),
+  const deleteKeyword = async (id: number) => {
+    const res = await fetch(
+      `/research-plans/${researchPlanId}/keywords/${id}`,
+      {
+        method: 'DELETE',
+        headers: {
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': getCsrfToken(),
+        },
+      },
     );
-    dispatch(showSuccess(`Keyword diubah ke "${name}"`));
+
+    if (!res.ok) throw new Error('Gagal menghapus keyword');
+
+    if (selectedId === id) setSelectedId(null);
+
+    await fetchKeywords();
+
+    dispatch(showSuccess('Keyword berhasil dihapus!'));
+  };
+
+  const updateKeyword = async (id: number, name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    const res = await fetch(`/research-plans/${researchPlanId}/keywords`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-CSRF-TOKEN': getCsrfToken(),
+      },
+      body: JSON.stringify({
+        old_keyword_id: id,
+        new_keyword: trimmed,
+      }),
+    });
+
+    if (!res.ok) throw new Error('Gagal mengubah keyword');
+
+    await fetchKeywords();
+
+    dispatch(showSuccess(`Keyword diubah ke "${trimmed}"`));
   };
 
   const selectKeyword = (id: number) => {
@@ -97,6 +180,8 @@ export function useIdentification() {
     keywords,
     histories,
     selectedKeyword,
+    loadingKeywords,
+    fetchKeywords,
     addKeyword,
     deleteKeyword,
     selectKeyword,

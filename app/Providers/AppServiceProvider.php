@@ -15,7 +15,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(
+            \App\Http\Interfaces\ResearchPlanRepositoryInterface::class,
+            \App\Repositories\ResearchPlanRepository::class
+        );
+
+        $this->app->bind(
+            \App\Http\Interfaces\ResearchPlanServiceInterface::class,
+            \App\Services\ResearchPlanService::class
+        );
     }
 
     /**

@@ -12,4 +12,9 @@ class Country extends Model
     protected $fillable = [
         'name',
     ];
+
+    public function rawArticles()
+    {
+        return $this->belongsToMany(RawArticle::class, 'raw_article_countries')->withTimestamps();
+    }
 }

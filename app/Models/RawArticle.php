@@ -19,4 +19,9 @@ class RawArticle extends Model
         'publish_year',
         'source_db',
     ];
+
+    public function countries()
+    {
+        return $this->belongsToMany(Country::class, 'raw_article_countries')->withTimestamps();
+    }
 }

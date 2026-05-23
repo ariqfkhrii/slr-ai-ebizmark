@@ -5,12 +5,14 @@ const steps = ['Identification', 'Screening', 'Retrieval', 'Report'];
 type Props = {
   activeStep?: number;
   canOpenScreening?: boolean;
+  canOpenRetrieval?: boolean;
   onStepClick?: (step: number) => void;
 };
 
 export default function PrismaStepper({
   activeStep = 0,
   canOpenScreening = false,
+  canOpenRetrieval = false,
   onStepClick,
 }: Props) {
   return (
@@ -28,9 +30,12 @@ export default function PrismaStepper({
         const isCompleted = index < activeStep;
         const isIdentification = index === 0;
         const isScreening = index === 1;
+        const isRetrieval = index === 2;
 
         const isUnlocked =
-          isIdentification || (isScreening && canOpenScreening);
+          isIdentification ||
+          (isScreening && canOpenScreening) ||
+          (isRetrieval && canOpenRetrieval);
 
         const isClickable = isUnlocked;
 

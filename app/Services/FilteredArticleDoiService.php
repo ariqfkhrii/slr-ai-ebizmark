@@ -6,8 +6,6 @@ use App\Models\FilteredArticle;
 use App\Models\RawArticle;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
-use Smalot\PdfParser\Config;
-use Smalot\PdfParser\Parser;
 use Symfony\Component\Process\Process;
 
 class FilteredArticleDoiService
@@ -150,25 +148,6 @@ class FilteredArticleDoiService
                 'error' => trim($pdftotext->getErrorOutput()),
             ]);
         }
-
-        $config = new Config();
-        $config->setRetainImageContent(false);
-        $config->setDecodeMemoryLimit(64 * 1024 * 1024);
-        $config->setIgnoreEncryption(true);
-
-        $parser = new Parser([], $config);
-
-        try {
-            $pdf = $parser->parseFile($pdfFile->getRealPath());
-
-            return $pdf->getText();
-        } catch (\Throwable $exception) {
-            Log::error('PDF parse failed', [
-                'error' => $exception->getMessage(),
-                'file_name' => $pdfFile->getClientOriginalName(),
-            ]);
-
-            return '';
-        }
+        return '';
     }
 }

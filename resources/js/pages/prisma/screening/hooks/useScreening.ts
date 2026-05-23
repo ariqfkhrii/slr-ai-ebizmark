@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { RawArticle } from '../../identification/types';
 import { FilteredArticle } from '../types';
 import { createFilteredArticles } from '../utils';
@@ -9,8 +9,13 @@ export function useScreening(articles: RawArticle[], researchPlanId: number) {
     [articles, researchPlanId],
   );
 
-  const [filteredArticles, setFilteredArticles] =
-    useState<FilteredArticle[]>(initialData);
+  const [filteredArticles, setFilteredArticles] = useState<FilteredArticle[]>(
+    [],
+  );
+
+  useEffect(() => {
+    setFilteredArticles(initialData);
+  }, [initialData]);
 
   const updateStatus = (id: number, included: boolean) => {
     setFilteredArticles((prev) =>

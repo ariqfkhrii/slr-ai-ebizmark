@@ -1,19 +1,18 @@
 import { Box, Button } from '@mui/material';
 import { Check, X } from 'lucide-react';
-import { RawArticle } from '../identification/types';
 import ScreeningColumn from './components/ScreeningColumn';
 import ScreeningStatusCounter from './components/ScreeningStatusCounter';
 import { useScreening } from './hooks/useScreening';
 
-type Props = {
-  articles: RawArticle[];
-  researchPlanId: number;
-};
+type Props = ReturnType<typeof useScreening>;
 
-export default function Screening({ articles, researchPlanId }: Props) {
-  const { filteredArticles, counters, updateStatus, includeAll, excludeAll } =
-    useScreening(articles, researchPlanId);
-
+export default function Screening({
+  filteredArticles,
+  counters,
+  updateStatus,
+  includeAll,
+  excludeAll,
+}: Props) {
   const rightArticles = filteredArticles.filter(
     (item) => item.included === true,
   );

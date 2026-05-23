@@ -6,15 +6,22 @@ use App\Models\FilteredArticle;
 use App\Models\ResearchPlan;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Http\Interfaces\ResearchPlanServiceInterface;
+// Import file request baru kita
+use App\Http\Requests\StoreResearchPlanRequest; 
 
 class ResearchPlanController extends Controller
 {
+    protected ResearchPlanServiceInterface $service;
+
+    public function __construct(ResearchPlanServiceInterface $service)
+    {
+        $this->service = $service;
+    }
+
     public function index(Request $request)
     {
-        $researchPlans = $request->user()
-            ->researchPlans()
-            ->latest()
-            ->get();
+        $researchPlans = $this->service->listForUser($request->user());
 
         return Inertia::render('dashboard', [
             'researchPlans' => $researchPlans,
@@ -24,20 +31,15 @@ class ResearchPlanController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    // Menggunakan FormRequest untuk validasi
+    public function store(StoreResearchPlanRequest $request)
     {
-        $request->user()
-            ->researchPlans()
-            ->create([
-                'title' => $request->title,
-            ]);
+        // $request->validated() hanya akan mengambil data yang sudah divalidasi di file request
+        $this->service->createForUser($request->user(), $request->validated());
 
         return redirect()->back()->with('success', 'Research Plan berhasil dibuat');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(ResearchPlan $researchPlan)
     {
         //
@@ -51,32 +53,17 @@ class ResearchPlanController extends Controller
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, ResearchPlan $researchPlan)
+    // Menggunakan FormRequest juga untuk update
+    public function update(StoreResearchPlanRequest $request, ResearchPlan $researchPlan)
     {
-        if ($researchPlan->user_id !== $request->user()->id) {
-            abort(403);
-        }
-
-        $researchPlan->update([
-            'title' => $request->title,
-        ]);
+        $this->service->update($researchPlan, $request->user(), $request->validated());
 
         return redirect()->back()->with('success', 'Research Plan berhasil diupdate');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Request $request, ResearchPlan $researchPlan)
     {
-        if ($researchPlan->user_id !== $request->user()->id) {
-            abort(403);
-        }
-
-        $researchPlan->delete();
+        $this->service->delete($researchPlan, $request->user());
 
         return redirect()->back()->with('success', 'Research Plan berhasil dihapus');
     }

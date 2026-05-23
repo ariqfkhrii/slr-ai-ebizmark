@@ -15,7 +15,7 @@ return new class extends Migration
 
             $table->id('research_plan_id');
 
-            $table->string('title')->nullable();
+            $table->string('title');
 
             $table->integer('scopus_quantity')->nullable();
 

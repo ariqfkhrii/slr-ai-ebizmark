@@ -67,8 +67,10 @@ export default function KeywordList({
     <Box
       sx={{
         width: 280,
+        height: '100%',
         display: 'flex',
         flexDirection: 'column',
+        flexShrink: 0,
         borderRight: 1,
         borderColor: 'divider',
       }}

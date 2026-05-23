@@ -3,23 +3,27 @@ import GlobalPanel from './components/GlobalPanel';
 import KeywordDetail from './components/KeywordDetail';
 import KeywordList from './components/KeywordList';
 import { useIdentification } from './hooks/useIdentification';
+import { RawArticle } from './types';
 
-export default function Identification() {
-  const {
-    keywords,
-    selectedKeyword,
-    addKeyword,
-    deleteKeyword,
-    selectKeyword,
-    updateKeyword,
-    fetchMetadata,
-    histories,
-  } = useIdentification();
+type Props = ReturnType<typeof useIdentification> & {
+  globalArticles: RawArticle[];
+};
 
+export default function Identification({
+  keywords,
+  selectedKeyword,
+  addKeyword,
+  deleteKeyword,
+  selectKeyword,
+  updateKeyword,
+  fetchMetadata,
+  histories,
+  globalArticles,
+}: Props) {
   return (
     <Box
       sx={{
-        height: '100%',
+        height: 'calc(100vh - 128px)', // sesuaikan kalau ada navbar/header
         minHeight: 0,
         display: 'flex',
         overflow: 'hidden',
@@ -40,7 +44,7 @@ export default function Identification() {
         histories={histories}
       />
 
-      <GlobalPanel keywords={keywords} />
+      <GlobalPanel keywords={keywords} articles={globalArticles} />
     </Box>
   );
 }

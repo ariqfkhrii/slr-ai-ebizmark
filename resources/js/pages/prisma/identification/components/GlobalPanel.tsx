@@ -5,24 +5,10 @@ import RawArticleTable from './RawArticleTable';
 
 type Props = {
   keywords: Keyword[];
+  articles: RawArticle[];
 };
 
-function getUniqueArticlesByDoi(keywords: Keyword[]): RawArticle[] {
-  const map = new Map<string, RawArticle>();
-
-  keywords.forEach((keyword) => {
-    keyword.articles?.forEach((article) => {
-      if (!map.has(article.doi)) {
-        map.set(article.doi, article);
-      }
-    });
-  });
-
-  return Array.from(map.values());
-}
-
-export default function GlobalPanel({ keywords }: Props) {
-  const articles = getUniqueArticlesByDoi(keywords);
+export default function GlobalPanel({ keywords, articles }: Props) {
   const fetchedKeywordCount = keywords.filter(
     (keyword) => (keyword.retrievedCount ?? 0) > 0,
   ).length;
@@ -30,8 +16,10 @@ export default function GlobalPanel({ keywords }: Props) {
   return (
     <Box
       sx={{
-        width: 560,
+        width: 720,
         borderLeft: 1,
+        height: '100%',
+        flexShrink: 0,
         borderColor: 'divider',
         bgcolor: 'background.default',
         display: 'flex',

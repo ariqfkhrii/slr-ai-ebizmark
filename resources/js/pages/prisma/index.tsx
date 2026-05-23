@@ -1,10 +1,19 @@
 import { Head } from '@inertiajs/react';
 import { Box, Paper, Typography } from '@mui/material';
+import { useState } from 'react';
 import PrismaStepper from './components/PrismaStepper';
 import Identification from './identification';
+import { useIdentification } from './identification/hooks/useIdentification';
+import Screening from './screening';
+import { getUniqueArticlesByDoi } from './utils/articles';
 import Retrieval from './retrieval';
 
-export default function Prisma(props: any) { {
+export default function Prisma(props: any) {
+  const identification = useIdentification();
+  const [activeStep, setActiveStep] = useState(0);
+
+  const globalArticles = getUniqueArticlesByDoi(identification.keywords);
+  const canOpenScreening = globalArticles.length > 0;
   return (
     <>
       <Head title="PRISMA" />
@@ -63,15 +72,34 @@ export default function Prisma(props: any) { {
               py: 1.5,
             }}
           >
-            <PrismaStepper activeStep={0} />
+            <PrismaStepper
+              activeStep={activeStep}
+              canOpenScreening={canOpenScreening}
+              onStepClick={(step) => {
+                if (step === 1 && !canOpenScreening) return;
+                setActiveStep(step);
+              }}
+            />
           </Box>
         </Paper>
 
         <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-          {/* <Identification /> */}
-          <Retrieval {...props} />
+          {activeStep === 0 && (
+            <Identification
+              {...identification}
+              globalArticles={globalArticles}
+            />
+          )}
+
+          {activeStep === 1 && (
+            <Screening articles={globalArticles} researchPlanId={1} />
+          )}
+
+          {activeStep === 2 && (
+            <Retrieval{...props} />
+          )}
         </Box>
       </Box>
     </>
   );
-}}
+}

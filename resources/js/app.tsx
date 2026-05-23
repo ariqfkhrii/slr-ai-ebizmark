@@ -7,6 +7,7 @@ import '../css/app.css';
 import './bootstrap';
 
 import { createRoot, hydrateRoot } from 'react-dom/client';
+import SnackbarProvider from './components/snackbar-provider';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -50,6 +51,7 @@ createInertiaApp({
         <ThemeProvider theme={muiTheme}>
           <CssBaseline />
           <App {...props} />
+          <SnackbarProvider />
         </ThemeProvider>
       </Provider>
     );

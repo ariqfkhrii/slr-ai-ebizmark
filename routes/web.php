@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use App\Http\Controllers\FilteredArticleController;
 use App\Http\Controllers\ResearchPlanController;
+use App\Http\Controllers\ResearchPlanKeywordController;
 
 Route::inertia('/', 'welcome', [
     'canRegister' => Features::enabled(Features::registration()),
@@ -28,6 +29,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         
     Route::get('prisma', [ResearchPlanController::class, 'prisma'])
         ->name('prisma');
+
+    // Research Plan Keywords
+    Route::get('/research-plans/{researchPlanId}/keywords', [ResearchPlanKeywordController::class, 'index']);
+    Route::post('/research-plans/{researchPlanId}/keywords', [ResearchPlanKeywordController::class, 'store']);
+    Route::put('/research-plans/{researchPlanId}/keywords', [ResearchPlanKeywordController::class, 'update']);
+    Route::delete('/research-plans/{researchPlanId}/keywords/{keywordId}', [ResearchPlanKeywordController::class, 'destroy']);
 });
 
 require __DIR__.'/settings.php';

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FilteredArticle;
 use App\Models\ResearchPlan;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -65,5 +66,39 @@ class ResearchPlanController extends Controller
         $this->service->delete($researchPlan, $request->user());
 
         return redirect()->back()->with('success', 'Research Plan berhasil dihapus');
+    }
+
+    public function prisma(Request $request)
+    {
+        $researchPlans = $request->user()
+            ->researchPlans()
+            ->latest()
+            ->get(['research_plan_id', 'title']);
+
+        $selectedId = (int) $request->query('research_plan_id', $researchPlans->first()?->research_plan_id);
+        $researchPlan = $researchPlans->firstWhere('research_plan_id', $selectedId);
+
+        if (! $researchPlan) {
+            abort(404);
+        }
+
+        $filteredArticles = FilteredArticle::query()
+            ->where('research_plan_id', $researchPlan->research_plan_id)
+            ->with(['rawArticle:article_id,doi,title,issn,publish_year,tier'])
+            ->get([
+                'filtered_article_id',
+                'raw_article_id',
+                'research_plan_id',
+                'novelty_status',
+                'article_status',
+                'included',
+                'retrieved',
+            ]);
+
+        return Inertia::render('prisma/index', [
+            'researchPlan' => $researchPlan,
+            'researchPlans' => $researchPlans,
+            'filteredArticles' => $filteredArticles,
+        ]);
     }
 }

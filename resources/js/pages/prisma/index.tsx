@@ -6,8 +6,9 @@ import Identification from './identification';
 import { useIdentification } from './identification/hooks/useIdentification';
 import Screening from './screening';
 import { getUniqueArticlesByDoi } from './utils/articles';
+import Retrieval from './retrieval';
 
-export default function Prisma() {
+export default function Prisma(props: any) {
   const identification = useIdentification();
   const [activeStep, setActiveStep] = useState(0);
 
@@ -92,6 +93,10 @@ export default function Prisma() {
 
           {activeStep === 1 && (
             <Screening articles={globalArticles} researchPlanId={1} />
+          )}
+
+          {activeStep === 2 && (
+            <Retrieval{...props} />
           )}
         </Box>
       </Box>

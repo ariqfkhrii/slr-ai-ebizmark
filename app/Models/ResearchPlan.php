@@ -23,6 +23,11 @@ class ResearchPlan extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'research_plan_id';
+    }
+
     public function keywords()
     {
         return $this->belongsToMany(

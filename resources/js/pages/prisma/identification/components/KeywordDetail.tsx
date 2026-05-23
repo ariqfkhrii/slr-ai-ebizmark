@@ -38,6 +38,9 @@ export default function KeywordDetail({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          minWidth: 0,
+          height: '100%',
+          overflow: 'hidden',
         }}
       >
         <Typography color="text.secondary">Pilih keyword dulu</Typography>

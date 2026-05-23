@@ -1,6 +1,6 @@
 import { RawArticle } from '../types';
 
-export const mockRawArticles: RawArticle[] = [
+const baseRawArticles: RawArticle[] = [
   {
     article_id: 1,
     country_id: 1,
@@ -503,3 +503,11 @@ export const mockRawArticles: RawArticle[] = [
     link: 'https://doi.org/10.1016/j.iswa.2024.200318',
   },
 ];
+
+export const mockRawArticles: RawArticle[] = baseRawArticles.map(
+  (article, index) => ({
+    ...article,
+    citation_count: [90, 128, 64, 210, 45, 33, 76, 142][index % 8],
+    abstract: `This article discusses ${article.title.toLowerCase()} in the context of systematic literature review, metadata processing, article retrieval, and evidence selection. The study highlights methodological considerations, implementation challenges, and opportunities for improving research discovery workflows.`,
+  }),
+);

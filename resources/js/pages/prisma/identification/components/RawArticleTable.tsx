@@ -28,6 +28,25 @@ export default function RawArticleTable({ articles, maxHeight }: Props) {
           borderRadius: 2,
           overflow: 'auto',
           maxHeight: maxHeight ?? 'none',
+
+          '&::-webkit-scrollbar': {
+            width: 8,
+            height: 8,
+          },
+
+          '&::-webkit-scrollbar-track': {
+            background: '#f8fafc',
+          },
+
+          '&::-webkit-scrollbar-thumb': {
+            background: '#cbd5e1',
+            borderRadius: 999,
+            border: '2px solid #f8fafc',
+          },
+
+          '&::-webkit-scrollbar-thumb:hover': {
+            background: '#94a3b8',
+          },
         }}
       >
         <Table size="small">

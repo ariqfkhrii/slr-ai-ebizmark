@@ -4,16 +4,19 @@ import { useState } from 'react';
 import PrismaStepper from './components/PrismaStepper';
 import Identification from './identification';
 import { useIdentification } from './identification/hooks/useIdentification';
-import Screening from './screening';
-import { getUniqueArticlesByDoi } from './utils/articles';
 import Retrieval from './retrieval';
+import Screening from './screening';
+import { useScreening } from './screening/hooks/useScreening';
+import { getUniqueArticlesByDoi } from './utils/articles';
 
 export default function Prisma(props: any) {
   const identification = useIdentification();
   const [activeStep, setActiveStep] = useState(0);
 
   const globalArticles = getUniqueArticlesByDoi(identification.keywords);
+  const screening = useScreening(globalArticles, 1);
   const canOpenScreening = globalArticles.length > 0;
+  const canOpenRetrieval = screening.counters.included > 0;
   return (
     <>
       <Head title="PRISMA" />
@@ -75,8 +78,11 @@ export default function Prisma(props: any) {
             <PrismaStepper
               activeStep={activeStep}
               canOpenScreening={canOpenScreening}
+              canOpenRetrieval={canOpenRetrieval}
               onStepClick={(step) => {
                 if (step === 1 && !canOpenScreening) return;
+                if (step === 2 && !canOpenRetrieval) return;
+
                 setActiveStep(step);
               }}
             />
@@ -91,13 +97,9 @@ export default function Prisma(props: any) {
             />
           )}
 
-          {activeStep === 1 && (
-            <Screening articles={globalArticles} researchPlanId={1} />
-          )}
+          {activeStep === 1 && <Screening {...screening} />}
 
-          {activeStep === 2 && (
-            <Retrieval{...props} />
-          )}
+          {activeStep === 2 && <Retrieval {...props} />}
         </Box>
       </Box>
     </>

@@ -3,7 +3,6 @@ import { useMemo, useState } from 'react';
 
 import {
   BookOpen,
-  CloudUpload,
   Download,
   ExternalLink,
   Link2,
@@ -16,18 +15,14 @@ import {
   Button,
   Divider,
   Paper,
-  Stack,
   TextField,
   Typography,
 } from '@mui/material';
 
-import MetricCard from './components/MetricCard';
 import ArticlePanel from './components/ArticlePanel';
+import MetricCard from './components/MetricCard';
 
-import type {
-  ArticleItem,
-  PrismaPageProps,
-} from './types';
+import type { ArticleItem, PrismaPageProps } from './types';
 
 const shortcutPresets = [
   {
@@ -40,16 +35,11 @@ const shortcutPresets = [
   },
   {
     label: 'Crossref',
-    value:
-      'https://search.crossref.org/?q=',
+    value: 'https://search.crossref.org/?q=',
   },
 ];
 
-function buildArticleLink(
-  preLink: string,
-  doi: string,
-  postLink: string,
-) {
+function buildArticleLink(preLink: string, doi: string, postLink: string) {
   return `${preLink}${doi}${postLink}`;
 }
 
@@ -57,48 +47,32 @@ export default function Retrieval({
   researchPlan,
   filteredArticles,
 }: PrismaPageProps) {
-  const [preLink, setPreLink] =
-    useState('https://sci-hub.se/');
+  const [preLink, setPreLink] = useState('https://sci-hub.se/');
 
-  const [postLink, setPostLink] =
-    useState('');
+  const [postLink, setPostLink] = useState('');
 
-  const [pdfFile, setPdfFile] =
-    useState<File | null>(null);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const articles = useMemo<ArticleItem[]>(
     () =>
       filteredArticles.map((item) => ({
         id: item.filtered_article_id,
-        title:
-          item.raw_article?.title ??
-          'Untitled',
-        doi:
-          item.raw_article?.doi ??
-          '-',
-        source:
-          item.raw_article?.tier ??
-          'Unknown',
-        year:
-          item.raw_article?.publish_year ??
-          null,
-        retrieved:
-          item.retrieved ===
-          'Retrieved',
+        title: item.raw_article?.title ?? 'Untitled',
+        doi: item.raw_article?.doi ?? '-',
+        source: item.raw_article?.tier ?? 'Unknown',
+        year: item.raw_article?.publish_year ?? null,
+        retrieved: item.retrieved === 'Retrieved',
         note: `Status: ${item.article_status}`,
       })),
     [filteredArticles],
   );
 
-  const retrievedArticles =
-    articles.filter((a) => a.retrieved);
+  const retrievedArticles = articles.filter((a) => a.retrieved);
 
-  const notRetrievedArticles =
-    articles.filter((a) => !a.retrieved);
+  const notRetrievedArticles = articles.filter((a) => !a.retrieved);
 
-  const handleShortcut = (
-    value: string,
-  ) => {
+  const handleShortcut = (value: string) => {
     setPreLink(value);
   };
 
@@ -107,28 +81,31 @@ export default function Retrieval({
 
     const formData = new FormData();
 
-    formData.append(
-      'pdf',
-      pdfFile,
-    );
+    formData.append('pdf', pdfFile);
 
-    formData.append(
-      'research_plan_id',
-      String(
-        researchPlan.research_plan_id,
-      ),
-    );
+    formData.append('research_plan_id', String(researchPlan.research_plan_id));
 
-    router.post(
-      '/filtered-articles/check-doi',
-      formData,
-      {
-        forceFormData: true,
-        preserveScroll: true,
-        onSuccess: () =>
-          setPdfFile(null),
-      },
-    );
+    router.post('/filtered-articles/check-doi', formData, {
+      forceFormData: true,
+      preserveScroll: true,
+      onSuccess: () => setPdfFile(null),
+    });
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files?.[0];
+
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      alert('File harus PDF');
+      return;
+    }
+
+    setPdfFile(file);
   };
 
   return (
@@ -136,11 +113,9 @@ export default function Retrieval({
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns:
-            '1.1fr 1.1fr 0.75fr',
+          gridTemplateColumns: '1.1fr 1.1fr 0.75fr',
           gap: 2.25,
-          minHeight:
-            'calc(100vh - 170px)',
+          minHeight: 'calc(100vh - 170px)',
         }}
       >
         {/* LEFT */}
@@ -156,42 +131,29 @@ export default function Retrieval({
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns:
-                'repeat(3, 1fr)',
+              gridTemplateColumns: 'repeat(3, 1fr)',
               gap: 2,
             }}
           >
             <MetricCard
               title="Record Retrieved"
-              value={
-                retrievedArticles.length
-              }
+              value={retrievedArticles.length}
               tone="green"
-              icon={
-                <Download size={18} />
-              }
+              icon={<Download size={18} />}
             />
 
             <MetricCard
               title="Record not Retrieved"
-              value={
-                notRetrievedArticles.length
-              }
+              value={notRetrievedArticles.length}
               tone="red"
-              icon={
-                <ShieldCheck
-                  size={18}
-                />
-              }
+              icon={<ShieldCheck size={18} />}
             />
 
             <MetricCard
               title="Total Record"
               value={articles.length}
               tone="indigo"
-              icon={
-                <BookOpen size={18} />
-              }
+              icon={<BookOpen size={18} />}
             />
           </Box>
 
@@ -206,12 +168,8 @@ export default function Retrieval({
           >
             <ArticlePanel
               title="NOT RETRIEVED"
-              count={
-                notRetrievedArticles.length
-              }
-              articles={
-                notRetrievedArticles
-              }
+              count={notRetrievedArticles.length}
+              articles={notRetrievedArticles}
               accent="#ef4444"
               emptyText="Semua retrieved"
               preLink={preLink}
@@ -220,12 +178,8 @@ export default function Retrieval({
 
             <ArticlePanel
               title="RETRIEVED"
-              count={
-                retrievedArticles.length
-              }
-              articles={
-                retrievedArticles
-              }
+              count={retrievedArticles.length}
+              articles={retrievedArticles}
               accent="#22c55e"
               emptyText="Belum ada"
               preLink={preLink}
@@ -262,49 +216,30 @@ export default function Retrieval({
               gap: 1,
             }}
           >
-            {shortcutPresets.map(
-              (preset) => (
-                <Button
-                  key={preset.label}
-                  size="small"
-                  variant={
-                    preLink ===
-                    preset.value
-                      ? 'contained'
-                      : 'outlined'
-                  }
-                  onClick={() =>
-                    handleShortcut(
-                      preset.value,
-                    )
-                  }
-                >
-                  {preset.label}
-                </Button>
-              ),
-            )}
+            {shortcutPresets.map((preset) => (
+              <Button
+                key={preset.label}
+                size="small"
+                variant={preLink === preset.value ? 'contained' : 'outlined'}
+                onClick={() => handleShortcut(preset.value)}
+              >
+                {preset.label}
+              </Button>
+            ))}
           </Box>
 
           <TextField
             size="small"
             label="Pre-link"
             value={preLink}
-            onChange={(e) =>
-              setPreLink(
-                e.target.value,
-              )
-            }
+            onChange={(e) => setPreLink(e.target.value)}
           />
 
           <TextField
             size="small"
             label="Post-link"
             value={postLink}
-            onChange={(e) =>
-              setPostLink(
-                e.target.value,
-              )
-            }
+            onChange={(e) => setPostLink(e.target.value)}
           />
 
           <Paper
@@ -316,17 +251,12 @@ export default function Retrieval({
           >
             {buildArticleLink(
               preLink,
-              articles[0]?.doi ??
-                '10.0000/example',
+              articles[0]?.doi ?? '10.0000/example',
               postLink,
             )}
           </Paper>
 
-          <Button
-            variant="contained"
-            fullWidth
-            endIcon={<Link2 size={14} />}
-          >
+          <Button variant="contained" fullWidth endIcon={<Link2 size={14} />}>
             Simpan
           </Button>
 
@@ -342,26 +272,42 @@ export default function Retrieval({
             UPLOAD PDF
           </Typography>
 
-          <Button
-            component="label"
+          <Paper
             variant="outlined"
-            startIcon={
-              <CloudUpload size={14} />
-            }
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragging(true);
+            }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={handleDrop}
+            sx={{
+              p: 3,
+              borderRadius: 3,
+              textAlign: 'center',
+              borderStyle: 'dashed',
+              borderColor: isDragging ? 'primary.main' : 'divider',
+              bgcolor: isDragging ? 'action.hover' : 'transparent',
+              cursor: 'pointer',
+            }}
           >
-            Pilih PDF
-            <input
-              hidden
-              type="file"
-              accept="application/pdf"
-              onChange={(e) =>
-                setPdfFile(
-                  e.target.files?.[0] ??
-                    null,
-                )
-              }
-            />
-          </Button>
+            <Typography sx={{ mt: 1, fontWeight: 700 }}>
+              Drag & drop PDF di sini
+            </Typography>
+
+            <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.5 }}>
+              atau klik untuk pilih file
+            </Typography>
+
+            <Button component="label" size="small" sx={{ mt: 1 }}>
+              Pilih PDF
+              <input
+                hidden
+                type="file"
+                accept="application/pdf"
+                onChange={(e) => setPdfFile(e.target.files?.[0] ?? null)}
+              />
+            </Button>
+          </Paper>
 
           <Typography
             sx={{
@@ -369,30 +315,19 @@ export default function Retrieval({
               color: 'text.secondary',
             }}
           >
-            {pdfFile
-              ? pdfFile.name
-              : 'Belum ada file'}
+            {pdfFile ? pdfFile.name : 'Belum ada file'}
           </Typography>
 
           <Button
             variant="contained"
             disabled={!pdfFile}
             onClick={handleUpload}
-            startIcon={
-              <Search size={14} />
-            }
+            startIcon={<Search size={14} />}
           >
             Upload & Scan DOI
           </Button>
 
-          <Button
-            variant="outlined"
-            startIcon={
-              <ExternalLink
-                size={14}
-              />
-            }
-          >
+          <Button variant="outlined" startIcon={<ExternalLink size={14} />}>
             Upload History
           </Button>
         </Paper>

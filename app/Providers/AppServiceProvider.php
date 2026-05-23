@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\ResearchPlanKeyword\ResearchPlanKeywordService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +25,9 @@ class AppServiceProvider extends ServiceProvider
             \App\Http\Interfaces\ResearchPlanServiceInterface::class,
             \App\Services\ResearchPlanService::class
         );
+        $this->app->bind(ResearchPlanKeywordService::class, function ($app) {
+            return new ResearchPlanKeywordService();
+        });
     }
 
     /**

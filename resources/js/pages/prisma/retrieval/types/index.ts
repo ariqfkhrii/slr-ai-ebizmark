@@ -55,4 +55,5 @@ export type ArticlePanelProps = {
   emptyText: string;
   preLink: string;
   postLink: string;
+  onToggleRetrieved?: (articleId: number, nextRetrieved: boolean) => void;
 };

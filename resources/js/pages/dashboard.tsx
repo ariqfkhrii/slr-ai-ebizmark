@@ -207,11 +207,12 @@ export default function dashboard({
 
                             <div className="flex items-center gap-2">
 
-                                <button
-                                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-2 text-sm font-semibold shadow-md transition-all duration-200"
+                                <Link
+                                    href={`/prisma?research_plan_id=${plan.research_plan_id}`}
+                                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-2 text-sm font-semibold shadow-md transition-all duration-200 text-center"
                                 >
                                     Lihat Research
-                                </button>
+                                </Link>
 
                                 <button
                                     onClick={() => openEditModal(plan)}

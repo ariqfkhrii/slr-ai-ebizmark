@@ -79,11 +79,22 @@ class ResearchPlanController extends Controller
         $researchPlan = $researchPlans->firstWhere('research_plan_id', $selectedId);
 
         if (! $researchPlan) {
+            $exists = ResearchPlan::query()
+                ->where('research_plan_id', $selectedId)
+                ->exists();
+
+            if ($exists) {
+                return Inertia::render('errors/forbidden-research-plan', [
+                    'requestedId' => $selectedId,
+                ]);
+            }
+
             abort(404);
         }
 
         $filteredArticles = FilteredArticle::query()
             ->where('research_plan_id', $researchPlan->research_plan_id)
+            ->where('article_status', 'included')
             ->with(['rawArticle:article_id,doi,title,issn,publish_year,tier'])
             ->get([
                 'filtered_article_id',

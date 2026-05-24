@@ -65,7 +65,6 @@ class FilteredArticleDoiService
                 'research_plan_id' => $researchPlanId,
             ], [
                 'article_status' => 'included',
-                'included' => true,
                 'retrieved' => 'Retrieved',
                 'ai_usage_status' => 'not_used',
             ]);

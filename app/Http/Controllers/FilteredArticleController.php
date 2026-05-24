@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FilteredArticle;
 use App\Models\ResearchPlan;
 use App\Services\FilteredArticleDoiService;
 use Illuminate\Http\Request;
@@ -93,5 +94,27 @@ class FilteredArticleController extends Controller
                 'matched_article_ids' => $result['matched_article_ids'],
             ],
         ]);
+    }
+
+    public function updateRetrieval(Request $request, FilteredArticle $filteredArticle)
+    {
+        $validated = $request->validate([
+            'retrieved' => ['required', Rule::in(['Retrieved', 'Not Retrieved'])],
+        ]);
+
+        $filteredArticle->loadMissing('researchPlan');
+
+        if ($filteredArticle->researchPlan?->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $articleStatus = $validated['retrieved'] === 'Retrieved' ? 'eligible' : 'excluded';
+
+        $filteredArticle->update([
+            'retrieved' => $validated['retrieved'],
+            'article_status' => $articleStatus,
+        ]);
+
+        return redirect()->back()->with('success', 'Status retrieval berhasil diupdate.');
     }
 }

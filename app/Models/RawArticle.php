@@ -24,4 +24,9 @@ class RawArticle extends Model
     {
         return $this->belongsToMany(Country::class, 'raw_article_countries')->withTimestamps();
     }
+
+    public function filteredArticles()
+    {
+        return $this->hasMany(FilteredArticle::class, 'raw_article_id', 'id');
+    }
 }

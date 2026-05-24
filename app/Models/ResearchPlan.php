@@ -40,4 +40,9 @@ class ResearchPlan extends Model
         ->withPivot('article_count')
         ->withTimestamps();
     }
+
+    public function filteredArticles()
+    {
+        return $this->hasMany(FilteredArticle::class, 'research_plan_id', 'research_plan_id');
+    }
 }

@@ -20,7 +20,7 @@ function buildArticleLink(
   doi: string,
   postLink: string,
 ) {
-  return `${preLink}${doi}${postLink}`;
+  return `${preLink}${encodeURIComponent(doi)}${postLink}`;
 }
 
 export default function ArticlePanel({
@@ -31,6 +31,7 @@ export default function ArticlePanel({
   emptyText,
   preLink,
   postLink,
+  onToggleRetrieved,
 }: ArticlePanelProps) {
   return (
     <Paper

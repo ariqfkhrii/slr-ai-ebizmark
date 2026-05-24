@@ -10,11 +10,12 @@ import { useScreening } from './screening/hooks/useScreening';
 import { getUniqueArticlesByDoi } from './utils/articles';
 
 export default function Prisma(props: any) {
-  const identification = useIdentification(1); // Hardcode researchPlanId for now (TODO: Take it from research plan page)
+  const researchPlanId = Number(props?.researchPlan?.research_plan_id ?? 0);
+  const identification = useIdentification(researchPlanId);
   const [activeStep, setActiveStep] = useState(0);
 
   const globalArticles = getUniqueArticlesByDoi(identification.keywords);
-  const screening = useScreening(globalArticles, 1);
+  const screening = useScreening(globalArticles, researchPlanId);
   const canOpenScreening = globalArticles.length > 0;
   const canOpenRetrieval = screening.counters.included > 0;
   return (

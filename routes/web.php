@@ -26,6 +26,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/filtered-articles/check-doi', [FilteredArticleController::class, 'store'])
         ->name('filtered-articles.check-doi');
+
+    Route::put('/filtered-articles/{filteredArticle}/retrieval', [FilteredArticleController::class, 'updateRetrieval'])
+        ->name('filtered-articles.update-retrieval');
         
     Route::get('prisma', [ResearchPlanController::class, 'prisma'])
         ->name('prisma');

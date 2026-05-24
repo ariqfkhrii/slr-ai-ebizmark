@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'scopus' => [
+        'key' => env('SCOPUS_API_KEY'),
+    ],
+
+    'pubmed' => [
+        'key' => env('PUBMED_API_KEY'),
+    ],
+    
 ];

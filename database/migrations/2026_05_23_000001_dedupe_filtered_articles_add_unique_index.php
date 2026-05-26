@@ -12,10 +12,24 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement('DELETE fa1 FROM filtered_articles fa1 INNER JOIN filtered_articles fa2 ON fa1.raw_article_id = fa2.raw_article_id AND fa1.research_plan_id = fa2.research_plan_id AND fa1.filtered_article_id < fa2.filtered_article_id');
+        // Skip unsupported DELETE JOIN syntax for SQLite testing
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+
+            DB::statement('
+                DELETE fa1
+                FROM filtered_articles fa1
+                INNER JOIN filtered_articles fa2
+                    ON fa1.raw_article_id = fa2.raw_article_id
+                    AND fa1.research_plan_id = fa2.research_plan_id
+                    AND fa1.filtered_article_id < fa2.filtered_article_id
+            ');
+        }
 
         Schema::table('filtered_articles', function (Blueprint $table) {
-            $table->unique(['raw_article_id', 'research_plan_id'], 'filtered_articles_raw_plan_unique');
+            $table->unique(
+                ['raw_article_id', 'research_plan_id'],
+                'filtered_articles_raw_plan_unique'
+            );
         });
     }
 

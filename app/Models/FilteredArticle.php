@@ -28,4 +28,9 @@ class FilteredArticle extends Model
     {
         return $this->belongsTo(ResearchPlan::class, 'research_plan_id', 'research_plan_id');
     }
+
+    public function review()
+    {
+        return $this->hasOne(Review::class, 'article_id', 'filtered_article_id');
+    }
 }

@@ -5,15 +5,21 @@ import { ClassificationCategory } from '../types';
 type Props = {
   categories: ClassificationCategory[];
   activeCategories: ClassificationCategory[];
+  theory: string;
   onUpdateCategory: (id: number, name: string) => void;
-  onCheckAi: () => void;
+  onUpdateTheory: (value: string) => void;
+  onSaveSetup: () => void;
+  onRunAi: () => void;
 };
 
 export default function AiClassificationSetup({
   categories,
   activeCategories,
+  theory,
   onUpdateCategory,
-  onCheckAi,
+  onUpdateTheory,
+  onSaveSetup,
+  onRunAi,
 }: Props) {
   return (
     <Paper
@@ -142,15 +148,49 @@ export default function AiClassificationSetup({
             );
           })}
         </Box>
+
+        <Box sx={{ mt: 2 }}>
+          <Typography
+            sx={{ mb: 1, fontSize: 12, fontWeight: 800, color: '#475569' }}
+          >
+            Theory
+          </Typography>
+
+          <TextField
+            fullWidth
+            multiline
+            minRows={3}
+            value={theory}
+            placeholder="Add theory or notes..."
+            onChange={(e) => onUpdateTheory(e.target.value)}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 3,
+                bgcolor: '#ffffff',
+              },
+              '& .MuiInputBase-input': {
+                fontSize: 13,
+                lineHeight: 1.6,
+              },
+            }}
+          />
+        </Box>
       </Box>
 
-      <Box sx={{ p: 2, borderTop: '1px solid #eef2f7' }}>
+      <Box
+        sx={{
+          p: 2,
+          borderTop: '1px solid #eef2f7',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+        }}
+      >
         <Button
           fullWidth
           variant="contained"
           startIcon={<AutoAwesomeIcon fontSize="small" />}
-          disabled
-          onClick={onCheckAi}
+          onClick={onSaveSetup}
           sx={{
             py: 1,
             borderRadius: 3,
@@ -164,7 +204,27 @@ export default function AiClassificationSetup({
             },
           }}
         >
-          Generate AI Classification
+          Save Setup
+        </Button>
+
+        <Button
+          fullWidth
+          variant="outlined"
+          onClick={onRunAi}
+          sx={{
+            py: 1,
+            borderRadius: 3,
+            textTransform: 'none',
+            fontWeight: 900,
+            borderColor: '#1d4ed8',
+            color: '#1d4ed8',
+            '&:hover': {
+              borderColor: '#1e40af',
+              bgcolor: '#eff6ff',
+            },
+          }}
+        >
+          AI Classification
         </Button>
       </Box>
     </Paper>

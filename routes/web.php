@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use App\Http\Controllers\FilteredArticleController;
+use App\Http\Controllers\ClassificationSetupController;
+use App\Http\Controllers\AiClassificationController;
 use App\Http\Controllers\ResearchPlanController;
 use App\Http\Controllers\ResearchPlanKeywordController;
 
@@ -29,6 +31,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::put('/filtered-articles/{filteredArticle}/retrieval', [FilteredArticleController::class, 'updateRetrieval'])
         ->name('filtered-articles.update-retrieval');
+
+    Route::put('/classification-setup', [ClassificationSetupController::class, 'upsert'])
+        ->name('classification-setup.upsert');
+
+    Route::post('/ai-classification/run', [AiClassificationController::class, 'run'])
+        ->name('ai-classification.run');
         
     Route::get('prisma', [ResearchPlanController::class, 'prisma'])
         ->name('prisma');

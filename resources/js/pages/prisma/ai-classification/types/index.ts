@@ -12,3 +12,15 @@ export type ClassificationArticle = {
   researchMethod: string;
   classifications: Record<number, string>;
 };
+
+export type ClassificationSetup = {
+  id_setup: number;
+  research_plan_id: number;
+  category_1: string | null;
+  category_2: string | null;
+  category_3: string | null;
+  category_4: string | null;
+  category_5: string | null;
+  category_6: string | null;
+  theory: string | null;
+};

@@ -2,15 +2,27 @@ import { Box } from '@mui/material';
 import AiClassificationDetailDialog from './components/AiClassificationDetailDialog';
 import AiClassificationResultTable from './components/AiClassificationResultTable';
 import AiClassificationSetup from './components/AiClassificationSetup';
+import AiClassificationSyncDialog from './components/AiClassificationSyncDialog';
 import { useAiClassification } from './hooks/useAiClassification';
 import type { FilteredArticleSummary } from '../retrieval/types';
+import type { ClassificationSetup } from './types';
 
 type Props = {
   filteredArticles: FilteredArticleSummary[];
+  researchPlanId: number;
+  classificationSetup: ClassificationSetup | null;
 };
 
-export default function AiClassification({ filteredArticles }: Props) {
-  const classification = useAiClassification(filteredArticles);
+export default function AiClassification({
+  filteredArticles,
+  researchPlanId,
+  classificationSetup,
+}: Props) {
+  const classification = useAiClassification(
+    filteredArticles,
+    researchPlanId,
+    classificationSetup,
+  );
 
   return (
     <Box
@@ -28,8 +40,11 @@ export default function AiClassification({ filteredArticles }: Props) {
       <AiClassificationSetup
         categories={classification.categories}
         activeCategories={classification.activeCategories}
+        theory={classification.theory}
         onUpdateCategory={classification.updateCategory}
-        onCheckAi={classification.checkIdeaClassificationFromAi}
+        onUpdateTheory={classification.setTheory}
+        onSaveSetup={classification.saveSetup}
+        onRunAi={classification.runAiClassification}
       />
 
       <AiClassificationResultTable
@@ -45,6 +60,16 @@ export default function AiClassification({ filteredArticles }: Props) {
         onClose={classification.closeDetail}
         onUpdateClassification={classification.updateClassification}
         onUpdateResearchMethod={classification.updateResearchMethod}
+      />
+
+      <AiClassificationSyncDialog
+        open={classification.syncOpen}
+        status={classification.syncStatus}
+        progress={classification.syncProgress}
+        processed={classification.syncProcessed}
+        total={classification.syncTotal}
+        errorMessage={classification.syncError}
+        onClose={classification.closeSync}
       />
     </Box>
   );

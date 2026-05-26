@@ -116,7 +116,11 @@ export default function Prisma(props: any) {
             (classificationMode === 'manual' ? (
               <Classification />
             ) : (
-              <AiClassification filteredArticles={props.filteredArticles} />
+              <AiClassification
+                filteredArticles={props.filteredArticles}
+                researchPlanId={researchPlanId}
+                classificationSetup={props.classificationSetup ?? null}
+              />
             ))}
         </Box>
       </Box>

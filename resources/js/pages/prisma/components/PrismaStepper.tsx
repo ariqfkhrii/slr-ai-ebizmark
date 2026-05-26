@@ -1,11 +1,21 @@
 import { Box, Typography } from '@mui/material';
 
-const steps = ['Identification', 'Screening', 'Retrieval', 'Report'];
+const steps = [
+  'Identification',
+  'Screening',
+  'Retrieval',
+  'Classification',
+  'Extraction',
+  'Report',
+];
 
 type Props = {
   activeStep?: number;
   canOpenScreening?: boolean;
   canOpenRetrieval?: boolean;
+  canOpenClassification?: boolean;
+  canOpenExtraction?: boolean;
+  canOpenReport?: boolean;
   onStepClick?: (step: number) => void;
 };
 
@@ -13,13 +23,16 @@ export default function PrismaStepper({
   activeStep = 0,
   canOpenScreening = false,
   canOpenRetrieval = false,
+  canOpenClassification = true,
+  canOpenExtraction = false,
+  canOpenReport = false,
   onStepClick,
 }: Props) {
   return (
     <Box
       sx={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
+        gridTemplateColumns: 'repeat(6, 1fr)',
         alignItems: 'center',
         gap: 4,
         width: '100%',
@@ -31,11 +44,17 @@ export default function PrismaStepper({
         const isIdentification = index === 0;
         const isScreening = index === 1;
         const isRetrieval = index === 2;
+        const isClassification = index === 3;
+        const isExtraction = index === 4;
+        const isReport = index === 5;
 
         const isUnlocked =
           isIdentification ||
           (isScreening && canOpenScreening) ||
-          (isRetrieval && canOpenRetrieval);
+          (isRetrieval && canOpenRetrieval) ||
+          (isClassification && canOpenClassification) ||
+          (isExtraction && canOpenExtraction) ||
+          (isReport && canOpenReport);
 
         const isClickable = isUnlocked;
 
@@ -87,7 +106,7 @@ export default function PrismaStepper({
                   position: 'absolute',
                   top: '50%',
                   left: 'calc(50% + 110px)',
-                  right: 'calc(-59% + 110px)',
+                  right: 'calc(-64% + 110px)',
                   height: 2,
                   bgcolor: lineColor,
                   transform: 'translateY(-50%)',

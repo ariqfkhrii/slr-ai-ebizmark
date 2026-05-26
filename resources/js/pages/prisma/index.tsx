@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { Box, Paper, Typography } from '@mui/material';
 import { useState } from 'react';
+import Classification from './classification';
 import PrismaStepper from './components/PrismaStepper';
 import Identification from './identification';
 import { useIdentification } from './identification/hooks/useIdentification';
@@ -18,6 +19,7 @@ export default function Prisma(props: any) {
   const screening = useScreening(globalArticles, researchPlanId);
   const canOpenScreening = globalArticles.length > 0;
   const canOpenRetrieval = screening.counters.included > 0;
+  const canOpenClassification = true;
   return (
     <>
       <Head title="PRISMA" />
@@ -80,9 +82,11 @@ export default function Prisma(props: any) {
               activeStep={activeStep}
               canOpenScreening={canOpenScreening}
               canOpenRetrieval={canOpenRetrieval}
+              canOpenClassification={canOpenClassification}
               onStepClick={(step) => {
                 if (step === 1 && !canOpenScreening) return;
                 if (step === 2 && !canOpenRetrieval) return;
+                if (step === 3 && !canOpenClassification) return;
 
                 setActiveStep(step);
               }}
@@ -101,6 +105,8 @@ export default function Prisma(props: any) {
           {activeStep === 1 && <Screening {...screening} />}
 
           {activeStep === 2 && <Retrieval {...props} />}
+
+          {activeStep === 3 && <Classification />}
         </Box>
       </Box>
     </>

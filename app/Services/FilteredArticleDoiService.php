@@ -13,7 +13,7 @@ class FilteredArticleDoiService
     /**
      * Extract DOI values from uploaded PDF content and match them to raw_articles.
      */
-    public function extractAndMatch(UploadedFile $pdfFile, int $researchPlanId): array
+    public function extractAndMatch(UploadedFile $pdfFile, int $researchPlanId, string $storedPath): array
     {
         $text = $this->extractTextFromPdf($pdfFile);
 
@@ -67,6 +67,7 @@ class FilteredArticleDoiService
                 'article_status' => 'included',
                 'retrieved' => 'Retrieved',
                 'ai_usage_status' => 'not_used',
+                'pdf_path' => $storedPath,
             ]);
 
             if ($filteredArticle->wasRecentlyCreated) {

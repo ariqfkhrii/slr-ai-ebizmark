@@ -19,6 +19,7 @@ export type RawArticleSummary = {
   article_id: number;
   doi: string;
   title: string;
+  authors: string | null;
   issn: string | null;
   publish_year: number | null;
   tier: string | null;

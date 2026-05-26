@@ -95,7 +95,9 @@ class ResearchPlanController extends Controller
         $filteredArticles = FilteredArticle::query()
             ->where('research_plan_id', $researchPlan->research_plan_id)
             ->where('article_status', 'included')
-            ->with(['rawArticle:article_id,doi,title,issn,publish_year,tier'])
+            ->with([
+                'rawArticle:article_id,doi,title,authors,issn,publish_year,tier',
+            ])
             ->get([
                 'filtered_article_id',
                 'raw_article_id',

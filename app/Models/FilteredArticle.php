@@ -16,6 +16,7 @@ class FilteredArticle extends Model
         'included',
         'retrieved',
         'ai_usage_status',
+        'pdf_path',
     ];
 
     public function rawArticle()

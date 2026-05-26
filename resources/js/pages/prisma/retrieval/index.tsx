@@ -57,6 +57,7 @@ export default function Retrieval({
       filteredArticles.map((item) => ({
         id: item.filtered_article_id,
         title: item.raw_article?.title ?? 'Untitled',
+        authors: item.raw_article?.authors ?? 'Unknown',
         doi: item.raw_article?.doi ?? '-',
         source: item.raw_article?.tier ?? 'Unknown',
         year: item.raw_article?.publish_year ?? null,

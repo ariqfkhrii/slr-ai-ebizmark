@@ -1,4 +1,4 @@
-import { Box, Typography } from '@mui/material';
+import { Box, MenuItem, Select, Typography } from '@mui/material';
 
 const steps = [
   'Identification',
@@ -16,6 +16,8 @@ type Props = {
   canOpenClassification?: boolean;
   canOpenExtraction?: boolean;
   canOpenReport?: boolean;
+  classificationMode?: 'manual' | 'ai';
+  onClassificationModeChange?: (mode: 'manual' | 'ai') => void;
   onStepClick?: (step: number) => void;
 };
 
@@ -26,6 +28,8 @@ export default function PrismaStepper({
   canOpenClassification = true,
   canOpenExtraction = false,
   canOpenReport = false,
+  classificationMode = 'manual',
+  onClassificationModeChange,
   onStepClick,
 }: Props) {
   return (
@@ -45,6 +49,11 @@ export default function PrismaStepper({
         const isScreening = index === 1;
         const isRetrieval = index === 2;
         const isClassification = index === 3;
+                const stepLabel = isClassification
+                  ? classificationMode === 'ai'
+                    ? 'AI Classification'
+                    : 'Classification'
+                  : step;
         const isExtraction = index === 4;
         const isReport = index === 5;
 
@@ -144,18 +153,75 @@ export default function PrismaStepper({
                   : {},
               }}
             >
-              <Typography
-                variant="caption"
-                sx={{
-                  fontWeight: 700,
-                  fontSize: 11,
-                  textTransform: 'uppercase',
-                  lineHeight: 1,
-                  letterSpacing: '.5px',
-                }}
-              >
-                {step}
-              </Typography>
+              {isClassification ? (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 1,
+                    width: '100%',
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: 11,
+                      textTransform: 'uppercase',
+                      lineHeight: 1,
+                      letterSpacing: '.5px',
+                    }}
+                  >
+                    {stepLabel}
+                  </Typography>
+
+                  <Select
+                    size="small"
+                    value={classificationMode}
+                    onChange={(event) =>
+                      onClassificationModeChange?.(
+                        event.target.value as 'manual' | 'ai',
+                      )
+                    }
+                    onClick={(event) => event.stopPropagation()}
+                    sx={{
+                      color: 'inherit',
+                      fontWeight: 700,
+                      fontSize: 11,
+                      textTransform: 'uppercase',
+                      letterSpacing: '.5px',
+                      minWidth: 140,
+                      '.MuiOutlinedInput-notchedOutline': {
+                        border: 'none',
+                      },
+                      '.MuiSelect-select': {
+                        py: 0,
+                        px: 0,
+                      },
+                      '.MuiSvgIcon-root': {
+                        color: 'inherit',
+                      },
+                    }}
+                  >
+                    <MenuItem value="manual">Manual</MenuItem>
+                    <MenuItem value="ai">AI</MenuItem>
+                  </Select>
+                </Box>
+              ) : (
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: 11,
+                    textTransform: 'uppercase',
+                    lineHeight: 1,
+                    letterSpacing: '.5px',
+                  }}
+                >
+                  {stepLabel}
+                </Typography>
+              )}
             </Box>
           </Box>
         );

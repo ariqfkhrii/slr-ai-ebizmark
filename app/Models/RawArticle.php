@@ -11,6 +11,7 @@ class RawArticle extends Model
     protected $fillable = [
         'doi',
         'title',
+        'authors',
         'issn',
         'abstract',
         'publish_year',

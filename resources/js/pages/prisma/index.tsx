@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { Box, Paper, Typography } from '@mui/material';
 import { useState } from 'react';
+import AiClassification from './ai-classification';
 import Classification from './classification';
 import PrismaStepper from './components/PrismaStepper';
 import Identification from './identification';
@@ -14,6 +15,9 @@ export default function Prisma(props: any) {
   const researchPlanId = Number(props?.researchPlan?.research_plan_id ?? 0);
   const identification = useIdentification(researchPlanId);
   const [activeStep, setActiveStep] = useState(0);
+  const [classificationMode, setClassificationMode] = useState<
+    'manual' | 'ai'
+  >('manual');
 
   const globalArticles = getUniqueArticlesByDoi(identification.keywords);
   const screening = useScreening(globalArticles, researchPlanId);
@@ -83,6 +87,8 @@ export default function Prisma(props: any) {
               canOpenScreening={canOpenScreening}
               canOpenRetrieval={canOpenRetrieval}
               canOpenClassification={canOpenClassification}
+              classificationMode={classificationMode}
+              onClassificationModeChange={setClassificationMode}
               onStepClick={(step) => {
                 if (step === 1 && !canOpenScreening) return;
                 if (step === 2 && !canOpenRetrieval) return;
@@ -106,7 +112,16 @@ export default function Prisma(props: any) {
 
           {activeStep === 2 && <Retrieval {...props} />}
 
-          {activeStep === 3 && <Classification />}
+          {activeStep === 3 &&
+            (classificationMode === 'manual' ? (
+              <Classification />
+            ) : (
+              <AiClassification
+                filteredArticles={props.filteredArticles}
+                researchPlanId={researchPlanId}
+                classificationSetup={props.classificationSetup ?? null}
+              />
+            ))}
         </Box>
       </Box>
     </>

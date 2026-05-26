@@ -16,6 +16,7 @@ class FilteredArticle extends Model
         'included',
         'retrieved',
         'ai_usage_status',
+        'pdf_path',
     ];
 
     public function rawArticle()
@@ -26,5 +27,10 @@ class FilteredArticle extends Model
     public function researchPlan()
     {
         return $this->belongsTo(ResearchPlan::class, 'research_plan_id', 'research_plan_id');
+    }
+
+    public function review()
+    {
+        return $this->hasOne(Review::class, 'article_id', 'filtered_article_id');
     }
 }

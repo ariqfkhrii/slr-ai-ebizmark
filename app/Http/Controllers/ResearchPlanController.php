@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClassificationSetup;
 use App\Models\FilteredArticle;
 use App\Models\ResearchPlan;
 use Illuminate\Http\Request;
@@ -95,7 +96,11 @@ class ResearchPlanController extends Controller
         $filteredArticles = FilteredArticle::query()
             ->where('research_plan_id', $researchPlan->research_plan_id)
             ->where('article_status', 'included')
-            ->with(['rawArticle:article_id,doi,title,issn,publish_year,tier'])
+            ->with([
+                'rawArticle:article_id,doi,title,authors,issn,publish_year,tier',
+                'review:review_id,article_id',
+                'review.articleClassification:classification_id,review_id,research_method,category_1,category_2,category_3,category_4,category_5,category_6,grand_theory',
+            ])
             ->get([
                 'filtered_article_id',
                 'raw_article_id',
@@ -106,10 +111,25 @@ class ResearchPlanController extends Controller
                 'retrieved',
             ]);
 
+        $classificationSetup = ClassificationSetup::query()
+            ->where('research_plan_id', $researchPlan->research_plan_id)
+            ->first([
+                'id_setup',
+                'research_plan_id',
+                'category_1',
+                'category_2',
+                'category_3',
+                'category_4',
+                'category_5',
+                'category_6',
+                'theory',
+            ]);
+
         return Inertia::render('prisma/index', [
             'researchPlan' => $researchPlan,
             'researchPlans' => $researchPlans,
             'filteredArticles' => $filteredArticles,
+            'classificationSetup' => $classificationSetup,
         ]);
     }
 }

@@ -19,6 +19,7 @@ export type RawArticleSummary = {
   article_id: number;
   doi: string;
   title: string;
+  authors: string | null;
   issn: string | null;
   publish_year: number | null;
   tier: string | null;
@@ -33,6 +34,26 @@ export type FilteredArticleSummary = {
   included: boolean;
   retrieved: 'Retrieved' | 'Not Retrieved';
   raw_article: RawArticleSummary | null;
+  review?: ReviewSummary | null;
+};
+
+export type ArticleClassificationSummary = {
+  classification_id: number;
+  review_id: number;
+  research_method: string | null;
+  category_1: string | null;
+  category_2: string | null;
+  category_3: string | null;
+  category_4: string | null;
+  category_5: string | null;
+  category_6: string | null;
+  grand_theory: string | null;
+};
+
+export type ReviewSummary = {
+  review_id: number;
+  article_id: number;
+  article_classification?: ArticleClassificationSummary | null;
 };
 
 export type PrismaPageProps = {

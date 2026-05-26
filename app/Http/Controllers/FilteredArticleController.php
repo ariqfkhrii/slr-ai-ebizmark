@@ -73,6 +73,7 @@ class FilteredArticleController extends Controller
         $result = $this->service->extractAndMatch(
             $validated['pdf'],
             (int) $validated['research_plan_id'],
+            $storedPath,
         );
 
         Log::info('DOI upload processed', [

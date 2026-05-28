@@ -100,6 +100,7 @@ class ResearchPlanController extends Controller
                 'rawArticle:article_id,doi,title,authors,issn,publish_year,tier',
                 'review:review_id,article_id',
                 'review.articleClassification:classification_id,review_id,research_method,category_1,category_2,category_3,category_4,category_5,category_6,grand_theory',
+                'review.extractionResult:extraction_id,review_id,abstract,introduction,result,conclusion,recommendation',
             ])
             ->get([
                 'filtered_article_id',

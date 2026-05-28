@@ -30,4 +30,9 @@ class Review extends Model
     {
         return $this->hasOne(ArticleClassification::class, 'review_id', 'review_id');
     }
+
+    public function extractionResult()
+    {
+        return $this->hasOne(Extraction::class, 'review_id', 'review_id');
+    }
 }

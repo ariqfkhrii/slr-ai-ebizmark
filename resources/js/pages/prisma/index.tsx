@@ -10,6 +10,7 @@ import Retrieval from './retrieval';
 import Screening from './screening';
 import { useScreening } from './screening/hooks/useScreening';
 import { getUniqueArticlesByDoi } from './utils/articles';
+import Extraction from './ai-extraction';
 
 export default function Prisma(props: any) {
   const researchPlanId = Number(props?.researchPlan?.research_plan_id ?? 0);
@@ -18,12 +19,14 @@ export default function Prisma(props: any) {
   const [classificationMode, setClassificationMode] = useState<
     'manual' | 'ai'
   >('manual');
+  const [extractionMode, setExtractionMode] = useState<'manual' | 'ai'>('ai');
 
   const globalArticles = getUniqueArticlesByDoi(identification.keywords);
   const screening = useScreening(globalArticles, researchPlanId);
   const canOpenScreening = globalArticles.length > 0;
   const canOpenRetrieval = screening.counters.included > 0;
   const canOpenClassification = true;
+  const canOpenExtraction = true;
   return (
     <>
       <Head title="PRISMA" />
@@ -87,12 +90,16 @@ export default function Prisma(props: any) {
               canOpenScreening={canOpenScreening}
               canOpenRetrieval={canOpenRetrieval}
               canOpenClassification={canOpenClassification}
+              canOpenExtraction={canOpenExtraction}
               classificationMode={classificationMode}
               onClassificationModeChange={setClassificationMode}
+              extractionMode={extractionMode}
+              onExtractionModeChange={setExtractionMode}
               onStepClick={(step) => {
                 if (step === 1 && !canOpenScreening) return;
                 if (step === 2 && !canOpenRetrieval) return;
                 if (step === 3 && !canOpenClassification) return;
+                if (step === 4 && !canOpenExtraction) return;
 
                 setActiveStep(step);
               }}
@@ -120,6 +127,19 @@ export default function Prisma(props: any) {
                 filteredArticles={props.filteredArticles}
                 researchPlanId={researchPlanId}
                 classificationSetup={props.classificationSetup ?? null}
+              />
+            ))}
+
+          {activeStep === 4 &&
+            (extractionMode === 'manual' ? (
+              <Extraction
+                filteredArticles={props.filteredArticles}
+                researchPlanId={researchPlanId}
+              />
+            ) : (
+              <Extraction
+                filteredArticles={props.filteredArticles}
+                researchPlanId={researchPlanId}
               />
             ))}
         </Box>

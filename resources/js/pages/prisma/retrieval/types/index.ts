@@ -54,6 +54,20 @@ export type ReviewSummary = {
   review_id: number;
   article_id: number;
   article_classification?: ArticleClassificationSummary | null;
+  extraction_result?: ExtractionResultSummary | null;
+};
+
+export type ExtractionResultSummary = {
+  extraction_id: number;
+  review_id: number;
+  abstract: string | null;
+  introduction: string | null;
+  result: string | null;
+  conclusion: string | null;
+  recommendation: string | null;
+  novelty_gap: string | null;
+  limitation: string | null;
+  future_research: string | null;
 };
 
 export type PrismaPageProps = {

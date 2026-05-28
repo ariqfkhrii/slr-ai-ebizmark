@@ -5,6 +5,7 @@ use Laravel\Fortify\Features;
 use App\Http\Controllers\FilteredArticleController;
 use App\Http\Controllers\ClassificationSetupController;
 use App\Http\Controllers\AiClassificationController;
+use App\Http\Controllers\AiExtractionController;
 use App\Http\Controllers\ResearchPlanController;
 use App\Http\Controllers\ResearchPlanKeywordController;
 
@@ -37,6 +38,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/ai-classification/run', [AiClassificationController::class, 'run'])
         ->name('ai-classification.run');
+
+    Route::post('/ai-extraction/run', [AiExtractionController::class, 'run'])
+        ->name('ai-extraction.run');
         
     Route::get('prisma', [ResearchPlanController::class, 'prisma'])
         ->name('prisma');

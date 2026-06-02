@@ -2,23 +2,24 @@ import { Head } from '@inertiajs/react';
 import { Box, Paper, Typography } from '@mui/material';
 import { useState } from 'react';
 import AiClassification from './ai-classification';
+import AiExtraction from './ai-extraction';
 import Classification from './classification';
 import PrismaStepper from './components/PrismaStepper';
+import Extraction from './extraction';
 import Identification from './identification';
 import { useIdentification } from './identification/hooks/useIdentification';
 import Retrieval from './retrieval';
 import Screening from './screening';
 import { useScreening } from './screening/hooks/useScreening';
 import { getUniqueArticlesByDoi } from './utils/articles';
-import Extraction from './ai-extraction';
 
 export default function Prisma(props: any) {
   const researchPlanId = Number(props?.researchPlan?.research_plan_id ?? 0);
   const identification = useIdentification(researchPlanId);
   const [activeStep, setActiveStep] = useState(0);
-  const [classificationMode, setClassificationMode] = useState<
-    'manual' | 'ai'
-  >('manual');
+  const [classificationMode, setClassificationMode] = useState<'manual' | 'ai'>(
+    'manual',
+  );
   const [extractionMode, setExtractionMode] = useState<'manual' | 'ai'>('ai');
 
   const globalArticles = getUniqueArticlesByDoi(identification.keywords);
@@ -132,12 +133,9 @@ export default function Prisma(props: any) {
 
           {activeStep === 4 &&
             (extractionMode === 'manual' ? (
-              <Extraction
-                filteredArticles={props.filteredArticles}
-                researchPlanId={researchPlanId}
-              />
+              <Extraction />
             ) : (
-              <Extraction
+              <AiExtraction
                 filteredArticles={props.filteredArticles}
                 researchPlanId={researchPlanId}
               />

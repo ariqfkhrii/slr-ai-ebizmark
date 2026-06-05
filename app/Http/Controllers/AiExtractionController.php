@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Smalot\PdfParser\Parser;
 use Symfony\Component\Process\Process;
 
 class AiExtractionController extends Controller
@@ -185,8 +186,10 @@ class AiExtractionController extends Controller
 
         $fullPath = Storage::disk('public')->path($storedPath);
 
+        $binary = (string) config('services.pdftotext.path', 'pdftotext');
+
         $process = new Process([
-            'pdftotext',
+            $binary,
             '-layout',
             '-enc',
             'UTF-8',
@@ -210,11 +213,47 @@ class AiExtractionController extends Controller
                 'error' => trim($process->getErrorOutput()),
                 'path' => $storedPath,
             ]);
+        }
+
+        $output = $process->getOutput() ?: '';
+        if ($output !== '') {
+            return $output;
+        }
+
+        return $this->extractTextWithParser($fullPath, $storedPath);
+    }
+
+    private function extractTextWithParser(string $path, string $storedPath): string
+    {
+        if (! class_exists(Parser::class)) {
+            Log::warning('pdfparser not available', [
+                'path' => $storedPath,
+            ]);
 
             return '';
         }
 
-        return $process->getOutput() ?: '';
+        try {
+            $parser = new Parser();
+            $pdf = $parser->parseFile($path);
+            $text = trim((string) $pdf->getText());
+        } catch (\Throwable $exception) {
+            Log::warning('pdfparser failed', [
+                'error' => $exception->getMessage(),
+                'path' => $storedPath,
+            ]);
+
+            return '';
+        }
+
+        if ($text !== '') {
+            Log::info('pdfparser extraction succeeded', [
+                'path' => $storedPath,
+                'text_length' => strlen($text),
+            ]);
+        }
+
+        return $text;
     }
 
     private function removeReferenceSection(string $text): string
@@ -429,55 +468,78 @@ class AiExtractionController extends Controller
             return null;
         }
 
-        $response = Http::timeout(30)
-            ->post(
-                'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='.$apiKey,
+        $payload = [
+            'contents' => [
                 [
-                    'contents' => [
-                        [
-                            'role' => 'user',
-                            'parts' => [
-                                ['text' => $prompt],
-                            ],
-                        ],
-                    ],
-                    'generationConfig' => [
-                        'temperature' => 0.2,
-                        'responseMimeType' => 'application/json',
-                        'responseSchema' => [
-                            'type' => 'object',
-                            'properties' => [
-                                'abstract' => ['type' => 'string'],
-                                'introduction' => ['type' => 'string'],
-                                'result' => ['type' => 'string'],
-                                'conclusion' => ['type' => 'string'],
-                                'recommendation' => ['type' => 'string'],
-                                'novelty_gap' => ['type' => 'string'],
-                                'limitation' => ['type' => 'string'],
-                                'future_research' => ['type' => 'string'],
-                                'confidence_score' => ['type' => 'number'],
-                            ],
-                            'required' => [
-                                'abstract',
-                                'introduction',
-                                'result',
-                                'conclusion',
-                                'recommendation',
-                                'novelty_gap',
-                                'limitation',
-                                'future_research',
-                            ],
-                        ],
+                    'role' => 'user',
+                    'parts' => [
+                        ['text' => $prompt],
                     ],
                 ],
+            ],
+            'generationConfig' => [
+                'temperature' => 0.2,
+                'responseMimeType' => 'application/json',
+                'responseSchema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'abstract' => ['type' => 'string'],
+                        'introduction' => ['type' => 'string'],
+                        'result' => ['type' => 'string'],
+                        'conclusion' => ['type' => 'string'],
+                        'recommendation' => ['type' => 'string'],
+                        'novelty_gap' => ['type' => 'string'],
+                        'limitation' => ['type' => 'string'],
+                        'future_research' => ['type' => 'string'],
+                        'confidence_score' => ['type' => 'number'],
+                    ],
+                    'required' => [
+                        'abstract',
+                        'introduction',
+                        'result',
+                        'conclusion',
+                        'recommendation',
+                        'novelty_gap',
+                        'limitation',
+                        'future_research',
+                    ],
+                ],
+            ],
+        ];
+
+        $response = null;
+        $maxAttempts = 4;
+        $baseDelaySeconds = 2;
+
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            $response = Http::timeout(30)->post(
+                'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='.$apiKey,
+                $payload,
             );
 
-        if (! $response->successful()) {
+            if ($response->successful()) {
+                break;
+            }
+
+            $status = $response->status();
+            $shouldRetry = $this->isGeminiRetryableStatus($status) && $attempt < $maxAttempts;
+
             Log::warning('Gemini request failed', [
-                'status' => $response->status(),
+                'status' => $status,
                 'body' => $response->body(),
+                'attempt' => $attempt,
+                'will_retry' => $shouldRetry,
             ]);
 
+            if (! $shouldRetry) {
+                return null;
+            }
+
+            $delayMs = ($baseDelaySeconds * (2 ** ($attempt - 1)) * 1000) + random_int(0, 500);
+            usleep($delayMs * 1000);
+        }
+
+        if (! $response || ! $response->successful()) {
             return null;
         }
 
@@ -514,5 +576,10 @@ class AiExtractionController extends Controller
                 ? (float) $decoded['confidence_score']
                 : null,
         ];
+    }
+
+    private function isGeminiRetryableStatus(int $status): bool
+    {
+        return in_array($status, [429, 500, 502, 503, 504], true);
     }
 }

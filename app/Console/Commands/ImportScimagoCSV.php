@@ -2,26 +2,25 @@
 
 namespace App\Console\Commands;
 
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use SplFileObject;
 
+#[Signature('scimago:import {--truncate : Truncate the table before importing} {--chunk=500 : Number of rows per upsert batch}')]
+#[Description('Import Scimago Journal data from a CSV file in storage/app/ to the scimago_journals table.')]
 class ImportScimagoCSV extends Command
 {
-    protected $signature = 'scimago:import
-        {path : Path ke file scimagojr CSV (delimiter ;)}
-        {--truncate : Kosongkan tabel sebelum import}
-        {--chunk=500 : Jumlah baris per batch upsert}';
-
-    protected $description = 'Import data Scimago Journal dari file CSV ke tabel scimago_journals.';
-
     public function handle(): int
     {
-        $path = $this->argument('path');
+        $path = storage_path('app/scimagojr 2025.csv');
+        
         $chunkSize = (int) $this->option('chunk');
 
         if (! is_file($path)) {
-            $this->error("File tidak ditemukan: {$path}");
+            $this->error("File not found at: {$path}");
+            $this->info("Make sure you have placed the CSV file in the storage/app/ directory.");
             return self::FAILURE;
         }
 
@@ -35,7 +34,7 @@ class ImportScimagoCSV extends Command
 
         $headers = $file->fgetcsv();
         if (! is_array($headers) || count($headers) === 0) {
-            $this->error('Header CSV tidak valid.');
+            $this->error('Invalid CSV headers.');
             return self::FAILURE;
         }
 
@@ -66,7 +65,7 @@ class ImportScimagoCSV extends Command
             $count += $this->upsertBatch($batch);
         }
 
-        $this->info("Import selesai. Total baris diproses: {$count}");
+        $this->info("Import completed. Total rows processed: {$count}");
 
         return self::SUCCESS;
     }

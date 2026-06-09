@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('raw_articles', function (Blueprint $table) {
             $table->id();
             $table->string('doi')->unique()->nullable();
-            $table->string('title');
+            $table->text('title');
             $table->text('author')->nullable();
             $table->text('keyword')->nullable();
             $table->text('abstract')->nullable();

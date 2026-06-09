@@ -137,7 +137,10 @@ export default function Prisma(props: any) {
 
           {activeStep === 4 &&
             (extractionMode === 'manual' ? (
-              <Extraction />
+              <Extraction
+                filteredArticles={props.filteredArticles}
+                researchPlanId={researchPlanId}
+              />
             ) : (
               <AiExtraction
                 filteredArticles={props.filteredArticles}

@@ -39,10 +39,10 @@ class AiClassificationRunTest extends TestCase
         ]);
 
         $filtered = FilteredArticle::query()->create([
-            'raw_article_id' => $raw->article_id,
+            'raw_article_id' => $raw->id,
             'research_plan_id' => $plan->research_plan_id,
             'article_status' => 'included',
-            'retrieved' => 'Retrieved',
+            'retrieved' => true,
             'included' => true,
             'ai_usage_status' => 'not_used',
         ]);

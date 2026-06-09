@@ -26,6 +26,15 @@ class FilteredArticle extends Model
         'ai_usage_status' => 'boolean',
     ];
 
+    protected $appends = [
+        'filtered_article_id',
+    ];
+
+    public function getFilteredArticleIdAttribute()
+    {
+        return $this->id;
+    }
+
     public function researchPlan()
     {
         return $this->belongsTo(ResearchPlan::class);

@@ -3,9 +3,25 @@ import ClassificationDetailDialog from './components/ClassificationDetailDialog'
 import ClassificationResultTable from './components/ClassificationResultTable';
 import ClassificationSetup from './components/ClassificationSetup';
 import { useClassification } from './hooks/useClassification';
+import type { FilteredArticleSummary } from '../retrieval/types';
+import type { ClassificationSetup as SetupType } from './types';
 
-export default function Classification() {
-  const classification = useClassification();
+type Props = {
+  filteredArticles: FilteredArticleSummary[];
+  researchPlanId: number;
+  classificationSetup: SetupType | null;
+};
+
+export default function Classification({
+  filteredArticles,
+  researchPlanId,
+  classificationSetup,
+}: Props) {
+  const classification = useClassification(
+    filteredArticles,
+    researchPlanId,
+    classificationSetup,
+  );
 
   return (
     <Box
@@ -23,8 +39,10 @@ export default function Classification() {
       <ClassificationSetup
         categories={classification.categories}
         activeCategories={classification.activeCategories}
+        theory={classification.theory}
         onUpdateCategory={classification.updateCategory}
-        onCheckAi={classification.checkIdeaClassificationFromAi}
+        onUpdateTheory={classification.setTheory}
+        onSaveSetup={classification.saveSetup}
       />
 
       <ClassificationResultTable
@@ -40,6 +58,7 @@ export default function Classification() {
         onClose={classification.closeDetail}
         onUpdateClassification={classification.updateClassification}
         onUpdateResearchMethod={classification.updateResearchMethod}
+        onSave={classification.saveClassification}
       />
     </Box>
   );

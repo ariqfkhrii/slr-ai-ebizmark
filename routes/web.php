@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use App\Http\Controllers\FilteredArticleController;
-use App\Http\Controllers\ClassificationSetupController;
+use App\Http\Controllers\ClassificationController;
 use App\Http\Controllers\AiClassificationController;
 use App\Http\Controllers\AiExtractionController;
 use App\Http\Controllers\ResearchPlanController;
@@ -33,8 +33,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/filtered-articles/{filteredArticle}/retrieval', [FilteredArticleController::class, 'updateRetrieval'])
         ->name('filtered-articles.update-retrieval');
 
-    Route::put('/classification-setup', [ClassificationSetupController::class, 'upsert'])
+    Route::put('/classification-setup', [ClassificationController::class, 'upsertSetup'])
         ->name('classification-setup.upsert');
+
+    Route::put('/classification/{filteredArticle}', [ClassificationController::class, 'updateArticleClassification'])
+        ->name('classification.update');
 
     Route::post('/ai-classification/run', [AiClassificationController::class, 'run'])
         ->name('ai-classification.run');

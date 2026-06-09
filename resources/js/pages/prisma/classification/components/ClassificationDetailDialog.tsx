@@ -23,6 +23,7 @@ type Props = {
     categoryId: number,
     value: string,
   ) => void;
+  onSave?: (articleId: number) => void;
 };
 
 export default function ClassificationDetailDialog({
@@ -32,6 +33,7 @@ export default function ClassificationDetailDialog({
   onClose,
   onUpdateResearchMethod,
   onUpdateClassification,
+  onSave,
 }: Props) {
   if (!article) return null;
 
@@ -130,10 +132,7 @@ export default function ClassificationDetailDialog({
             <Typography
               sx={{ fontSize: 13, lineHeight: 1.7, color: '#475569' }}
             >
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi
-              magna augue, pellentesque ac mollis quis, cursus non augue.
-              Vivamus pharetra metus at est iaculis fringilla. In pellentesque
-              sapien, non ultricies nunc.
+              {article.abstract || 'No abstract available.'}
             </Typography>
           </Box>
 
@@ -237,7 +236,12 @@ export default function ClassificationDetailDialog({
           <Button
             variant="contained"
             startIcon={<SaveIcon fontSize="small" />}
-            onClick={onClose}
+            onClick={() => {
+              if (onSave) {
+                onSave(article.id);
+              }
+              onClose();
+            }}
             sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 900 }}
           >
             Save Classification

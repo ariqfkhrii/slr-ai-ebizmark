@@ -5,15 +5,19 @@ import { ClassificationCategory } from '../types';
 type Props = {
   categories: ClassificationCategory[];
   activeCategories: ClassificationCategory[];
+  theory: string;
   onUpdateCategory: (id: number, name: string) => void;
-  onCheckAi: () => void;
+  onUpdateTheory: (value: string) => void;
+  onSaveSetup: () => void;
 };
 
 export default function ClassificationSetup({
   categories,
   activeCategories,
+  theory,
   onUpdateCategory,
-  onCheckAi,
+  onUpdateTheory,
+  onSaveSetup,
 }: Props) {
   return (
     <Paper
@@ -142,6 +146,33 @@ export default function ClassificationSetup({
             );
           })}
         </Box>
+
+        <Box sx={{ mt: 2 }}>
+          <Typography
+            sx={{ mb: 1, fontSize: 12, fontWeight: 800, color: '#475569' }}
+          >
+            Theory
+          </Typography>
+
+          <TextField
+            fullWidth
+            multiline
+            minRows={3}
+            value={theory}
+            placeholder="Add theory or notes..."
+            onChange={(e) => onUpdateTheory(e.target.value)}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 3,
+                bgcolor: '#ffffff',
+              },
+              '& .MuiInputBase-input': {
+                fontSize: 13,
+                lineHeight: 1.6,
+              },
+            }}
+          />
+        </Box>
       </Box>
 
       <Box sx={{ p: 2, borderTop: '1px solid #eef2f7' }}>
@@ -149,8 +180,7 @@ export default function ClassificationSetup({
           fullWidth
           variant="contained"
           startIcon={<AutoAwesomeIcon fontSize="small" />}
-          disabled
-          onClick={onCheckAi}
+          onClick={onSaveSetup}
           sx={{
             py: 1,
             borderRadius: 3,
@@ -164,7 +194,7 @@ export default function ClassificationSetup({
             },
           }}
         >
-          Generate Classification Ideas
+          Save Setup
         </Button>
       </Box>
     </Paper>

@@ -6,22 +6,26 @@ use Illuminate\Database\Eloquent\Model;
 
 class RawArticle extends Model
 {
-    protected $primaryKey = 'article_id';
-
     protected $fillable = [
         'doi',
         'title',
         'authors',
-        'issn',
-        'abstract',
-        'publish_year',
-        'country_id',
+        'keyword',
+        'issn_print',
+        'issn_e',
         'tier',
         'citation_count',
+        'publish_year',
+        'source_db',
     ];
+
+    public function countries()
+    {
+        return $this->belongsToMany(Country::class, 'raw_article_countries')->withTimestamps();
+    }
 
     public function filteredArticles()
     {
-        return $this->hasMany(FilteredArticle::class, 'raw_article_id', 'article_id');
+        return $this->hasMany(FilteredArticle::class, 'raw_article_id', 'id');
     }
 }

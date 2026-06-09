@@ -32,7 +32,7 @@ export type FilteredArticleSummary = {
   novelty_status: string | null;
   article_status: string;
   included: boolean;
-  retrieved: 'Retrieved' | 'Not Retrieved';
+  retrieved: boolean | number;
   raw_article: RawArticleSummary | null;
   review?: ReviewSummary | null;
 };

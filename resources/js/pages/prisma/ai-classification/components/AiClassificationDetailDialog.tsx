@@ -124,17 +124,39 @@ export default function AiClassificationDetailDialog({
             }}
           >
             <Typography sx={{ fontSize: 16, fontWeight: 900, mb: 1 }}>
-              Abstract / Result
+              Stored Classification Values
             </Typography>
 
-            <Typography
-              sx={{ fontSize: 13, lineHeight: 1.7, color: '#475569' }}
+            <Box
+              sx={{
+                display: 'grid',
+                gap: 1,
+              }}
             >
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi
-              magna augue, pellentesque ac mollis quis, cursus non augue.
-              Vivamus pharetra metus at est iaculis fringilla. In pellentesque
-              sapien, non ultricies nunc.
-            </Typography>
+              {activeCategories.map((category) => {
+                const value = article.classifications[category.id];
+
+                return (
+                  <Box
+                    key={category.id}
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: '180px minmax(0, 1fr)',
+                      gap: 1.5,
+                      alignItems: 'start',
+                    }}
+                  >
+                    <Typography sx={{ fontSize: 13, fontWeight: 800, color: '#0f172a' }}>
+                      {category.name}
+                    </Typography>
+
+                    <Typography sx={{ fontSize: 13, lineHeight: 1.7, color: value ? '#475569' : '#94a3b8' }}>
+                      {value || 'Not classified'}
+                    </Typography>
+                  </Box>
+                );
+              })}
+            </Box>
           </Box>
 
           <Box

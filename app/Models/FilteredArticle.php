@@ -19,6 +19,13 @@ class FilteredArticle extends Model
         'article_status',
     ];
 
+    protected $casts = [
+        'included' => 'boolean',
+        'retrieved' => 'boolean',
+        'novelty_status' => 'boolean',
+        'ai_usage_status' => 'boolean',
+    ];
+
     public function researchPlan()
     {
         return $this->belongsTo(ResearchPlan::class);
@@ -26,7 +33,7 @@ class FilteredArticle extends Model
 
     public function review()
     {
-        return $this->hasOne(Review::class, 'article_id', 'filtered_article_id');
+        return $this->hasOne(Review::class, 'article_id', 'id');
     }
 
     public function rawArticle()

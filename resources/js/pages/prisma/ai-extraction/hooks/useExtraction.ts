@@ -1,3 +1,4 @@
+import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FilteredArticleSummary } from '../../retrieval/types';
 import { ExtractionArticle } from '../types';
@@ -12,9 +13,12 @@ const mapRetrievedArticles = (
   filteredArticles: FilteredArticleSummary[],
 ): ExtractionArticle[] =>
   filteredArticles
-    .filter((item) => item.retrieved === 'Retrieved')
+    .filter((item) => Boolean(item.retrieved))
     .map((item) => {
-      const stored = item.review?.extraction_result;
+      const stored =
+        item.review?.extraction_result ??
+        (item.review as any)?.extractionResult ??
+        null;
 
       return {
         id: item.filtered_article_id,
@@ -163,7 +167,10 @@ export function useExtraction(
       setSyncProgress(100);
       setSyncStatus('success');
 
-      applyResults(results);
+      router.reload({
+        only: ['filteredArticles'],
+        preserveScroll: true,
+      });
       dispatch(showSuccess('AI extraction selesai.'));
     } catch (error) {
       stopProgress();

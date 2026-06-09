@@ -97,13 +97,13 @@ class ResearchPlanController extends Controller
             ->where('research_plan_id', $researchPlan->research_plan_id)
             ->where('article_status', 'included')
             ->with([
-                'rawArticle:article_id,doi,title,authors,issn,publish_year,tier',
+                'rawArticle:id,doi,title,authors,keyword,abstract,issn_print,issn_e,publish_year,tier,citation_count,source_db',
                 'review:review_id,article_id',
                 'review.articleClassification:classification_id,review_id,research_method,category_1,category_2,category_3,category_4,category_5,category_6,grand_theory',
                 'review.extractionResult:extraction_id,review_id,abstract,introduction,result,conclusion,recommendation',
             ])
             ->get([
-                'filtered_article_id',
+                'id',
                 'raw_article_id',
                 'research_plan_id',
                 'novelty_status',

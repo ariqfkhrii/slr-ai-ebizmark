@@ -1,10 +1,16 @@
 import { Box } from '@mui/material';
+import type { FilteredArticleSummary } from '../retrieval/types';
 import ExtractionArticleTable from './components/ExtractionArticleTable';
 import ExtractionWorkspace from './components/ExtractionWorkspace';
 import { useExtraction } from './hooks/useExtraction';
 
-export default function Extraction() {
-  const extraction = useExtraction();
+type Props = {
+  filteredArticles?: FilteredArticleSummary[];
+  researchPlanId?: number;
+};
+
+export default function Extraction({ filteredArticles = [], researchPlanId = 0 }: Props) {
+  const extraction = useExtraction({ filteredArticles, researchPlanId });
 
   return (
     <Box

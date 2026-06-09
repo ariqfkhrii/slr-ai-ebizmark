@@ -6,6 +6,7 @@ use App\Http\Controllers\FilteredArticleController;
 use App\Http\Controllers\ClassificationController;
 use App\Http\Controllers\AiClassificationController;
 use App\Http\Controllers\AiExtractionController;
+use App\Http\Controllers\ExtractionController;
 use App\Http\Controllers\ResearchPlanController;
 use App\Http\Controllers\ResearchPlanKeywordController;
 
@@ -44,6 +45,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/ai-extraction/run', [AiExtractionController::class, 'run'])
         ->name('ai-extraction.run');
+
+    Route::put('/extraction/{filteredArticle}', [ExtractionController::class, 'update'])
+        ->name('extraction.update');
         
     Route::get('prisma', [ResearchPlanController::class, 'prisma'])
         ->name('prisma');

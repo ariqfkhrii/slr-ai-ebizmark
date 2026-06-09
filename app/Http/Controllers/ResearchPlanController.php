@@ -100,7 +100,7 @@ class ResearchPlanController extends Controller
                 'rawArticle:id,doi,title,authors,keyword,abstract,issn_print,issn_e,publish_year,tier,citation_count,source_db',
                 'review:review_id,article_id',
                 'review.articleClassification:classification_id,review_id,research_method,category_1,category_2,category_3,category_4,category_5,category_6,grand_theory',
-                'review.extractionResult:extraction_id,review_id,abstract,introduction,result,conclusion,recommendation',
+                'review.extractionResult:extraction_id,review_id,abstract,introduction,result,conclusion,recommendation,novelty_gap,future_research,limitation',
             ])
             ->get([
                 'id',
@@ -110,6 +110,7 @@ class ResearchPlanController extends Controller
                 'article_status',
                 'included',
                 'retrieved',
+                'pdf_path',
             ]);
 
         $classificationSetup = ClassificationSetup::query()

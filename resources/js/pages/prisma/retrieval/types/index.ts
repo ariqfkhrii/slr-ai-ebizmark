@@ -33,6 +33,7 @@ export type FilteredArticleSummary = {
   article_status: string;
   included: boolean;
   retrieved: boolean | number;
+  pdf_path: string | null;
   raw_article: RawArticleSummary | null;
   review?: ReviewSummary | null;
 };

@@ -100,7 +100,7 @@ class FilteredArticleController extends Controller
     public function updateRetrieval(Request $request, FilteredArticle $filteredArticle)
     {
         $validated = $request->validate([
-            'retrieved' => ['required', Rule::in(['Retrieved', 'Not Retrieved'])],
+            'retrieved' => ['required', 'boolean'],
         ]);
 
         $filteredArticle->loadMissing('researchPlan');
@@ -109,11 +109,8 @@ class FilteredArticleController extends Controller
             abort(403);
         }
 
-        $articleStatus = $validated['retrieved'] === 'Retrieved' ? 'eligible' : 'excluded';
-
         $filteredArticle->update([
             'retrieved' => $validated['retrieved'],
-            'article_status' => $articleStatus,
         ]);
 
         return redirect()->back()->with('success', 'Status retrieval berhasil diupdate.');

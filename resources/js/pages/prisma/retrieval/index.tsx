@@ -61,7 +61,7 @@ export default function Retrieval({
         doi: item.raw_article?.doi ?? '-',
         source: item.raw_article?.tier ?? 'Unknown',
         year: item.raw_article?.publish_year ?? null,
-        retrieved: item.retrieved === 'Retrieved',
+        retrieved: Boolean(item.retrieved),
         note: `Status: ${item.article_status}`,
       })),
     [filteredArticles],
@@ -75,7 +75,7 @@ export default function Retrieval({
     router.put(
       `/filtered-articles/${articleId}/retrieval`,
       {
-        retrieved: nextRetrieved ? 'Retrieved' : 'Not Retrieved',
+        retrieved: nextRetrieved ? 1 : 0,
       },
       {
         preserveScroll: true,

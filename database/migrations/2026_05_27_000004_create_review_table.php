@@ -13,19 +13,14 @@ return new class extends Migration
     {
         Schema::create('review', function (Blueprint $table) {
             $table->id('review_id');
-            $table->unsignedBigInteger('article_id');
+            $table->foreignId('article_id')
+                    ->constrained('filtered_articles')
+                    ->cascadeOnDelete();
             $table->unsignedBigInteger('country_id')->nullable();
             $table->date('received_date')->nullable();
             $table->date('accepted_date')->nullable();
             $table->date('published_date')->nullable();
             $table->timestamps();
-
-            $table->unique('article_id', 'review_article_unique');
-
-            $table->foreign('article_id')
-                ->references('filtered_article_id')
-                ->on('filtered_articles')
-                ->onDelete('cascade');
         });
     }
 

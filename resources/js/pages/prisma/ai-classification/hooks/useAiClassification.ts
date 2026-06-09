@@ -22,9 +22,12 @@ const mapRetrievedArticles = (
   filteredArticles: FilteredArticleSummary[],
 ): ClassificationArticle[] =>
   filteredArticles
-    .filter((item) => item.retrieved === 'Retrieved')
+    .filter((item) => Boolean(item.retrieved))
     .map((item) => {
-      const stored = item.review?.article_classification;
+      const stored =
+        item.review?.article_classification ??
+        (item.review as any)?.articleClassification ??
+        null;
       const classifications: Record<number, string> = {};
 
       if (stored) {
@@ -292,7 +295,10 @@ export function useAiClassification(
       setSyncProgress(100);
       setSyncStatus('success');
 
-      applyAiResults(results);
+      router.reload({
+        only: ['filteredArticles'],
+        preserveScroll: true,
+      });
       dispatch(showSuccess('AI classification selesai.'));
     } catch (error) {
       stopProgress();

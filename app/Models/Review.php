@@ -23,7 +23,7 @@ class Review extends Model
 
     public function filteredArticle()
     {
-        return $this->belongsTo(FilteredArticle::class, 'article_id', 'filtered_article_id');
+        return $this->belongsTo(FilteredArticle::class, 'article_id', 'id');
     }
 
     public function articleClassification()

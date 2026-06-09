@@ -11,8 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('raw_articles', function (Blueprint $table) {
-            $table->text('authors')->nullable()->after('title');
+        Schema::create('countries', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
         });
     }
 
@@ -21,8 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('raw_articles', function (Blueprint $table) {
-            $table->dropColumn('authors');
-        });
+        Schema::dropIfExists('countries');
     }
 };

@@ -18,7 +18,7 @@ export default function Prisma(props: any) {
   const identification = useIdentification(researchPlanId);
   const [activeStep, setActiveStep] = useState(0);
   const [classificationMode, setClassificationMode] = useState<'manual' | 'ai'>(
-    'manual',
+    'ai',
   );
   const [extractionMode, setExtractionMode] = useState<'manual' | 'ai'>('ai');
 

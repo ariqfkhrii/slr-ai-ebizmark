@@ -1,7 +1,11 @@
 import { Head } from '@inertiajs/react';
 import { Box, Paper, Typography } from '@mui/material';
 import { useState } from 'react';
+import AiClassification from './ai-classification';
+import AiExtraction from './ai-extraction';
+import Classification from './classification';
 import PrismaStepper from './components/PrismaStepper';
+import Extraction from './extraction';
 import Identification from './identification';
 import { useIdentification } from './identification/hooks/useIdentification';
 import Retrieval from './retrieval';
@@ -10,13 +14,20 @@ import { useScreening } from './screening/hooks/useScreening';
 import { getUniqueArticlesByDoi } from './utils/articles';
 
 export default function Prisma(props: any) {
-  const identification = useIdentification(1); // Hardcode researchPlanId for now (TODO: Take it from research plan page)
+  const researchPlanId = Number(props?.researchPlan?.research_plan_id ?? 0);
+  const identification = useIdentification(researchPlanId);
   const [activeStep, setActiveStep] = useState(0);
+  const [classificationMode, setClassificationMode] = useState<'manual' | 'ai'>(
+    'ai',
+  );
+  const [extractionMode, setExtractionMode] = useState<'manual' | 'ai'>('ai');
 
   const globalArticles = getUniqueArticlesByDoi(identification.keywords);
-  const screening = useScreening(globalArticles, 1);
+  const screening = useScreening(globalArticles, researchPlanId);
   const canOpenScreening = globalArticles.length > 0;
   const canOpenRetrieval = screening.counters.included > 0;
+  const canOpenClassification = true;
+  const canOpenExtraction = true;
   return (
     <>
       <Head title="PRISMA" />
@@ -79,9 +90,17 @@ export default function Prisma(props: any) {
               activeStep={activeStep}
               canOpenScreening={canOpenScreening}
               canOpenRetrieval={canOpenRetrieval}
+              canOpenClassification={canOpenClassification}
+              canOpenExtraction={canOpenExtraction}
+              classificationMode={classificationMode}
+              onClassificationModeChange={setClassificationMode}
+              extractionMode={extractionMode}
+              onExtractionModeChange={setExtractionMode}
               onStepClick={(step) => {
                 if (step === 1 && !canOpenScreening) return;
                 if (step === 2 && !canOpenRetrieval) return;
+                if (step === 3 && !canOpenClassification) return;
+                if (step === 4 && !canOpenExtraction) return;
 
                 setActiveStep(step);
               }}
@@ -100,6 +119,34 @@ export default function Prisma(props: any) {
           {activeStep === 1 && <Screening {...screening} />}
 
           {activeStep === 2 && <Retrieval {...props} />}
+
+          {activeStep === 3 &&
+            (classificationMode === 'manual' ? (
+              <Classification
+                filteredArticles={props.filteredArticles}
+                researchPlanId={researchPlanId}
+                classificationSetup={props.classificationSetup ?? null}
+              />
+            ) : (
+              <AiClassification
+                filteredArticles={props.filteredArticles}
+                researchPlanId={researchPlanId}
+                classificationSetup={props.classificationSetup ?? null}
+              />
+            ))}
+
+          {activeStep === 4 &&
+            (extractionMode === 'manual' ? (
+              <Extraction
+                filteredArticles={props.filteredArticles}
+                researchPlanId={researchPlanId}
+              />
+            ) : (
+              <AiExtraction
+                filteredArticles={props.filteredArticles}
+                researchPlanId={researchPlanId}
+              />
+            ))}
         </Box>
       </Box>
     </>

@@ -3,6 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use App\Http\Controllers\FilteredArticleController;
+use App\Http\Controllers\ClassificationController;
+use App\Http\Controllers\AiClassificationController;
+use App\Http\Controllers\AiExtractionController;
+use App\Http\Controllers\ExtractionController;
 use App\Http\Controllers\ResearchPlanController;
 use App\Http\Controllers\ResearchPlanKeywordController;
 
@@ -26,6 +30,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/filtered-articles/check-doi', [FilteredArticleController::class, 'store'])
         ->name('filtered-articles.check-doi');
+
+    Route::put('/filtered-articles/{filteredArticle}/retrieval', [FilteredArticleController::class, 'updateRetrieval'])
+        ->name('filtered-articles.update-retrieval');
+
+    Route::put('/classification-setup', [ClassificationController::class, 'upsertSetup'])
+        ->name('classification-setup.upsert');
+
+    Route::put('/classification/{filteredArticle}', [ClassificationController::class, 'updateArticleClassification'])
+        ->name('classification.update');
+
+    Route::post('/ai-classification/run', [AiClassificationController::class, 'run'])
+        ->name('ai-classification.run');
+
+    Route::post('/ai-extraction/run', [AiExtractionController::class, 'run'])
+        ->name('ai-extraction.run');
+
+    Route::put('/extraction/{filteredArticle}', [ExtractionController::class, 'update'])
+        ->name('extraction.update');
         
     Route::get('prisma', [ResearchPlanController::class, 'prisma'])
         ->name('prisma');

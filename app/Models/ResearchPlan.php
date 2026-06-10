@@ -41,6 +41,11 @@ class ResearchPlan extends Model
         ->withTimestamps();
     }
 
+    public function classificationSetup()
+    {
+        return $this->hasOne(ClassificationSetup::class, 'research_plan_id', 'research_plan_id');
+    }
+
     public function filteredArticles()
     {
         return $this->hasMany(FilteredArticle::class, 'research_plan_id', 'research_plan_id');

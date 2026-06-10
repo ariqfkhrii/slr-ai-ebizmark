@@ -13,7 +13,7 @@ class FilteredArticleDoiService
     /**
      * Extract DOI values from uploaded PDF content and match them to raw_articles.
      */
-    public function extractAndMatch(UploadedFile $pdfFile, int $researchPlanId): array
+    public function extractAndMatch(UploadedFile $pdfFile, int $researchPlanId, string $storedPath): array
     {
         $text = $this->extractTextFromPdf($pdfFile);
 
@@ -29,13 +29,6 @@ class FilteredArticleDoiService
 
         $dois = $this->extractDois($text);
 
-        Log::info('DOI extraction attempt', [
-            'file_name' => $pdfFile->getClientOriginalName(),
-            'text_length' => strlen($text),
-            'doi_found_count' => count($dois),
-            'dois' => $dois,
-        ]);
-
         if ($dois === []) {
             return [
                 'dois' => [],
@@ -48,27 +41,30 @@ class FilteredArticleDoiService
 
         $matchedRawArticles = RawArticle::query()
             ->whereIn('doi', $dois)
-            ->get(['article_id', 'doi']);
+            ->get(['id', 'doi']);
 
         Log::info('DOI extraction result', [
             'doi_found_count' => count($dois),
             'dois' => $dois,
             'matched_count' => $matchedRawArticles->count(),
-            'matched_article_ids' => $matchedRawArticles->pluck('article_id')->all(),
+            'matched_article_ids' => $matchedRawArticles->pluck('id')->all(),
         ]);
 
         $createdCount = 0;
 
         foreach ($matchedRawArticles as $rawArticle) {
-            $filteredArticle = FilteredArticle::query()->updateOrCreate([
-                'raw_article_id' => $rawArticle->article_id,
-                'research_plan_id' => $researchPlanId,
-            ], [
-                'article_status' => 'included',
-                'included' => true,
-                'retrieved' => 'Retrieved',
-                'ai_usage_status' => 'not_used',
-            ]);
+            $filteredArticle = FilteredArticle::query()->updateOrCreate(
+                [
+                    'raw_article_id' => $rawArticle->id,
+                    'research_plan_id' => $researchPlanId,
+                ],
+                [
+                    'article_status' => 'included',
+                    'retrieved' => 1,
+                    'ai_usage_status' => 0,
+                    'pdf_path' => $storedPath,
+                ]
+            );
 
             if ($filteredArticle->wasRecentlyCreated) {
                 $createdCount++;
@@ -80,7 +76,7 @@ class FilteredArticleDoiService
             'doi_found_count' => count($dois),
             'matched_count' => $matchedRawArticles->count(),
             'created_count' => $createdCount,
-            'matched_article_ids' => $matchedRawArticles->pluck('article_id')->all(),
+            'matched_article_ids' => $matchedRawArticles->pluck('id')->all(),
         ];
     }
 
@@ -89,14 +85,21 @@ class FilteredArticleDoiService
         $normalizedText = preg_replace('/[\x{200B}-\x{200D}\x{FEFF}]/u', '', $text) ?? $text;
         $normalizedText = preg_replace('/\s+/', ' ', $normalizedText) ?? $normalizedText;
 
-        preg_match_all('/(?:https?:\/\/(?:dx\.)?doi\.org\/)?(10\.\d{4,9}\s*\/\s*[\w.()\/:;-]+)/i', $normalizedText, $matches);
+        preg_match_all(
+            '/(?:https?:\/\/(?:dx\.)?doi\.org\/)?(10\.\d{4,9}\s*\/\s*[\w.()\/:;-]+)/i',
+            $normalizedText,
+            $matches
+        );
 
-        if (! isset($matches[1]) || $matches[1] === []) {
-            // Fallback: pull any 10.xxxx pattern even if PDF text is messy.
-            preg_match_all('/(10\.\d{4,9}\s*\/\s*\S+)/i', $normalizedText, $matches);
+        if (!isset($matches[1]) || $matches[1] === []) {
+            preg_match_all(
+                '/(10\.\d{4,9}\s*\/\s*\S+)/i',
+                $normalizedText,
+                $matches
+            );
         }
 
-        if (! isset($matches[1])) {
+        if (!isset($matches[1])) {
             return [];
         }
 
@@ -107,9 +110,7 @@ class FilteredArticleDoiService
             return rtrim($doi, '.,;:)\]\}>"\'');
         }, $matches[1]);
 
-        $unique = array_values(array_unique(array_filter($normalized)));
-
-        return $unique;
+        return array_values(array_unique(array_filter($normalized)));
     }
 
     private function extractTextFromPdf(UploadedFile $pdfFile): string
@@ -134,6 +135,7 @@ class FilteredArticleDoiService
 
         if ($pdftotext->isSuccessful()) {
             $output = $pdftotext->getOutput();
+
             if ($output !== '') {
                 Log::info('pdftotext extraction succeeded', [
                     'file_name' => $pdfFile->getClientOriginalName(),
@@ -148,6 +150,7 @@ class FilteredArticleDoiService
                 'error' => trim($pdftotext->getErrorOutput()),
             ]);
         }
+
         return '';
     }
 }

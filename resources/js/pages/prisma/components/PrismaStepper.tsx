@@ -1,11 +1,25 @@
-import { Box, Typography } from '@mui/material';
+import { Box, MenuItem, Select, Typography } from '@mui/material';
 
-const steps = ['Identification', 'Screening', 'Retrieval', 'Report'];
+const steps = [
+  'Identification',
+  'Screening',
+  'Retrieval',
+  'Classification',
+  'Extraction',
+  'Report',
+];
 
 type Props = {
   activeStep?: number;
   canOpenScreening?: boolean;
   canOpenRetrieval?: boolean;
+  canOpenClassification?: boolean;
+  canOpenExtraction?: boolean;
+  canOpenReport?: boolean;
+  classificationMode?: 'manual' | 'ai';
+  onClassificationModeChange?: (mode: 'manual' | 'ai') => void;
+  extractionMode?: 'manual' | 'ai';
+  onExtractionModeChange?: (mode: 'manual' | 'ai') => void;
   onStepClick?: (step: number) => void;
 };
 
@@ -13,13 +27,20 @@ export default function PrismaStepper({
   activeStep = 0,
   canOpenScreening = false,
   canOpenRetrieval = false,
+  canOpenClassification = true,
+  canOpenExtraction = false,
+  canOpenReport = false,
+  classificationMode = 'manual',
+  onClassificationModeChange,
+  extractionMode = 'manual',
+  onExtractionModeChange,
   onStepClick,
 }: Props) {
   return (
     <Box
       sx={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
+        gridTemplateColumns: 'repeat(6, 1fr)',
         alignItems: 'center',
         gap: 4,
         width: '100%',
@@ -31,11 +52,26 @@ export default function PrismaStepper({
         const isIdentification = index === 0;
         const isScreening = index === 1;
         const isRetrieval = index === 2;
+        const isClassification = index === 3;
+        const isExtraction = index === 4;
+        const stepLabel = isClassification
+          ? classificationMode === 'ai'
+            ? 'AI Classification'
+            : 'Classification'
+          : isExtraction
+            ? extractionMode === 'ai'
+              ? 'AI Extraction'
+              : 'Extraction'
+            : step;
+        const isReport = index === 5;
 
         const isUnlocked =
           isIdentification ||
           (isScreening && canOpenScreening) ||
-          (isRetrieval && canOpenRetrieval);
+          (isRetrieval && canOpenRetrieval) ||
+          (isClassification && canOpenClassification) ||
+          (isExtraction && canOpenExtraction) ||
+          (isReport && canOpenReport);
 
         const isClickable = isUnlocked;
 
@@ -87,7 +123,7 @@ export default function PrismaStepper({
                   position: 'absolute',
                   top: '50%',
                   left: 'calc(50% + 110px)',
-                  right: 'calc(-59% + 110px)',
+                  right: 'calc(-64% + 110px)',
                   height: 2,
                   bgcolor: lineColor,
                   transform: 'translateY(-50%)',
@@ -125,18 +161,136 @@ export default function PrismaStepper({
                   : {},
               }}
             >
-              <Typography
-                variant="caption"
-                sx={{
-                  fontWeight: 700,
-                  fontSize: 11,
-                  textTransform: 'uppercase',
-                  lineHeight: 1,
-                  letterSpacing: '.5px',
-                }}
-              >
-                {step}
-              </Typography>
+              {isClassification ? (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 1,
+                    width: '100%',
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: 11,
+                      textTransform: 'uppercase',
+                      lineHeight: 1,
+                      letterSpacing: '.5px',
+                    }}
+                  >
+                    {stepLabel}
+                  </Typography>
+
+                  <Select
+                    size="small"
+                    value={classificationMode}
+                    onChange={(event) =>
+                      onClassificationModeChange?.(
+                        event.target.value as 'manual' | 'ai',
+                      )
+                    }
+                    onClick={(event) => event.stopPropagation()}
+                    sx={{
+                      color: 'inherit',
+                      fontWeight: 700,
+                      fontSize: 11,
+                      textTransform: 'uppercase',
+                      letterSpacing: '.5px',
+                      minWidth: 140,
+                      '.MuiOutlinedInput-notchedOutline': {
+                        border: 'none',
+                      },
+                      '.MuiSelect-select': {
+                        py: 0,
+                        px: 0,
+                      },
+                      '.MuiSvgIcon-root': {
+                        color: 'inherit',
+                      },
+                      '.MuiSelect-icon': {
+                        display: 'none',
+                      },
+                    }}
+                  >
+                    <MenuItem value="manual">Manual</MenuItem>
+                    <MenuItem value="ai">AI</MenuItem>
+                  </Select>
+                </Box>
+              ) : isExtraction ? (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 1,
+                    width: '100%',
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: 11,
+                      textTransform: 'uppercase',
+                      lineHeight: 1,
+                      letterSpacing: '.5px',
+                    }}
+                  >
+                    {stepLabel}
+                  </Typography>
+
+                  <Select
+                    size="small"
+                    value={extractionMode}
+                    onChange={(event) =>
+                      onExtractionModeChange?.(
+                        event.target.value as 'manual' | 'ai',
+                      )
+                    }
+                    onClick={(event) => event.stopPropagation()}
+                    sx={{
+                      color: 'inherit',
+                      fontWeight: 700,
+                      fontSize: 11,
+                      textTransform: 'uppercase',
+                      letterSpacing: '.5px',
+                      minWidth: 140,
+                      '.MuiOutlinedInput-notchedOutline': {
+                        border: 'none',
+                      },
+                      '.MuiSelect-select': {
+                        py: 0,
+                        px: 0,
+                      },
+                      '.MuiSvgIcon-root': {
+                        color: 'inherit',
+                      },
+                      '.MuiSelect-icon': {
+                        display: 'none',
+                      },
+                    }}
+                  >
+                    <MenuItem value="manual">Manual</MenuItem>
+                    <MenuItem value="ai">AI</MenuItem>
+                  </Select>
+                </Box>
+              ) : (
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: 11,
+                    textTransform: 'uppercase',
+                    lineHeight: 1,
+                    letterSpacing: '.5px',
+                  }}
+                >
+                  {stepLabel}
+                </Typography>
+              )}
             </Box>
           </Box>
         );

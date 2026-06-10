@@ -15,12 +15,34 @@ class FilteredArticle extends Model
         'retrieved',
         'novelty_status',
         'ai_usage_status',
+        'pdf_path',
         'article_status',
     ];
+
+    protected $casts = [
+        'included' => 'boolean',
+        'retrieved' => 'boolean',
+        'novelty_status' => 'boolean',
+        'ai_usage_status' => 'boolean',
+    ];
+
+    protected $appends = [
+        'filtered_article_id',
+    ];
+
+    public function getFilteredArticleIdAttribute()
+    {
+        return $this->id;
+    }
 
     public function researchPlan()
     {
         return $this->belongsTo(ResearchPlan::class);
+    }
+
+    public function review()
+    {
+        return $this->hasOne(Review::class, 'article_id', 'id');
     }
 
     public function rawArticle()

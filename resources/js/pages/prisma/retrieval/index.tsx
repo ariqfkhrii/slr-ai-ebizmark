@@ -26,28 +26,26 @@ import type { ArticleItem, PrismaPageProps } from './types';
 
 const shortcutPresets = [
   {
-    label: 'Sci-Hub',
-    value: 'https://sci-hub.box/',
-  },
-  {
     label: 'DOI',
-    value: 'https://doi.org/',
+    preLink: 'https://doi.org/',
+    postLink: '',
   },
   {
     label: 'Crossref',
-    value: 'https://search.crossref.org/?q=',
+    preLink: 'https://search.crossref.org/search/works?q=',
+    postLink: '&from_ui=yes',
   },
 ];
 
 function buildArticleLink(preLink: string, doi: string, postLink: string) {
-  return `${preLink}${doi}${postLink}`;
+  return `${preLink}${encodeURIComponent(doi)}${postLink}`;
 }
 
 export default function Retrieval({
   researchPlan,
   filteredArticles,
 }: PrismaPageProps) {
-  const [preLink, setPreLink] = useState('https://sci-hub.se/');
+  const [preLink, setPreLink] = useState('https://doi.org/');
 
   const [postLink, setPostLink] = useState('');
 
@@ -59,10 +57,11 @@ export default function Retrieval({
       filteredArticles.map((item) => ({
         id: item.filtered_article_id,
         title: item.raw_article?.title ?? 'Untitled',
+        authors: item.raw_article?.authors ?? 'Unknown',
         doi: item.raw_article?.doi ?? '-',
         source: item.raw_article?.tier ?? 'Unknown',
         year: item.raw_article?.publish_year ?? null,
-        retrieved: item.retrieved === 'Retrieved',
+        retrieved: Boolean(item.retrieved),
         note: `Status: ${item.article_status}`,
       })),
     [filteredArticles],
@@ -72,8 +71,21 @@ export default function Retrieval({
 
   const notRetrievedArticles = articles.filter((a) => !a.retrieved);
 
-  const handleShortcut = (value: string) => {
-    setPreLink(value);
+  const updateRetrievalStatus = (articleId: number, nextRetrieved: boolean) => {
+    router.put(
+      `/filtered-articles/${articleId}/retrieval`,
+      {
+        retrieved: nextRetrieved ? 1 : 0,
+      },
+      {
+        preserveScroll: true,
+      },
+    );
+  };
+
+  const handleShortcut = (value: { preLink: string; postLink: string }) => {
+    setPreLink(value.preLink);
+    setPostLink(value.postLink);
   };
 
   const handleUpload = () => {
@@ -174,6 +186,7 @@ export default function Retrieval({
               emptyText="Semua retrieved"
               preLink={preLink}
               postLink={postLink}
+              onToggleRetrieved={updateRetrievalStatus}
             />
 
             <ArticlePanel
@@ -184,6 +197,7 @@ export default function Retrieval({
               emptyText="Belum ada"
               preLink={preLink}
               postLink={postLink}
+              onToggleRetrieved={updateRetrievalStatus}
             />
           </Box>
         </Box>
@@ -220,8 +234,8 @@ export default function Retrieval({
               <Button
                 key={preset.label}
                 size="small"
-                variant={preLink === preset.value ? 'contained' : 'outlined'}
-                onClick={() => handleShortcut(preset.value)}
+                variant={preLink === preset.preLink ? 'contained' : 'outlined'}
+                onClick={() => handleShortcut(preset)}
               >
                 {preset.label}
               </Button>

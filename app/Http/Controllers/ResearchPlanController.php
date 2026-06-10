@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClassificationSetup;
 use App\Models\FilteredArticle;
 use App\Models\ResearchPlan;
 use Illuminate\Http\Request;
@@ -79,26 +80,58 @@ class ResearchPlanController extends Controller
         $researchPlan = $researchPlans->firstWhere('research_plan_id', $selectedId);
 
         if (! $researchPlan) {
+            $exists = ResearchPlan::query()
+                ->where('research_plan_id', $selectedId)
+                ->exists();
+
+            if ($exists) {
+                return Inertia::render('errors/forbidden-research-plan', [
+                    'requestedId' => $selectedId,
+                ]);
+            }
+
             abort(404);
         }
 
         $filteredArticles = FilteredArticle::query()
             ->where('research_plan_id', $researchPlan->research_plan_id)
-            ->with(['rawArticle:article_id,doi,title,issn,publish_year,tier'])
+            ->where('article_status', 'included')
+            ->with([
+                'rawArticle:id,doi,title,authors,keyword,abstract,issn_print,issn_e,publish_year,tier,citation_count,source_db',
+                'review:review_id,article_id',
+                'review.articleClassification:classification_id,review_id,research_method,category_1,category_2,category_3,category_4,category_5,category_6,grand_theory',
+                'review.extractionResult:extraction_id,review_id,abstract,introduction,result,conclusion,recommendation,novelty_gap,future_research,limitation',
+            ])
             ->get([
-                'filtered_article_id',
+                'id',
                 'raw_article_id',
                 'research_plan_id',
                 'novelty_status',
                 'article_status',
                 'included',
                 'retrieved',
+                'pdf_path',
+            ]);
+
+        $classificationSetup = ClassificationSetup::query()
+            ->where('research_plan_id', $researchPlan->research_plan_id)
+            ->first([
+                'id_setup',
+                'research_plan_id',
+                'category_1',
+                'category_2',
+                'category_3',
+                'category_4',
+                'category_5',
+                'category_6',
+                'theory',
             ]);
 
         return Inertia::render('prisma/index', [
             'researchPlan' => $researchPlan,
             'researchPlans' => $researchPlans,
             'filteredArticles' => $filteredArticles,
+            'classificationSetup' => $classificationSetup,
         ]);
     }
 }

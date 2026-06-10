@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FilteredArticle;
 use App\Models\ResearchPlan;
 use App\Services\FilteredArticleDoiService;
 use Illuminate\Http\Request;
@@ -72,6 +73,7 @@ class FilteredArticleController extends Controller
         $result = $this->service->extractAndMatch(
             $validated['pdf'],
             (int) $validated['research_plan_id'],
+            $storedPath,
         );
 
         Log::info('DOI upload processed', [
@@ -93,5 +95,24 @@ class FilteredArticleController extends Controller
                 'matched_article_ids' => $result['matched_article_ids'],
             ],
         ]);
+    }
+
+    public function updateRetrieval(Request $request, FilteredArticle $filteredArticle)
+    {
+        $validated = $request->validate([
+            'retrieved' => ['required', 'boolean'],
+        ]);
+
+        $filteredArticle->loadMissing('researchPlan');
+
+        if ($filteredArticle->researchPlan?->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $filteredArticle->update([
+            'retrieved' => $validated['retrieved'],
+        ]);
+
+        return redirect()->back()->with('success', 'Status retrieval berhasil diupdate.');
     }
 }

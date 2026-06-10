@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('doi')->unique()->nullable();
             $table->text('title');
-            $table->text('author')->nullable();
+            $table->text('authors')->nullable();
             $table->text('keyword')->nullable();
             $table->text('abstract')->nullable();
             $table->string('issn_print', 16)->nullable();

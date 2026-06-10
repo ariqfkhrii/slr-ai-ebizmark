@@ -16,6 +16,9 @@ return new class extends Migration
             $table->foreignId('research_plan_id')->constrained('research_plans', 'research_plan_id')->onDelete('cascade');
             $table->foreignId('keyword_id')->constrained()->onDelete('cascade');
             $table->integer('article_count')->default(0);
+            $table->integer('duplicate_count')->default(0);
+            $table->integer('unmatched_tier_count')->default(0);
+            $table->integer('missing_doi_count')->default(0);
             $table->timestamps();
         });
     }

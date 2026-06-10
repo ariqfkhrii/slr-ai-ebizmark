@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Services\MetadataSearchServices;
+use App\Services\PubMedApiService;
 use App\Services\ResearchPlanKeyword\ResearchPlanKeywordService;
+use App\Services\ScopusApiService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +31,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ResearchPlanKeywordService::class, function ($app) {
             return new ResearchPlanKeywordService();
         });
+
+        $this->app->bind(PubMedApiService::class);
+        $this->app->bind(ScopusApiService::class);
+        $this->app->bind(MetadataSearchServices::class);
     }
 
     /**

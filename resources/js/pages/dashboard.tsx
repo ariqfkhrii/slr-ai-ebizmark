@@ -16,6 +16,7 @@ export default function dashboard({
 
     const { data, setData, post, put, processing, reset, errors } = useForm({
         title: '',
+        source_database: '',
     })
 
     function submit(e: React.FormEvent) {
@@ -33,6 +34,7 @@ export default function dashboard({
     function openEditModal(plan: any) {
         setSelectedPlan(plan)
         setData('title', plan.title)
+        setData('source_database', plan.source_database)
         setShowEditModal(true)
     }
 
@@ -175,25 +177,29 @@ export default function dashboard({
                                 {plan.title}
                             </h2>
 
-                            <div className="grid grid-cols-3 gap-2 mb-4">
+                            <div className="grid grid-cols-2 gap-2 mb-4">
 
-                                <div className="bg-gray-200 rounded-lg p-2 text-center">
-                                    <p className="font-bold text-gray-800">
-                                        {plan.scopus_quantity ?? 0}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                        Scopus Articles
-                                    </p>
-                                </div>
+                                {plan.source_database === 'scopus' && (
+                                    <div className="bg-gray-200 rounded-lg p-2 text-center">
+                                        <p className="font-bold text-gray-800">
+                                            {plan.scopus_quantity ?? 0}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                            Scopus Articles
+                                        </p>
+                                    </div>
+                                )}
 
-                                <div className="bg-gray-200 rounded-lg p-2 text-center">
-                                    <p className="font-bold text-gray-800">
-                                        {plan.pubmed_quantity ?? 0}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                        PubMed Articles
-                                    </p>
-                                </div>
+                                {plan.source_database === 'pubmed' && (
+                                    <div className="bg-gray-200 rounded-lg p-2 text-center">
+                                        <p className="font-bold text-gray-800">
+                                            {plan.pubmed_quantity ?? 0}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                            PubMed Articles
+                                        </p>
+                                    </div>
+                                )}
 
                                 <div className="bg-gray-200 rounded-lg p-2 text-center">
                                     <p className="font-bold text-gray-800">
@@ -279,6 +285,28 @@ export default function dashboard({
                                     )}
                                 </div>
 
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Sumber Database
+                                    </label>
+
+                                    <select
+                                        value={data.source_database}
+                                        onChange={(e) => setData('source_database', e.target.value)}
+                                        className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                                    >
+                                        <option value="">Pilih Database...</option>
+                                        <option value="scopus">Scopus</option>
+                                        <option value="pubmed">PubMed</option>
+                                    </select>
+
+                                    {errors.source_database && (
+                                        <p className="mt-2 text-sm text-red-500">
+                                            {errors.source_database}
+                                        </p>
+                                    )}
+                                </div>
+
                                 <div className="flex justify-end gap-2">
                                     <button
                                         type="button"
@@ -331,6 +359,28 @@ export default function dashboard({
                                     {errors.title && (
                                         <p className="mt-2 text-sm text-red-500">
                                             {errors.title}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="mb-6">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Sumber Database
+                                    </label>
+
+                                    <select
+                                        value={data.source_database}
+                                        onChange={(e) => setData('source_database', e.target.value)}
+                                        className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                                    >
+                                        <option value="">Pilih Database...</option>
+                                        <option value="scopus">Scopus</option>
+                                        <option value="pubmed">PubMed</option>
+                                    </select>
+
+                                    {errors.source_database && (
+                                        <p className="mt-2 text-sm text-red-500">
+                                            {errors.source_database}
                                         </p>
                                     )}
                                 </div>

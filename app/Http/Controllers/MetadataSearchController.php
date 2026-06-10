@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\MetadataSearchRequest;
 use App\Http\Requests\PreviewSearchRequest;
 use App\Services\MetadataSearchServices;
 use Illuminate\Support\Facades\Log;
@@ -27,7 +28,7 @@ class MetadataSearchController extends Controller
         try {
             $validated = $request->validated();
             
-            $previewResult = $this->service->getPreviewResults($id, $validated);
+            $previewResult = $this->service->getPreviewResults($validated, $id);
             $totalCount = $previewResult['total_count'];
             
             if ($previewResult['is_recommended']) {
@@ -52,5 +53,39 @@ class MetadataSearchController extends Controller
                 'error'   => config('app.debug') ? $e->getMessage() : 'Internal Server Error'
             ], 500);
         }
+    }
+
+    /**
+     * Handle the metadata search request and return appropriate response.
+     *
+     * @param MetadataSearchRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function dispatchResult(MetadataSearchRequest $request, $id)
+    {
+        $validated = $request->validated();
+        
+        $result = $this->service->executeSearch($validated, $id);
+        
+        return match ($result['status']) {
+            'full_cache' => response()->json([
+                'message' => 'All sources found in cache.'
+            ], $result['code']),
+            
+            'active_running' => response()->json([
+                'message' => 'An active search plan is already running for this keyword.',
+                'batch_id' => $result['batch_id']
+            ], $result['code']),
+            
+            'no_results' => response()->json([
+                'message' => 'No results found on the external databases for this keyword.'
+            ], $result['code']),
+            
+            'dispatched' => response()->json([
+                'message' => 'Search initiated successfully.',
+                'batch_id' => $result['batch_id'],
+                'missed_sources' => $result['missed_sources']
+            ], $result['code']),
+        };
     }
 }

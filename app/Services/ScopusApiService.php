@@ -67,4 +67,78 @@ class ScopusApiService
             'entries' => $data['search-results']['entry'] ?? []
         ];
     }
+
+    /**
+     * Get the total count of search results from the Scopus API for a given keyword and publication year range.
+     *
+     * @param string $keyword The keyword to search for in the Scopus database.
+     * @param int $startYear The starting publication year for the search.
+     * @param int $endYear The ending publication year for the search.
+     * @return int The total count of search results matching the criteria.
+     * @throws \Exception If the API rate limit is exceeded or if the API call fails.
+     */
+    public function getTotalCount(string $keyword, int $startYear, int $endYear): int
+    {
+        $this->enforceRateLimit();
+
+        $query = 'TITLE-ABS-KEY("' . $keyword . '") AND PUBYEAR > ' . ($startYear - 1) . ' AND PUBYEAR < ' . ($endYear + 1);
+        
+        $response = Http::withHeaders([
+            'X-ELS-APIKey' => config('services.scopus.key'),
+            'Accept'       => 'application/json'
+        ])->get(config('services.scopus.base_url'), [
+            'query' => $query,
+            'count' => 1,
+        ]);
+
+        if ($response->status() === 429) {
+            throw new \Exception('API_RATE_LIMIT');
+        }
+
+        if ($response->successful()) {
+            $data = $response->json();
+            return (int) ($data['search-results']['opensearch:totalResults'] ?? 0);
+        }
+
+        Log::error('Scopus Count API Failed: ' . $response->body());
+        
+        return 0;
+    }
+
+    /**
+     * Search the Scopus API with the given query, count, and start parameters.
+     *
+     * @param string $query The search query to be sent to the Scopus API.
+     * @param int $count The number of results to return per page.
+     * @param int $start The starting index for the search results.
+     * @return array An array of search results from the Scopus API.
+     * @throws \Exception If the API rate limit is exceeded or if the API call fails.
+     */
+    public function search(string $query, int $count, int $start): array
+    {
+        $this->enforceRateLimit();
+
+        $response = Http::withHeaders([
+            'X-ELS-APIKey' => config('services.scopus.key'),
+            'Accept'       => 'application/json',
+        ])->get(config('services.scopus.base_url'), [
+            'query' => $query,
+            'count' => $count,
+            'start' => $start,
+        ]);
+
+        if ($response->status() === 429) {
+            throw new \Exception('API_RATE_LIMIT');
+        }
+
+        if (! $response->successful()) {
+            Log::warning('Scopus Search API Failed: ' . $response->body(), [
+                'status' => $response->status(),
+            ]);
+
+            return [];
+        }
+
+        return $response->json('search-results.entry', []);
+    }
 }

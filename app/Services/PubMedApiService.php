@@ -151,4 +151,100 @@ class PubMedApiService
 
         return '';
     }
+    
+    /**
+     * Get the total count of articles matching the specified keyword and publication date range.
+     * This method constructs a search query that includes the keyword in various fields (Title/Abstract, Other Term, MeSH Terms)
+     * and applies filters to ensure that only journal articles indexed in Medline are counted, excluding preprints.
+     *
+     * @param string $keyword The keyword to search for in the articles.
+     * @param int $startYear The starting publication year for the search.
+     * @param int $endYear The ending publication year for the search.
+     * @return int The total count of matching articles.
+     */
+    public function getTotalCount(string $keyword, int $startYear, int $endYear): int
+    {
+        $this->enforceRateLimit();
+
+        $searchQuery = '("' . $keyword . '"[Title/Abstract] OR "' . $keyword . '"[Other Term] OR "' . $keyword . '"[MeSH Terms])';
+        $qualityFilter = '("Journal Article"[pt] AND "medline"[sb] NOT "preprint"[pt])';
+        $term = $searchQuery . ' AND ' . $qualityFilter . ' AND ' . $startYear . ':' . $endYear . '[dp]';
+
+        $response = Http::get($this->buildEndpoint('esearch.fcgi'), [
+            'db'      => 'pubmed',
+            'term'    => $term,
+            'retmode' => 'json',
+            'retmax'  => 1,
+            'api_key' => config('services.pubmed.key'),
+        ]);
+
+        if ($response->successful()) {
+            $data = $response->json();
+            return (int) ($data['esearchresult']['count'] ?? 0);
+        }
+
+        Log::error('PubMed Count API Failed: ' . $response->body());
+        
+        return 0;
+    }
+
+    /**
+     * Search for article IDs based on a search term and pagination parameters.
+     *
+     * @param string $term The search term.
+     * @param int $retstart The starting index for the results.
+     * @param int $retmax The maximum number of results to return.
+     * @return array The list of matching article IDs.
+     */
+    public function searchIds(string $term, int $retstart, int $retmax): array
+    {
+        $this->enforceRateLimit();
+
+        $response = Http::get($this->buildEndpoint('esearch.fcgi'), [
+            'db'       => 'pubmed',
+            'term'     => $term,
+            'retmode'  => 'json',
+            'retstart' => $retstart,
+            'retmax'   => $retmax,
+            'api_key'  => config('services.pubmed.key'),
+        ]);
+
+        if ($response->successful()) {
+            return $response->json('esearchresult.idlist', []);
+        }
+
+        Log::warning('PubMed Search API Failed: ' . $response->body());
+
+        return [];
+    }
+
+    /**
+     * Fetch summaries for a list of article IDs.
+     *
+     * @param array $ids The list of article IDs.
+     * @return array The list of article summaries.
+     */
+    public function fetchSummaries(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $this->enforceRateLimit();
+
+        $response = Http::get($this->buildEndpoint('esummary.fcgi'), [
+            'db'      => 'pubmed',
+            'retmode' => 'json',
+            'id'      => implode(',', $ids),
+            'api_key' => config('services.pubmed.key'),
+        ]);
+
+        if ($response->successful()) {
+            return $response->json('result', []);
+        }
+
+        Log::warning('PubMed Summary API Failed: ' . $response->body());
+
+        return [];
+    }
 }

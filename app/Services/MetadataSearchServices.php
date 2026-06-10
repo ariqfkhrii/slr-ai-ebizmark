@@ -2,11 +2,18 @@
 
 namespace App\Services;
 
+use App\Jobs\FetchPubMedJob;
+use App\Jobs\FetchScopusJob;
+use App\Models\FilteredArticle;
 use App\Models\Keyword;
 use App\Models\ResearchPlan;
+use App\Models\ResearchPlanKeyword;
 use App\Models\ScimagoJournal;
+use App\Models\TempPreviewCache;
 use App\Services\PubMedApiService;
 use App\Services\ScopusApiService;
+use Illuminate\Bus\Batch;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
 
 class MetadataSearchServices
@@ -23,7 +30,7 @@ class MetadataSearchServices
      * @param array $validatedData
      * @return array
      */
-    public function getPreviewResults($researchPlanId, array $validatedData): array
+    public function getPreviewResults(array $validatedData, $researchPlanId): array
     {
         $keywordModel = Keyword::findOrFail($validatedData['keyword_id']);
         
@@ -281,5 +288,276 @@ class MetadataSearchServices
         }
 
         return $samples;
+    }
+    
+    /**
+     * Execute metadata search based on validated request parameters.
+     *
+     * @param array $validatedRequest
+     * @param int|string $planId
+     * @return array
+     */
+    public function executeSearch(array $validatedRequest, $planId): array
+    {
+        $keywordId = $validatedRequest['keyword_id'];
+        
+        $plan = ResearchPlan::findOrFail($planId);
+        $source = $plan->source_database;
+
+        $cacheKeys = $this->generateCacheKeys($validatedRequest, $source);
+        $hits      = $this->checkCacheHits($cacheKeys);
+
+        if (count($hits) === count($cacheKeys)) {
+            return ['status' => 'full_cache', 'code' => 200];
+        }
+
+        $activeBatchId = $this->getActiveBatchId($planId, $keywordId);
+        if ($activeBatchId) {
+            return ['status' => 'active_running', 'batch_id' => $activeBatchId, 'code' => 202];
+        }
+
+        $batchId = $this->dispatchSearchJobs($validatedRequest, $source, $cacheKeys, $planId);
+
+        if (!$batchId) {
+            return ['status' => 'no_results', 'code' => 404];
+        }
+
+        $this->rememberActiveBatch($planId, $keywordId, $batchId);
+
+        return ['status' => 'dispatched', 'batch_id' => $batchId, 'source' => $source, 'code' => 202];
+    }
+
+    /**
+     * Generate cache keys based on request parameters.
+     *
+     * @param array $validatedRequest
+     * @param string $source
+     * @return array
+     */
+    public function generateCacheKeys(array $validatedRequest, string $source): array
+    {
+        $keywordId = $validatedRequest['keyword_id'];
+        $startYear = $validatedRequest['start_year'];
+        $endYear = $validatedRequest['end_year'];
+        $tiers = $validatedRequest['tiers'] ?? [];
+
+        if ($source === 'pubmed') {
+            $tierPart = 'tier:all:';
+        } else {
+            if (!empty($tiers)) {
+                $tierPart = 'tier:' . implode(',', $tiers) . ':';
+            } else {
+                $tierPart = 'tier:all:';
+            }
+        }
+
+        $key = "search:kw:{$keywordId}:yr:{$startYear}-{$endYear}:";
+        $key .= $tierPart;
+        $key .= "src:{$source}";
+
+        return [$key];
+    }
+
+    /**
+     * Check cache hits for given cache keys.
+     *
+     * @param array $cacheKeys
+     * @return array
+     */
+    public function checkCacheHits(array $cacheKeys): array
+    {
+        $hits = [];
+        foreach ($cacheKeys as $key) {
+            $value = cache()->get($key);
+            if (!is_null($value)) {
+                $hits[$key] = $value;
+            }
+        }
+        return $hits;
+    }
+
+    /**
+     * Get active batch ID for a given research plan and keyword.
+     *
+     * @param int $researchPlanId
+     * @param int $keywordId
+     * @return string|null
+     */
+    public function getActiveBatchId(int $researchPlanId, int $keywordId): ?string
+    {
+        $cacheKey = "active_search_plan_{$researchPlanId}_kw_{$keywordId}";
+        $batchIds = cache()->get($cacheKey);
+
+        if (!$batchIds) return null;
+
+        $anyRunning = collect(explode(',', $batchIds))
+            ->filter(fn($id) => !empty($id))
+            ->some(function ($id) {
+                $batch = Bus::findBatch($id);
+                return $batch && !$batch->finished();
+            });
+
+        if ($anyRunning) return $batchIds;
+
+        cache()->forget($cacheKey);
+        return null;
+    }
+
+    /**
+     * Remember active batch ID in cache for a given research plan and keyword.
+     *
+     * @param int $researchPlanId
+     * @param int $keywordId
+     * @param string $batchId
+     * @return void
+     */
+    public function rememberActiveBatch(int $researchPlanId, int $keywordId, string $batchId): void
+    {
+        cache()->put("active_search_plan_{$researchPlanId}_kw_{$keywordId}", $batchId, now()->addHours(1));
+    }
+
+    /**
+     * Dispatch search jobs for missed sources and manage batch processing.
+     *
+     * @param array $validatedRequest
+     * @param string $source
+     * @param array $cacheKeys
+     * @param int|string $planId
+     * @return string|null
+     */
+    public function dispatchSearchJobs(array $validatedRequest, string $source, array $cacheKeys, $planId)
+    {
+        $keywordId = $validatedRequest['keyword_id'];
+
+        $keywordModel  = Keyword::findOrFail($keywordId);
+        $keywordString = $keywordModel->keyword;
+
+        $startYear = $validatedRequest['start_year'];
+        $endYear   = $validatedRequest['end_year'];
+
+        $jobs = [];
+
+        // Make jobs per source based on missed sources
+        $cacheKey = $cacheKeys[0];
+
+        $itemsPerPage = 25;
+        $pagesPerJob  = 0;
+        $totalCount   = 0;
+
+        if ($source === 'scopus') {
+            $pagesPerJob = 5;
+            $totalCount  = min($this->scopusApi->searchPreviewWithTotal($keywordString, $startYear, $endYear)['total'] ?? 0, 5000);
+        } elseif ($source === 'pubmed') {
+            $pagesPerJob = 20;
+            $totalCount  = min($this->pubmedApi->searchIdsPreviewWithTotal($keywordString, $startYear, $endYear)['total'] ?? 0, 5000);
+        }
+
+        if ($totalCount === 0) return null;
+
+        $totalPages = (int) ceil($totalCount / $itemsPerPage);
+
+        // Make jobs per page range
+        for ($startPage = 1; $startPage <= $totalPages; $startPage += $pagesPerJob) {
+            $endPage = min($startPage + $pagesPerJob - 1, $totalPages);
+
+            if ($source === 'scopus') {
+                $jobs[] = new FetchScopusJob($validatedRequest, $startPage, $endPage, $cacheKey);
+            } elseif ($source === 'pubmed') {
+                $jobs[] = new FetchPubMedJob($validatedRequest, $startPage, $endPage, $cacheKey);
+            }
+        }
+
+        if (empty($jobs)) return null;
+
+        // Save total batch count in cache to manage completion later
+        $totalBatches = 1;
+        cache()->put("pending_batches_{$planId}_{$keywordId}", $totalBatches, now()->addHours(2));
+
+        $tiers = $validatedRequest['tiers'] ?? [];
+
+        // Dispatch jobs per source in separate batches
+        $dispatched = Bus::batch($jobs)
+            ->name("Metadata Search " . strtoupper($source) . " KW-{$keywordId}")
+            ->onQueue($source)
+            ->then(function (\Illuminate\Bus\Batch $batch) use ($cacheKeys, $planId, $keywordId, $source, $tiers) {
+                $this->finalizeBatch($batch, $cacheKeys, $planId, $keywordId, $source, $tiers);
+            })
+            ->catch(function (\Illuminate\Bus\Batch $batch, \Throwable $e) use ($planId, $keywordId) {
+                \Illuminate\Support\Facades\Log::error("Metadata Search Batch failed: " . $e->getMessage());
+                cache()->forget("active_search_plan_{$planId}_kw_{$keywordId}");
+            })
+            ->dispatch();
+
+        return (string) $dispatched->id;
+    }
+
+    /**
+     * Finalize batch processing by updating cache and cleaning up temporary data.
+     *
+     * @param \Illuminate\Bus\Batch $batch
+     * @param array $cacheKeys
+     * @param int $planId
+     * @param int $keywordId
+     * @param string $source
+     * @param array $tiers
+     * @return void
+     */
+    private function finalizeBatch(Batch $batch, array $cacheKeys, int $planId, int $keywordId, string $source, array $tiers = []): void
+    {
+        cache()->put("batch_done_{$planId}_{$keywordId}_{$source}", true, now()->addHours(2));
+
+        $tempData = TempPreviewCache::where('batch_id', $batch->id)->get();
+        $rawArticleIds = $tempData->pluck('raw_article_id')->toArray();
+        $uniqueIds = array_unique($rawArticleIds);
+
+        $existingIds = FilteredArticle::where('research_plan_id', $planId)
+            ->whereIn('raw_article_id', $uniqueIds)
+            ->pluck('raw_article_id')
+            ->toArray();
+
+        $newIds = array_diff($uniqueIds, $existingIds);
+        $finalCount = count($newIds);
+
+        $insertData = [];
+        $now = now();
+        foreach ($newIds as $articleId) {
+            $insertData[] = [
+                'research_plan_id' => $planId,
+                'raw_article_id'   => $articleId,
+                'created_at'       => $now,
+                'updated_at'       => $now,
+            ];
+        }
+
+        foreach (array_chunk($insertData, 500) as $chunk) {
+            FilteredArticle::insert($chunk);
+        }
+
+        ResearchPlanKeyword::where('research_plan_id', $planId)
+            ->where('keyword_id', $keywordId)
+            ->increment('article_count', $finalCount);
+
+        $groupedData = $tempData->groupBy('cache_key');
+
+        foreach ($cacheKeys as $key) {
+            if (!str_ends_with($key, "src:{$source}")) continue;
+
+            $records = $groupedData->has($key)
+                ? array_values(array_unique($groupedData->get($key)->pluck('raw_article_id')->toArray()))
+                : [];
+
+            cache()->put($key, $records, now()->addDays(1));
+        }
+
+        TempPreviewCache::where('batch_id', $batch->id)->delete();
+
+        $totalBatches   = cache()->get("pending_batches_{$planId}_{$keywordId}", 1);
+        $completedCount = cache()->has("batch_done_{$planId}_{$keywordId}_{$source}") ? 1 : 0;
+
+        if ($completedCount >= $totalBatches) {
+            cache()->forget("batch_done_{$planId}_{$keywordId}_{$source}");
+            cache()->forget("pending_batches_{$planId}_{$keywordId}");
+            cache()->forget("active_search_plan_{$planId}_kw_{$keywordId}");
+        }
     }
 }

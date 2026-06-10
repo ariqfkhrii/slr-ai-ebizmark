@@ -13,9 +13,11 @@ class ResearchPlan extends Model
 
     protected $fillable = [
         'title',
+        'source_database',
         'scopus_quantity',
         'pubmed_quantity',
         'extraction_count',
+        'user_id',
     ];
 
     public function user()

@@ -17,6 +17,8 @@ return new class extends Migration
 
             $table->string('title');
 
+            $table->string('source_database');
+
             $table->integer('scopus_quantity')->nullable();
 
             $table->integer('pubmed_quantity')->nullable();

@@ -28,6 +28,10 @@ export default function Prisma(props: any) {
   const canOpenRetrieval = screening.counters.included > 0;
   const canOpenClassification = true;
   const canOpenExtraction = true;
+
+  const sourceDatabase = String(
+    props?.researchPlan?.source_database ?? 'scopus',
+  ).toLowerCase();
   return (
     <>
       <Head title="PRISMA" />
@@ -113,6 +117,8 @@ export default function Prisma(props: any) {
             <Identification
               {...identification}
               globalArticles={globalArticles}
+              sourceDatabase={sourceDatabase}
+              researchPlanId={researchPlanId}
             />
           )}
 

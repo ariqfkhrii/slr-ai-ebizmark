@@ -10,14 +10,21 @@ class StoreResearchPlanRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; 
+        return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'source_database' => $this->input('source_database', SourceDatabase::SCOPUS->value),
+        ]);
     }
 
     public function rules(): array
     {
         return [
             'title' => 'required|string|max:255',
-            'source_database' => ['required', new Enum(SourceDatabase::class)],
+            'source_database' => ['nullable', new Enum(SourceDatabase::class)],
         ];
     }
 

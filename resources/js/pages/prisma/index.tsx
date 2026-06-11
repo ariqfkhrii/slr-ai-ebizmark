@@ -3,6 +3,7 @@ import { Box, Paper, Typography } from '@mui/material';
 import { useState } from 'react';
 import AiClassification from './ai-classification';
 import AiExtraction from './ai-extraction';
+import AutoReportingPage from './auto-reporting';
 import Classification from './classification';
 import PrismaStepper from './components/PrismaStepper';
 import Extraction from './extraction';
@@ -28,6 +29,7 @@ export default function Prisma(props: any) {
   const canOpenRetrieval = screening.counters.included > 0;
   const canOpenClassification = true;
   const canOpenExtraction = true;
+  const canOpenReport = researchPlanId > 0;
   return (
     <>
       <Head title="PRISMA" />
@@ -92,6 +94,7 @@ export default function Prisma(props: any) {
               canOpenRetrieval={canOpenRetrieval}
               canOpenClassification={canOpenClassification}
               canOpenExtraction={canOpenExtraction}
+              canOpenReport={canOpenReport}
               classificationMode={classificationMode}
               onClassificationModeChange={setClassificationMode}
               extractionMode={extractionMode}
@@ -101,6 +104,7 @@ export default function Prisma(props: any) {
                 if (step === 2 && !canOpenRetrieval) return;
                 if (step === 3 && !canOpenClassification) return;
                 if (step === 4 && !canOpenExtraction) return;
+                if (step === 5 && !canOpenReport) return;
 
                 setActiveStep(step);
               }}
@@ -147,6 +151,15 @@ export default function Prisma(props: any) {
                 researchPlanId={researchPlanId}
               />
             ))}
+
+          {activeStep === 5 && (
+            <AutoReportingPage
+              researchPlanId={researchPlanId}
+              researchPlan={props.researchPlan}
+              items={props.items ?? []}
+              filteredArticles={(props.filteredArticles ?? []).filter((a: any) => a.article_status === 'included')}
+            />
+          )}
         </Box>
       </Box>
     </>

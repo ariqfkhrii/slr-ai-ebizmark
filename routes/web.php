@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AiClassificationController;
 use App\Http\Controllers\AiExtractionController;
+use App\Http\Controllers\AutoReportingController;
 use App\Http\Controllers\ClassificationController;
 use App\Http\Controllers\ExtractionController;
 use App\Http\Controllers\FilteredArticleController;
@@ -58,6 +59,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         
     Route::get('prisma', [ResearchPlanController::class, 'prisma'])
         ->name('prisma');
+
+    Route::get('/research-plans/{researchPlanId}/auto-reporting', [AutoReportingController::class, 'index'])
+        ->name('auto-reporting.index');
+    Route::post('/auto-reportings/{autoReporting}/generate', [AutoReportingController::class, 'generate'])
+        ->name('auto-reporting.generate');
+    Route::put('/auto-reportings/{autoReporting}', [AutoReportingController::class, 'update'])
+        ->name('auto-reporting.update');
+    Route::post('/auto-reportings/{autoReporting}/regenerate', [AutoReportingController::class, 'regenerate'])
+        ->name('auto-reporting.regenerate');
 
     // Research Plan Keywords
     Route::get('/research-plans/{researchPlanId}/keywords', [ResearchPlanKeywordController::class, 'index']);

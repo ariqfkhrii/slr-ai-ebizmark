@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\ArticleMetadataTemp;
 use App\Models\Keyword;
 use App\Models\RawArticle;
 use App\Models\ScimagoJournal;
-use App\Models\TempPreviewCache;
 use Illuminate\Support\Facades\DB;
 
 class ScopusIngestService
@@ -17,7 +17,7 @@ class ScopusIngestService
     /**
      * Ingest articles from the Scopus API based on the provided search criteria and pagination parameters.
      *
-     * This method retrieves articles from the Scopus API in batches defined by the start and end page parameters. It processes each batch of articles, normalizing DOIs, extracting relevant information, and determining the journal tier based on ISSN values. Valid articles are then upserted into the RawArticle database table, and a subset of articles that meet the preview criteria are stored in the TempPreviewCache for later retrieval.
+     * This method retrieves articles from the Scopus API in batches defined by the start and end page parameters. It processes each batch of articles, normalizing DOIs, extracting relevant information, and determining the journal tier based on ISSN values. Valid articles are then upserted into the RawArticle database table, and a subset of articles that meet the preview criteria are stored in the ArticleMetadataTemp table for later retrieval.
      *
      * @param array $validatedRequest The validated request data containing search criteria such as keyword ID, start year, end year, and selected tiers.
      * @param int $startPage The starting page number for pagination (inclusive).
@@ -49,12 +49,12 @@ class ScopusIngestService
     /**
      * Process a batch of article entries retrieved from the Scopus API, normalizing data, determining journal tiers, and storing valid articles in the database.
      *
-     * This method takes a batch of article entries and performs several processing steps. It normalizes DOIs, extracts relevant information such as title, authors, keywords, and publication year, and determines the journal tier based on ISSN values using a pre-fetched dictionary. Valid articles are then upserted into the RawArticle database table, and a subset of articles that meet the preview criteria are stored in the TempPreviewCache for later retrieval.
+     * This method takes a batch of article entries and performs several processing steps. It normalizes DOIs, extracts relevant information such as title, authors, keywords, and publication year, and determines the journal tier based on ISSN values using a pre-fetched dictionary. Valid articles are then upserted into the RawArticle database table, and a subset of articles that meet the preview criteria are stored in the ArticleMetadataTemp table for later retrieval.
      *
      * @param array $entries The batch of article entries retrieved from the Scopus API to be processed.
      * @param array $validatedRequest The validated request data containing search criteria such as selected tiers for filtering articles.
      * @param string|null $batchId An optional identifier for the batch being processed, used for tracking purposes when storing preview articles.
-     * @param string $cacheKey A unique key used to associate preview articles with a specific cache entry in the TempPreviewCache.
+     * @param string $cacheKey A unique key used to associate preview articles with a specific cache entry in the ArticleMetadataTemp.
      */
     private function processBatch(array $entries, array $validatedRequest, ?string $batchId, string $cacheKey): void
     {
@@ -150,7 +150,7 @@ class ScopusIngestService
             }
 
             if (!empty($previewBatch)) {
-                TempPreviewCache::insertOrIgnore($previewBatch);
+                ArticleMetadataTemp::insertOrIgnore($previewBatch);
             }
         });
     }

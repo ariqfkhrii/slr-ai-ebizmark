@@ -4,12 +4,12 @@ namespace App\Services;
 
 use App\Jobs\FetchPubMedJob;
 use App\Jobs\FetchScopusJob;
+use App\Models\ArticleMetadataTemp;
 use App\Models\FilteredArticle;
 use App\Models\Keyword;
 use App\Models\ResearchPlan;
 use App\Models\ResearchPlanKeyword;
 use App\Models\ScimagoJournal;
-use App\Models\TempPreviewCache;
 use App\Services\PubMedApiService;
 use App\Services\ScopusApiService;
 use Illuminate\Bus\Batch;
@@ -506,7 +506,7 @@ class MetadataSearchServices
     {
         cache()->put("batch_done_{$planId}_{$keywordId}_{$source}", true, now()->addHours(2));
 
-        $tempData = TempPreviewCache::where('batch_id', $batch->id)->get();
+        $tempData = ArticleMetadataTemp::where('batch_id', $batch->id)->get();
         $rawArticleIds = $tempData->pluck('raw_article_id')->toArray();
         $uniqueIds = array_unique($rawArticleIds);
 
@@ -549,7 +549,7 @@ class MetadataSearchServices
             cache()->put($key, $records, now()->addDays(1));
         }
 
-        TempPreviewCache::where('batch_id', $batch->id)->delete();
+        ArticleMetadataTemp::where('batch_id', $batch->id)->delete();
 
         $totalBatches   = cache()->get("pending_batches_{$planId}_{$keywordId}", 1);
         $completedCount = cache()->has("batch_done_{$planId}_{$keywordId}_{$source}") ? 1 : 0;

@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\ArticleMetadataTemp;
 use App\Models\Keyword;
 use App\Models\RawArticle;
-use App\Models\TempPreviewCache;
 use Illuminate\Support\Facades\DB;
 use SimpleXMLElement;
 
@@ -126,7 +126,7 @@ class PubMedIngestService
                 }
 
                 if (!empty($previewBatch)) {
-                    TempPreviewCache::insertOrIgnore($previewBatch);
+                    ArticleMetadataTemp::insertOrIgnore($previewBatch);
                 }
             }
         });

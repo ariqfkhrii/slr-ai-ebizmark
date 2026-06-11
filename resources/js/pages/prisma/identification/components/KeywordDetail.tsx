@@ -1,6 +1,7 @@
 import { Box, Button, Typography } from '@mui/material';
 import { ArrowDownFromLine, RotateCcw, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { MetadataPreviewResult } from '../hooks/useIdentification';
 import { FetchHistory, Keyword } from '../types';
 import DeleteKeywordConfirmationDialog from './dialog/DeleteKeywordConfirmationDialog';
 import FetchParameterDialog, {
@@ -14,15 +15,24 @@ import WordCloudTitle from './WordCloudTitle';
 type Props = {
   keyword: Keyword | null;
   onFetchMetadata: (keywordId: number, params: FetchParams) => void;
+  onPreviewMetadata: (
+    keywordId: number,
+    params: FetchParams,
+  ) => Promise<MetadataPreviewResult>;
   onDeleteKeyword: (id: number) => void;
   histories: FetchHistory[];
+  sourceDatabase: string;
+  researchPlanId: number;
 };
 
 export default function KeywordDetail({
   keyword,
   onFetchMetadata,
+  onPreviewMetadata,
   onDeleteKeyword,
   histories,
+  sourceDatabase,
+  researchPlanId,
 }: Props) {
   const hasMetadata = (keyword?.retrievedCount ?? 0) > 0;
   const articles = keyword?.articles ?? [];
@@ -118,9 +128,13 @@ export default function KeywordDetail({
         </Button>
 
         <FetchParameterDialog
+          researchPlanId={researchPlanId}
+          keyword={keyword}
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={() => setAnchorEl(null)}
+          sourceDatabase={sourceDatabase}
+          onPreviewMetadata={onPreviewMetadata}
           onSubmit={(params) => {
             onFetchMetadata(keyword.id, params);
             setAnchorEl(null);

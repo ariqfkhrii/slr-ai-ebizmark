@@ -1,8 +1,12 @@
-import { useAppDispatch } from '@/lib/store/hooks';
-import { showSuccess } from '@/lib/store/snackbarSlice';
+import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
+import {
+  hideProgressSnackbar,
+  showProgressSnackbar,
+  showSuccess,
+  updateProgressSnackbar,
+} from '@/lib/store/snackbarSlice';
 import { useEffect, useState } from 'react';
 import { FetchParams } from '../components/dialog/FetchParameterDialog';
-import { getRandomArticles } from '../mock/randomArticles';
 import { FetchHistory, Keyword } from '../types';
 
 type ApiKeyword = {
@@ -11,12 +15,23 @@ type ApiKeyword = {
   article_count: number;
 };
 
+export type MetadataPreviewResult = {
+  message: string;
+  can_execute: boolean;
+  data: {
+    total_count: number;
+    is_recommended: boolean;
+    [key: string]: any;
+  };
+};
+
 const getCsrfToken = () =>
   document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ??
   '';
 
 export function useIdentification(researchPlanId: number) {
   const dispatch = useAppDispatch();
+  const progress = useAppSelector((state) => state.snackbar.progress);
 
   const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [histories, setHistories] = useState<FetchHistory[]>([]);
@@ -127,54 +142,148 @@ export function useIdentification(researchPlanId: number) {
     setSelectedId(id);
   };
 
-  const fetchMetadata = async (keywordId: number, params: FetchParams) => {
-    console.log('FETCH PARAMS: ', params);
+  const previewMetadata = async (
+    keywordId: number,
+    params: FetchParams,
+  ): Promise<MetadataPreviewResult> => {
+    const res = await fetch(
+      `/research-plans/${researchPlanId}/metadata/preview`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': getCsrfToken(),
+        },
+        body: JSON.stringify({
+          keyword_id: keywordId,
+          start_year: params.yearFrom,
+          end_year: params.yearTo,
+        }),
+      },
+    );
 
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data?.message ?? 'Gagal mengambil preview metadata');
+    }
+
+    return data;
+  };
+
+  const fetchMetadata = async (keywordId: number, params: FetchParams) => {
     const currentKeyword = keywords.find((keyword) => keyword.id === keywordId);
 
     if (!currentKeyword) return;
 
     const isUpdate = (currentKeyword.retrievedCount ?? 0) > 0;
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    const articles = getRandomArticles(10);
-
-    setKeywords((prev) =>
-      prev.map((keyword) =>
-        keyword.id === keywordId
-          ? {
-              ...keyword,
-              retrievedCount: articles.length,
-              articles,
-            }
-          : keyword,
-      ),
-    );
-
-    setHistories((prev) => [
+    const res = await fetch(
+      `/research-plans/${researchPlanId}/metadata/execute`,
       {
-        id: Date.now(),
-        keywordId,
-        keywordName: currentKeyword.name,
-        action: isUpdate ? 'update' : 'fetch',
-        yearFrom: params.yearFrom,
-        yearTo: params.yearTo,
-        tiers: params.tiers,
-        includeAbstract: params.includeAbstract,
-        resultCount: articles.length,
-        status: 'success',
-        createdAt: new Date().toISOString(),
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': getCsrfToken(),
+        },
+        body: JSON.stringify({
+          keyword_id: keywordId,
+          start_year: params.yearFrom,
+          end_year: params.yearTo,
+          can_execute: true,
+        }),
       },
-      ...prev,
-    ]);
-
-    dispatch(
-      showSuccess(
-        isUpdate ? 'Metadata berhasil diperbarui!' : 'Berhasil fetch metadata!',
-      ),
     );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data?.message ?? 'Gagal menjalankan metadata search');
+    }
+
+    if (data.message === 'All sources found in cache.') {
+      dispatch(showSuccess('Metadata berhasil dimuat dari cache'));
+
+      await fetchKeywords();
+
+      return;
+    }
+
+    if (data.batch_id) {
+      dispatch(
+        showProgressSnackbar({
+          batchId: data.batch_id,
+          message: 'Mengambil metadata...',
+        }),
+      );
+
+      return;
+    }
   };
+
+  const pollBatchProgress = async (batchId: string) => {
+    const res = await fetch(`/metadata/batches/${batchId}/progress`, {
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    if (!res.ok) throw new Error('Gagal mengambil progress batch');
+
+    return await res.json();
+  };
+
+  useEffect(() => {
+    if (!progress.open || !progress.batchId || progress.status !== 'running') {
+      return;
+    }
+
+    const interval = window.setInterval(async () => {
+      try {
+        const data = await pollBatchProgress(progress.batchId as string);
+
+        dispatch(
+          updateProgressSnackbar({
+            percentage: data.percentage,
+            status: data.status,
+            processedJobs: data.processed_jobs,
+            totalJobs: data.total_jobs,
+            message: 'Mengambil metadata...',
+          }),
+        );
+
+        if (
+          data.status === 'completed' ||
+          data.status === 'failed' ||
+          data.status === 'cancelled' ||
+          data.status === 'completed_with_errors'
+        ) {
+          window.clearInterval(interval);
+
+          await fetchKeywords();
+
+          window.setTimeout(() => {
+            dispatch(hideProgressSnackbar());
+
+            dispatch(
+              showSuccess(
+                data.status === 'completed'
+                  ? 'Fetch metadata selesai'
+                  : 'Fetch metadata selesai dengan catatan',
+              ),
+            );
+          }, 1500);
+        }
+      } catch {
+        window.clearInterval(interval);
+        dispatch(hideProgressSnackbar());
+      }
+    }, 1500);
+
+    return () => window.clearInterval(interval);
+  }, [progress.open, progress.batchId, progress.status]);
 
   return {
     keywords,
@@ -186,6 +295,7 @@ export function useIdentification(researchPlanId: number) {
     deleteKeyword,
     selectKeyword,
     updateKeyword,
+    previewMetadata,
     fetchMetadata,
   };
 }

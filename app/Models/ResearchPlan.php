@@ -52,4 +52,9 @@ class ResearchPlan extends Model
     {
         return $this->hasMany(FilteredArticle::class, 'research_plan_id', 'research_plan_id');
     }
+
+    public function autoReportings()
+    {
+        return $this->hasMany(AutoReporting::class, 'research_plan_id', 'research_plan_id');
+    }
 }

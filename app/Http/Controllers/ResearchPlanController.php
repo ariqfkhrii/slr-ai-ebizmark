@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ClassificationSetup;
 use App\Models\FilteredArticle;
 use App\Models\ResearchPlan;
+use App\Services\AutoReportingService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Http\Interfaces\ResearchPlanServiceInterface;
@@ -14,10 +15,12 @@ use App\Http\Requests\StoreResearchPlanRequest;
 class ResearchPlanController extends Controller
 {
     protected ResearchPlanServiceInterface $service;
+    protected AutoReportingService $autoReportingService;
 
-    public function __construct(ResearchPlanServiceInterface $service)
+    public function __construct(ResearchPlanServiceInterface $service, AutoReportingService $autoReportingService)
     {
         $this->service = $service;
+        $this->autoReportingService = $autoReportingService;
     }
 
     public function index(Request $request)
@@ -131,11 +134,15 @@ class ResearchPlanController extends Controller
                 'theory',
             ]);
 
+        $autoReportingItems = $this->autoReportingService->ensureDefaultItems($selectedId);
+
         return Inertia::render('prisma/index', [
-            'researchPlan' => $researchPlan,
-            'researchPlans' => $researchPlans,
+            'researchPlanId'   => $selectedId,
+            'researchPlan'     => $researchPlan,
+            'researchPlans'    => $researchPlans,
             'filteredArticles' => $filteredArticles,
             'classificationSetup' => $classificationSetup,
+            'items'            => $autoReportingItems,
         ]);
     }
 }

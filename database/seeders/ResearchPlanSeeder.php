@@ -24,6 +24,7 @@ class ResearchPlanSeeder extends Seeder
         }
 
         ResearchPlan::create([
+            'research_plan_id' => 2,
             'title' => 'Systematic Literature Review on AI in Healthcare - Scopus',
             'source_database' => 'scopus',
             'scopus_quantity' => null,
@@ -33,6 +34,7 @@ class ResearchPlanSeeder extends Seeder
         ]);
 
         ResearchPlan::create([
+            'research_plan_id' => 3,
             'title' => 'Systematic Literature Review on AI in Healthcare - PubMed',
             'source_database' => 'pubmed',
             'scopus_quantity' => null,
@@ -42,6 +44,7 @@ class ResearchPlanSeeder extends Seeder
         ]);
 
         ResearchPlan::create([
+            'research_plan_id' => 4,
             'title' => 'Mapping Study on Machine Learning for Disease Prediction',
             'source_database' => 'scopus',
             'scopus_quantity' => null,
@@ -51,6 +54,7 @@ class ResearchPlanSeeder extends Seeder
         ]);
 
         ResearchPlan::create([
+            'research_plan_id' => 5,
             'title' => 'Bibliometric Analysis of COVID-19 Publications',
             'source_database' => 'pubmed',
             'scopus_quantity' => null,

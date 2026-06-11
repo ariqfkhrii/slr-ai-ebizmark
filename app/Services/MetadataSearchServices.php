@@ -309,6 +309,7 @@ class MetadataSearchServices
         $hits      = $this->checkCacheHits($cacheKeys);
 
         if (count($hits) === count($cacheKeys)) {
+            $this->processCacheHits($hits, $planId, $keywordId);
             return ['status' => 'full_cache', 'code' => 200];
         }
 
@@ -375,6 +376,74 @@ class MetadataSearchServices
             }
         }
         return $hits;
+    }
+
+    /**
+     * Process cache hits by updating the database and relevant counts.
+     *
+     * @param array $hits
+     * @param int $planId
+     * @param int $keywordId
+     * @return void
+     */
+    private function processCacheHits(array $hits, int $planId, int $keywordId): void
+    {
+        $now = now();
+        $totalFinalCount = 0;
+        $totalDuplicates = 0;
+        $totalUnmatched = 0;
+        $totalMissingDoi = 0;
+        $totalOutOfYear = 0;
+
+        foreach ($hits as $key => $cacheData) {
+            if (isset($cacheData['raw_article_ids'])) {
+                $rawArticleIds   = $cacheData['raw_article_ids'];
+                $totalDuplicates += $cacheData['duplicate_count'] ?? 0;
+                $totalUnmatched  += $cacheData['unmatched_tier_count'] ?? 0;
+                $totalMissingDoi += $cacheData['missing_doi_count'] ?? 0;
+                $totalOutOfYear  += $cacheData['out_of_year_range_count'] ?? 0;
+            } else {
+                $rawArticleIds = is_array($cacheData) ? $cacheData : [];
+            }
+
+            $uniqueIds = array_unique($rawArticleIds);
+
+            $existingIds = FilteredArticle::where('research_plan_id', $planId)
+                ->whereIn('raw_article_id', $uniqueIds)
+                ->pluck('raw_article_id')
+                ->toArray();
+
+            $newIds = array_diff($uniqueIds, $existingIds);
+            $finalCount = count($newIds);
+            $totalFinalCount += $finalCount;
+
+            $insertData = [];
+            foreach ($newIds as $articleId) {
+                $insertData[] = [
+                    'research_plan_id' => $planId,
+                    'raw_article_id'   => $articleId,
+                    'created_at'       => $now,
+                    'updated_at'       => $now,
+                ];
+            }
+
+            foreach (array_chunk($insertData, 500) as $chunk) {
+                FilteredArticle::insert($chunk);
+            }
+        }
+
+        ResearchPlanKeyword::where('research_plan_id', $planId)
+            ->where('keyword_id', $keywordId)
+            ->incrementEach([
+                'article_count'        => $totalFinalCount,
+                'duplicate_count'      => $totalDuplicates,
+                'unmatched_tier_count' => $totalUnmatched,
+                'missing_doi_count'    => $totalMissingDoi,
+            ]);
+
+        ResearchPlanKeyword::where('research_plan_id', $planId)
+            ->where('keyword_id', $keywordId)
+            ->update(['out_of_year_range_count' => $totalOutOfYear]);
     }
 
     /**
@@ -564,6 +633,12 @@ class MetadataSearchServices
                 'missing_doi_count'    => $missingDoiCount,
             ]);
 
+        $pivot = ResearchPlanKeyword::where('research_plan_id', $planId)
+            ->where('keyword_id', $keywordId)
+            ->first();
+            
+        $outOfYearRangeCount = $pivot ? $pivot->out_of_year_range_count : 0;
+
         $groupedData = $acceptedData->groupBy('cache_key');
 
         foreach ($cacheKeys as $key) {
@@ -573,7 +648,15 @@ class MetadataSearchServices
                 ? array_values(array_unique($groupedData->get($key)->pluck('raw_article_id')->toArray()))
                 : [];
 
-            cache()->put($key, $records, now()->addDays(1));
+            $cachePayload = [
+                'raw_article_ids'         => $records,
+                'duplicate_count'         => $duplicateCountInBatch,
+                'unmatched_tier_count'    => $unmatchedTierCount,
+                'missing_doi_count'       => $missingDoiCount,
+                'out_of_year_range_count' => $outOfYearRangeCount,
+            ];
+
+            cache()->put($key, $cachePayload, now()->addDays(1));
         }
 
         ArticleMetadataTemp::where('batch_id', $batch->id)->delete();

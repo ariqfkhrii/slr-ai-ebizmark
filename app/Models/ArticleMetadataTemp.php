@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ArticleTempStatus;
 use Illuminate\Database\Eloquent\Model;
 
 class ArticleMetadataTemp extends Model
@@ -11,8 +12,13 @@ class ArticleMetadataTemp extends Model
     protected $fillable = [
         'batch_id',
         'raw_article_id',
+        'status',
         'cache_key',
         'created_at',
+    ];
+
+    protected $casts = [
+        'status' => ArticleTempStatus::class,
     ];
 
     public function rawArticle()

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('batch_id')->nullable();
             $table->string('cache_key')->nullable();
             $table->foreignId('raw_article_id')->nullable()->constrained()->onDelete('set null');
+            $table->string('status')->nullable();
             $table->timestamp('created_at')->nullable();
         });
     }

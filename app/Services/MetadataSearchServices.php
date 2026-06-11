@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ArticleTempStatus;
 use App\Jobs\FetchPubMedJob;
 use App\Jobs\FetchScopusJob;
 use App\Models\ArticleMetadataTemp;
@@ -444,13 +445,26 @@ class MetadataSearchServices
         $pagesPerJob  = 0;
         $totalCount   = 0;
 
+        $totalWithYear = 0;
+        $totalWithoutYear = 0;
+
         if ($source === 'scopus') {
             $pagesPerJob = 5;
-            $totalCount  = min($this->scopusApi->searchPreviewWithTotal($keywordString, $startYear, $endYear)['total'] ?? 0, 5000);
+            $totalWithYear = $this->scopusApi->getTotalCount($keywordString, $startYear, $endYear);
+            $totalWithoutYear = $this->scopusApi->getTotalCount($keywordString, null, null);
+            $totalCount  = min($totalWithYear, 5000);
         } elseif ($source === 'pubmed') {
             $pagesPerJob = 20;
-            $totalCount  = min($this->pubmedApi->searchIdsPreviewWithTotal($keywordString, $startYear, $endYear)['total'] ?? 0, 5000);
+            $totalWithYear = $this->pubmedApi->getTotalCount($keywordString, $startYear, $endYear);
+            $totalWithoutYear = $this->pubmedApi->getTotalCount($keywordString, null, null);
+            $totalCount  = min($totalWithYear, 5000);
         }
+
+        $outOfYearRangeCount = max(0, $totalWithoutYear - $totalWithYear);
+
+        ResearchPlanKeyword::where('research_plan_id', $planId)
+            ->where('keyword_id', $keywordId)
+            ->update(['out_of_year_range_count' => $outOfYearRangeCount]);
 
         if ($totalCount === 0) return null;
 
@@ -507,8 +521,15 @@ class MetadataSearchServices
         cache()->put("batch_done_{$planId}_{$keywordId}_{$source}", true, now()->addHours(2));
 
         $tempData = ArticleMetadataTemp::where('batch_id', $batch->id)->get();
-        $rawArticleIds = $tempData->pluck('raw_article_id')->toArray();
+        
+        $missingDoiCount = $tempData->where('status', ArticleTempStatus::MISSING_DOI->value)->count();
+        $unmatchedTierCount = $tempData->where('status', ArticleTempStatus::UNMATCHED_TIER->value)->count();
+        
+        $acceptedData = $tempData->where('status', ArticleTempStatus::ACCEPTED->value);
+        $rawArticleIds = $acceptedData->pluck('raw_article_id')->toArray();
+        
         $uniqueIds = array_unique($rawArticleIds);
+        $duplicateCountInBatch = count($rawArticleIds) - count($uniqueIds);
 
         $existingIds = FilteredArticle::where('research_plan_id', $planId)
             ->whereIn('raw_article_id', $uniqueIds)
@@ -516,10 +537,11 @@ class MetadataSearchServices
             ->toArray();
 
         $newIds = array_diff($uniqueIds, $existingIds);
-        $finalCount = count($newIds);
+        $finalCount = count($newIds); 
 
         $insertData = [];
         $now = now();
+
         foreach ($newIds as $articleId) {
             $insertData[] = [
                 'research_plan_id' => $planId,
@@ -535,9 +557,14 @@ class MetadataSearchServices
 
         ResearchPlanKeyword::where('research_plan_id', $planId)
             ->where('keyword_id', $keywordId)
-            ->increment('article_count', $finalCount);
+            ->incrementEach([
+                'article_count'        => $finalCount,
+                'duplicate_count'      => $duplicateCountInBatch,
+                'unmatched_tier_count' => $unmatchedTierCount,
+                'missing_doi_count'    => $missingDoiCount,
+            ]);
 
-        $groupedData = $tempData->groupBy('cache_key');
+        $groupedData = $acceptedData->groupBy('cache_key');
 
         foreach ($cacheKeys as $key) {
             if (!str_ends_with($key, "src:{$source}")) continue;

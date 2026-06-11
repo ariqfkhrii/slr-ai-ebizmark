@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ArticleTempStatus;
 use App\Models\ArticleMetadataTemp;
 use App\Models\Keyword;
 use App\Models\RawArticle;
@@ -58,99 +59,99 @@ class ScopusIngestService
      */
     private function processBatch(array $entries, array $validatedRequest, ?string $batchId, string $cacheKey): void
     {
-        $validEntries = [];
+        $rawArticleBatch = [];
+        $tempBatchData = [];
+        $now = now();
+        $requestedTiers = array_map('strtolower', $validatedRequest['tiers'] ?? []);
         $issns = [];
+
+        foreach ($entries as $entry) {
+            if (!empty($entry['dc:title']) && !empty($this->normalizeDoi($entry['prism:doi'] ?? null))) {
+                if (!empty($entry['prism:issn'])) $issns[] = $entry['prism:issn'];
+                if (!empty($entry['prism:eIssn'])) $issns[] = $entry['prism:eIssn'];
+            }
+        }
+
+        $tiersDictionary = $this->fetchTiersDictionary(array_unique($issns));
 
         foreach ($entries as $entry) {
             $doi = $this->normalizeDoi($entry['prism:doi'] ?? null);
             $title = $entry['dc:title'] ?? '';
 
             if ($title === '' || $doi === null) {
+                $tempBatchData[] = [
+                    'batch_id'       => $batchId,
+                    'raw_article_id' => null,
+                    'cache_key'      => $cacheKey,
+                    'status'         => ArticleTempStatus::MISSING_DOI->value,
+                    'created_at'     => $now,
+                ];
                 continue;
             }
 
             $issnPrint = $entry['prism:issn'] ?? null;
             $issnE = $entry['prism:eIssn'] ?? null;
-
-            if ($issnPrint) $issns[] = $issnPrint;
-            if ($issnE) $issns[] = $issnE;
-
-            $entry['_doi'] = $doi;
-            $validEntries[] = $entry;
-        }
-
-        if (empty($validEntries)) {
-            return;
-        }
-
-        $tiersDictionary = $this->fetchTiersDictionary(array_unique($issns));
-        
-        $rawArticleBatch = [];
-        $previewDois = [];
-        $now = now();
-        
-        $requestedTiers = array_map('strtolower', $validatedRequest['tiers'] ?? []);
-        
-        foreach ($validEntries as $entry) {
-            $doi = $entry['_doi'];
-            $title = $entry['dc:title'];
-            $issnPrint = $entry['prism:issn'] ?? null;
-            $issnE = $entry['prism:eIssn'] ?? null;
             $tier = $this->resolveTierFromDictionary($issnPrint, $issnE, $tiersDictionary);
+            $status = ArticleTempStatus::ACCEPTED->value;
 
-            if (!empty($requestedTiers)) {
-                if ($tier === null || !in_array(strtolower($tier), $requestedTiers)) {
-                    continue;
-                }
+            if (!empty($requestedTiers) && ($tier === null || !in_array(strtolower($tier), $requestedTiers))) {
+                $status = ArticleTempStatus::UNMATCHED_TIER->value;
             }
 
             $rawArticleBatch[] = [
-                'doi' => $doi,
-                'title' => $title,
-                'authors' => $this->extractAuthors($entry),
-                'keyword' => $this->extractArticleKeywords($entry),
-                'abstract' => $entry['dc:description'] ?? null,
-                'issn_print' => $issnPrint,
-                'issn_e' => $issnE,
-                'tier' => $tier,
+                'doi'            => $doi,
+                'title'          => $title,
+                'authors'        => $this->extractAuthors($entry),
+                'keyword'        => $this->extractArticleKeywords($entry),
+                'abstract'       => $entry['dc:description'] ?? null,
+                'issn_print'     => $issnPrint,
+                'issn_e'         => $issnE,
+                'tier'           => $tier,
                 'citation_count' => isset($entry['citedby-count']) ? (int) $entry['citedby-count'] : null,
-                'publish_year' => $this->extractPublishYear($entry['prism:coverDate'] ?? null),
-                'source_db' => 'scopus',
-                'created_at' => $now,
-                'updated_at' => $now,
+                'publish_year'   => $this->extractPublishYear($entry['prism:coverDate'] ?? null),
+                'source_db'      => 'scopus',
+                'created_at'     => $now,
+                'updated_at'     => $now,
             ];
 
-            $previewDois[] = $doi;
+            $tempBatchData[] = [
+                'doi'    => $doi,
+                'status' => $status,
+            ];
         }
 
-        if (empty($rawArticleBatch)) {
-            return;
-        }
+        DB::transaction(function () use ($rawArticleBatch, $tempBatchData, $batchId, $cacheKey, $now) {
+            if (!empty($rawArticleBatch)) {
+                RawArticle::upsert(
+                    $rawArticleBatch,
+                    ['doi'],
+                    ['title', 'authors', 'keyword', 'abstract', 'issn_print', 'issn_e', 'tier', 'citation_count', 'publish_year', 'updated_at']
+                );
+            }
 
-        DB::transaction(function () use ($rawArticleBatch, $previewDois, $batchId, $cacheKey, $now) {
-            RawArticle::upsert(
-                $rawArticleBatch,
-                ['doi'],
-                ['title', 'authors', 'keyword', 'abstract', 'issn_print', 'issn_e', 'tier', 'citation_count', 'publish_year', 'updated_at']
-            );
+            $doisToFetch = collect($tempBatchData)->whereNotNull('doi')->pluck('doi')->unique()->toArray();
+            $articleIds = !empty($doisToFetch) 
+                ? RawArticle::whereIn('doi', $doisToFetch)->pluck('id', 'doi') 
+                : collect();
 
-            $uniquePreviewDois = array_unique($previewDois);
-            $articleIds = RawArticle::whereIn('doi', $uniquePreviewDois)->pluck('id', 'doi');
-            $previewBatch = [];
+            $finalTempInsert = [];
 
-            foreach ($uniquePreviewDois as $doi) {
-                if (isset($articleIds[$doi])) {
-                    $previewBatch[] = [
-                        'batch_id' => $batchId,
-                        'raw_article_id' => $articleIds[$doi],
-                        'cache_key' => $cacheKey,
-                        'created_at' => $now,
+            foreach ($tempBatchData as $temp) {
+                if (isset($temp['status']) && $temp['status'] === ArticleTempStatus::MISSING_DOI->value) {
+                    $finalTempInsert[] = $temp;
+                } elseif (isset($temp['doi']) && isset($articleIds[$temp['doi']])) {
+                    $finalTempInsert[] = [
+                        'batch_id'       => $batchId,
+                        'raw_article_id' => $articleIds[$temp['doi']],
+                        'cache_key'      => $cacheKey,
+                        'status'         => $temp['status'],
+                        'created_at'     => $now,
                     ];
                 }
             }
 
-            if (!empty($previewBatch)) {
-                ArticleMetadataTemp::insertOrIgnore($previewBatch);
+            if (!empty($finalTempInsert)) {
+                ArticleMetadataTemp::insert($finalTempInsert);
             }
         });
     }

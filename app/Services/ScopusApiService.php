@@ -72,16 +72,20 @@ class ScopusApiService
      * Get the total count of search results from the Scopus API for a given keyword and publication year range.
      *
      * @param string $keyword The keyword to search for in the Scopus database.
-     * @param int $startYear The starting publication year for the search.
-     * @param int $endYear The ending publication year for the search.
+     * @param int|null $startYear The starting publication year for the search.
+     * @param int|null $endYear The ending publication year for the search.
      * @return int The total count of search results matching the criteria.
      * @throws \Exception If the API rate limit is exceeded or if the API call fails.
      */
-    public function getTotalCount(string $keyword, int $startYear, int $endYear): int
+    public function getTotalCount(string $keyword, ?int $startYear, ?int $endYear): int
     {
         $this->enforceRateLimit();
 
-        $query = 'TITLE-ABS-KEY("' . $keyword . '") AND PUBYEAR > ' . ($startYear - 1) . ' AND PUBYEAR < ' . ($endYear + 1);
+        $query = 'TITLE-ABS-KEY("' . $keyword . '")';
+
+        if ($startYear !== null && $endYear !== null) {
+            $query .= ' AND PUBYEAR > ' . ($startYear - 1) . ' AND PUBYEAR < ' . ($endYear + 1);
+        }
         
         $response = Http::withHeaders([
             'X-ELS-APIKey' => config('services.scopus.key'),

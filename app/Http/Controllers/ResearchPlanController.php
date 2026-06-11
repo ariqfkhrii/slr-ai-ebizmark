@@ -77,7 +77,11 @@ class ResearchPlanController extends Controller
         $researchPlans = $request->user()
             ->researchPlans()
             ->latest()
-            ->get(['research_plan_id', 'title']);
+            ->get([
+                'research_plan_id',
+                'title',
+                'source_database',
+            ]);
 
         $selectedId = (int) $request->query('research_plan_id', $researchPlans->first()?->research_plan_id);
         $researchPlan = $researchPlans->firstWhere('research_plan_id', $selectedId);

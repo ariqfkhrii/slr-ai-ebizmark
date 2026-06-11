@@ -7,6 +7,8 @@ import { RawArticle } from './types';
 
 type Props = ReturnType<typeof useIdentification> & {
   globalArticles: RawArticle[];
+  sourceDatabase: string;
+  researchPlanId: number;
 };
 
 export default function Identification({
@@ -19,6 +21,9 @@ export default function Identification({
   fetchMetadata,
   histories,
   globalArticles,
+  sourceDatabase,
+  researchPlanId,
+  previewMetadata,
 }: Props) {
   return (
     <Box
@@ -38,10 +43,13 @@ export default function Identification({
       />
 
       <KeywordDetail
+        researchPlanId={researchPlanId}
         keyword={selectedKeyword}
         onFetchMetadata={fetchMetadata}
+        onPreviewMetadata={previewMetadata}
         onDeleteKeyword={deleteKeyword}
         histories={histories}
+        sourceDatabase={sourceDatabase}
       />
 
       <GlobalPanel keywords={keywords} articles={globalArticles} />

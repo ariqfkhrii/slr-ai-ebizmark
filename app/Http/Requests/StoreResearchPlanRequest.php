@@ -17,7 +17,7 @@ class StoreResearchPlanRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:255',
-            'source_database' => ['required', new Enum(SourceDatabase::class)],
+            'source_database' => ['required', 'in:scopus,pubmed'],
         ];
     }
 
@@ -29,7 +29,7 @@ class StoreResearchPlanRequest extends FormRequest
             'title.max'      => 'Judul rencana riset tidak boleh lebih dari 255 karakter, silakan dipersingkat!',
             'title.string'   => 'Judul harus berupa teks.',
             'source_database.required' => 'Sumber database wajib diisi.',
-            'source_database.enum' => 'Sumber database harus salah satu dari: Scopus atau PubMed.',
+            'source_database.in' => 'Sumber database tidak valid.',
         ];
     }
 }

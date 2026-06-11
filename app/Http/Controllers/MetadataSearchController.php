@@ -6,6 +6,7 @@ use App\Http\Requests\MetadataSearchRequest;
 use App\Http\Requests\PreviewSearchRequest;
 use App\Services\MetadataSearchServices;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class MetadataSearchController extends Controller
 {
@@ -64,28 +65,75 @@ class MetadataSearchController extends Controller
     public function dispatchResult(MetadataSearchRequest $request, $id)
     {
         $validated = $request->validated();
-        
+
         $result = $this->service->executeSearch($validated, $id);
-        
+
         return match ($result['status']) {
             'full_cache' => response()->json([
-                'message' => 'All sources found in cache.'
+                'message' => 'All sources found in cache.',
             ], $result['code']),
-            
+
             'active_running' => response()->json([
                 'message' => 'An active search plan is already running for this keyword.',
-                'batch_id' => $result['batch_id']
+                'batch_id' => $result['batch_id'] ?? null,
             ], $result['code']),
-            
+
             'no_results' => response()->json([
-                'message' => 'No results found on the external databases for this keyword.'
+                'message' => 'No results found on the external databases for this keyword.',
             ], $result['code']),
-            
+
             'dispatched' => response()->json([
                 'message' => 'Search initiated successfully.',
-                'batch_id' => $result['batch_id'],
-                'missed_sources' => $result['missed_sources']
+                'batch_id' => $result['batch_id'] ?? null,
+                'missed_sources' => $result['missed_sources'] ?? [],
             ], $result['code']),
+
+            default => response()->json([
+                'message' => 'Unknown metadata search status.',
+                'status' => $result['status'] ?? null,
+            ], 500),
         };
+    }
+
+    public function batchProgress(string $batchId)
+    {
+        $batch = DB::table('job_batches')
+            ->where('id', $batchId)
+            ->first();
+
+        if (! $batch) {
+            return response()->json([
+                'message' => 'Batch not found.',
+            ], 404);
+        }
+
+        $totalJobs = (int) $batch->total_jobs;
+        $pendingJobs = (int) $batch->pending_jobs;
+        $failedJobs = (int) $batch->failed_jobs;
+
+        $processedJobs = max($totalJobs - $pendingJobs, 0);
+
+        $percentage = $totalJobs > 0
+            ? round(($processedJobs / $totalJobs) * 100)
+            : 0;
+
+        $status = 'running';
+
+        if ($batch->cancelled_at !== null) {
+            $status = 'cancelled';
+        } elseif ($batch->finished_at !== null) {
+            $status = $failedJobs > 0 ? 'completed_with_errors' : 'completed';
+        }
+
+        return response()->json([
+            'batch_id' => $batch->id,
+            'name' => $batch->name,
+            'status' => $status,
+            'total_jobs' => $totalJobs,
+            'pending_jobs' => $pendingJobs,
+            'processed_jobs' => $processedJobs,
+            'failed_jobs' => $failedJobs,
+            'percentage' => $percentage,
+        ]);
     }
 }

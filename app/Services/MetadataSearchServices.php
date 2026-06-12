@@ -2,14 +2,15 @@
 
 namespace App\Services;
 
+use App\Enums\ArticleTempStatus;
 use App\Jobs\FetchPubMedJob;
 use App\Jobs\FetchScopusJob;
+use App\Models\ArticleMetadataTemp;
 use App\Models\FilteredArticle;
 use App\Models\Keyword;
 use App\Models\ResearchPlan;
 use App\Models\ResearchPlanKeyword;
 use App\Models\ScimagoJournal;
-use App\Models\TempPreviewCache;
 use App\Services\PubMedApiService;
 use App\Services\ScopusApiService;
 use Illuminate\Bus\Batch;
@@ -308,6 +309,7 @@ class MetadataSearchServices
         $hits      = $this->checkCacheHits($cacheKeys);
 
         if (count($hits) === count($cacheKeys)) {
+            $this->processCacheHits($hits, $planId, $keywordId);
             return ['status' => 'full_cache', 'code' => 200];
         }
 
@@ -374,6 +376,74 @@ class MetadataSearchServices
             }
         }
         return $hits;
+    }
+
+    /**
+     * Process cache hits by updating the database and relevant counts.
+     *
+     * @param array $hits
+     * @param int $planId
+     * @param int $keywordId
+     * @return void
+     */
+    private function processCacheHits(array $hits, int $planId, int $keywordId): void
+    {
+        $now = now();
+        $totalFinalCount = 0;
+        $totalDuplicates = 0;
+        $totalUnmatched = 0;
+        $totalMissingDoi = 0;
+        $totalOutOfYear = 0;
+
+        foreach ($hits as $key => $cacheData) {
+            if (isset($cacheData['raw_article_ids'])) {
+                $rawArticleIds   = $cacheData['raw_article_ids'];
+                $totalDuplicates += $cacheData['duplicate_count'] ?? 0;
+                $totalUnmatched  += $cacheData['unmatched_tier_count'] ?? 0;
+                $totalMissingDoi += $cacheData['missing_doi_count'] ?? 0;
+                $totalOutOfYear  += $cacheData['out_of_year_range_count'] ?? 0;
+            } else {
+                $rawArticleIds = is_array($cacheData) ? $cacheData : [];
+            }
+
+            $uniqueIds = array_unique($rawArticleIds);
+
+            $existingIds = FilteredArticle::where('research_plan_id', $planId)
+                ->whereIn('raw_article_id', $uniqueIds)
+                ->pluck('raw_article_id')
+                ->toArray();
+
+            $newIds = array_diff($uniqueIds, $existingIds);
+            $finalCount = count($newIds);
+            $totalFinalCount += $finalCount;
+
+            $insertData = [];
+            foreach ($newIds as $articleId) {
+                $insertData[] = [
+                    'research_plan_id' => $planId,
+                    'raw_article_id'   => $articleId,
+                    'created_at'       => $now,
+                    'updated_at'       => $now,
+                ];
+            }
+
+            foreach (array_chunk($insertData, 500) as $chunk) {
+                FilteredArticle::insert($chunk);
+            }
+        }
+
+        ResearchPlanKeyword::where('research_plan_id', $planId)
+            ->where('keyword_id', $keywordId)
+            ->incrementEach([
+                'article_count'        => $totalFinalCount,
+                'duplicate_count'      => $totalDuplicates,
+                'unmatched_tier_count' => $totalUnmatched,
+                'missing_doi_count'    => $totalMissingDoi,
+            ]);
+
+        ResearchPlanKeyword::where('research_plan_id', $planId)
+            ->where('keyword_id', $keywordId)
+            ->update(['out_of_year_range_count' => $totalOutOfYear]);
     }
 
     /**
@@ -444,13 +514,26 @@ class MetadataSearchServices
         $pagesPerJob  = 0;
         $totalCount   = 0;
 
+        $totalWithYear = 0;
+        $totalWithoutYear = 0;
+
         if ($source === 'scopus') {
             $pagesPerJob = 5;
-            $totalCount  = min($this->scopusApi->searchPreviewWithTotal($keywordString, $startYear, $endYear)['total'] ?? 0, 5000);
+            $totalWithYear = $this->scopusApi->getTotalCount($keywordString, $startYear, $endYear);
+            $totalWithoutYear = $this->scopusApi->getTotalCount($keywordString, null, null);
+            $totalCount  = min($totalWithYear, 5000);
         } elseif ($source === 'pubmed') {
             $pagesPerJob = 20;
-            $totalCount  = min($this->pubmedApi->searchIdsPreviewWithTotal($keywordString, $startYear, $endYear)['total'] ?? 0, 5000);
+            $totalWithYear = $this->pubmedApi->getTotalCount($keywordString, $startYear, $endYear);
+            $totalWithoutYear = $this->pubmedApi->getTotalCount($keywordString, null, null);
+            $totalCount  = min($totalWithYear, 5000);
         }
+
+        $outOfYearRangeCount = max(0, $totalWithoutYear - $totalWithYear);
+
+        ResearchPlanKeyword::where('research_plan_id', $planId)
+            ->where('keyword_id', $keywordId)
+            ->update(['out_of_year_range_count' => $outOfYearRangeCount]);
 
         if ($totalCount === 0) return null;
 
@@ -506,9 +589,16 @@ class MetadataSearchServices
     {
         cache()->put("batch_done_{$planId}_{$keywordId}_{$source}", true, now()->addHours(2));
 
-        $tempData = TempPreviewCache::where('batch_id', $batch->id)->get();
-        $rawArticleIds = $tempData->pluck('raw_article_id')->toArray();
+        $tempData = ArticleMetadataTemp::where('batch_id', $batch->id)->get();
+        
+        $missingDoiCount = $tempData->where('status', ArticleTempStatus::MISSING_DOI->value)->count();
+        $unmatchedTierCount = $tempData->where('status', ArticleTempStatus::UNMATCHED_TIER->value)->count();
+        
+        $acceptedData = $tempData->where('status', ArticleTempStatus::ACCEPTED->value);
+        $rawArticleIds = $acceptedData->pluck('raw_article_id')->toArray();
+        
         $uniqueIds = array_unique($rawArticleIds);
+        $duplicateCountInBatch = count($rawArticleIds) - count($uniqueIds);
 
         $existingIds = FilteredArticle::where('research_plan_id', $planId)
             ->whereIn('raw_article_id', $uniqueIds)
@@ -516,10 +606,11 @@ class MetadataSearchServices
             ->toArray();
 
         $newIds = array_diff($uniqueIds, $existingIds);
-        $finalCount = count($newIds);
+        $finalCount = count($newIds); 
 
         $insertData = [];
         $now = now();
+
         foreach ($newIds as $articleId) {
             $insertData[] = [
                 'research_plan_id' => $planId,
@@ -535,9 +626,20 @@ class MetadataSearchServices
 
         ResearchPlanKeyword::where('research_plan_id', $planId)
             ->where('keyword_id', $keywordId)
-            ->increment('article_count', $finalCount);
+            ->incrementEach([
+                'article_count'        => $finalCount,
+                'duplicate_count'      => $duplicateCountInBatch,
+                'unmatched_tier_count' => $unmatchedTierCount,
+                'missing_doi_count'    => $missingDoiCount,
+            ]);
 
-        $groupedData = $tempData->groupBy('cache_key');
+        $pivot = ResearchPlanKeyword::where('research_plan_id', $planId)
+            ->where('keyword_id', $keywordId)
+            ->first();
+            
+        $outOfYearRangeCount = $pivot ? $pivot->out_of_year_range_count : 0;
+
+        $groupedData = $acceptedData->groupBy('cache_key');
 
         foreach ($cacheKeys as $key) {
             if (!str_ends_with($key, "src:{$source}")) continue;
@@ -546,10 +648,18 @@ class MetadataSearchServices
                 ? array_values(array_unique($groupedData->get($key)->pluck('raw_article_id')->toArray()))
                 : [];
 
-            cache()->put($key, $records, now()->addDays(1));
+            $cachePayload = [
+                'raw_article_ids'         => $records,
+                'duplicate_count'         => $duplicateCountInBatch,
+                'unmatched_tier_count'    => $unmatchedTierCount,
+                'missing_doi_count'       => $missingDoiCount,
+                'out_of_year_range_count' => $outOfYearRangeCount,
+            ];
+
+            cache()->put($key, $cachePayload, now()->addDays(1));
         }
 
-        TempPreviewCache::where('batch_id', $batch->id)->delete();
+        ArticleMetadataTemp::where('batch_id', $batch->id)->delete();
 
         $totalBatches   = cache()->get("pending_batches_{$planId}_{$keywordId}", 1);
         $completedCount = cache()->has("batch_done_{$planId}_{$keywordId}_{$source}") ? 1 : 0;

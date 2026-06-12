@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
+use App\Enums\ArticleTempStatus;
+use App\Models\ArticleMetadataTemp;
 use App\Models\Keyword;
 use App\Models\RawArticle;
-use App\Models\TempPreviewCache;
 use Illuminate\Support\Facades\DB;
 use SimpleXMLElement;
 
@@ -78,7 +79,7 @@ class PubMedIngestService
     private function processBatch(array $payloads, array $citationCounts, ?string $batchId, string $cacheKey): void
     {
         $rawArticleBatch = [];
-        $previewDois = [];
+        $tempBatchData = [];
         $now = now();
 
         foreach ($payloads as $pmid => $payload) {
@@ -86,6 +87,13 @@ class PubMedIngestService
             $title = $payload['title'];
 
             if ($doi === null || $title === '') {
+                $tempBatchData[] = [
+                    'batch_id'       => $batchId,
+                    'raw_article_id' => null,
+                    'cache_key'      => $cacheKey,
+                    'status'         => ArticleTempStatus::MISSING_DOI->value,
+                    'created_at'     => $now,
+                ];
                 continue;
             }
 
@@ -94,40 +102,45 @@ class PubMedIngestService
             $payload['updated_at'] = $now;
             
             $rawArticleBatch[] = $payload;
-            $previewDois[] = $doi;
+
+            $tempBatchData[] = [
+                'doi'    => $doi,
+                'status' => ArticleTempStatus::ACCEPTED->value,
+            ];
         }
 
-        if (empty($rawArticleBatch)) {
-            return;
-        }
+        DB::transaction(function () use ($rawArticleBatch, $tempBatchData, $batchId, $cacheKey, $now) {
+            if (!empty($rawArticleBatch)) {
+                RawArticle::upsert(
+                    $rawArticleBatch,
+                    ['doi'],
+                    ['title', 'authors', 'keyword', 'abstract', 'issn_print', 'issn_e', 'tier', 'citation_count', 'publish_year', 'updated_at']
+                );
+            }
 
-        DB::transaction(function () use ($rawArticleBatch, $previewDois, $batchId, $cacheKey, $now) {
-            RawArticle::upsert(
-                $rawArticleBatch,
-                ['doi'],
-                ['title', 'authors', 'keyword', 'abstract', 'issn_print', 'issn_e', 'tier', 'citation_count', 'publish_year', 'updated_at']
-            );
+            $doisToFetch = collect($tempBatchData)->whereNotNull('doi')->pluck('doi')->unique()->toArray();
+            $articleIds = !empty($doisToFetch) 
+                ? RawArticle::whereIn('doi', $doisToFetch)->pluck('id', 'doi') 
+                : collect();
 
-            if (!empty($previewDois)) {
-                $uniquePreviewDois = array_unique($previewDois);
-                
-                $articleIds = RawArticle::whereIn('doi', $uniquePreviewDois)->pluck('id', 'doi');
-                $previewBatch = [];
+            $finalTempInsert = [];
 
-                foreach ($uniquePreviewDois as $doi) {
-                    if (isset($articleIds[$doi])) {
-                        $previewBatch[] = [
-                            'batch_id' => $batchId,
-                            'raw_article_id' => $articleIds[$doi],
-                            'cache_key' => $cacheKey,
-                            'created_at' => $now,
-                        ];
-                    }
+            foreach ($tempBatchData as $temp) {
+                if (isset($temp['status']) && $temp['status'] === ArticleTempStatus::MISSING_DOI->value) {
+                    $finalTempInsert[] = $temp;
+                } elseif (isset($temp['doi']) && isset($articleIds[$temp['doi']])) {
+                    $finalTempInsert[] = [
+                        'batch_id'       => $batchId,
+                        'raw_article_id' => $articleIds[$temp['doi']],
+                        'cache_key'      => $cacheKey,
+                        'status'         => $temp['status'],
+                        'created_at'     => $now,
+                    ];
                 }
+            }
 
-                if (!empty($previewBatch)) {
-                    TempPreviewCache::insertOrIgnore($previewBatch);
-                }
+            if (!empty($finalTempInsert)) {
+                ArticleMetadataTemp::insert($finalTempInsert);
             }
         });
     }

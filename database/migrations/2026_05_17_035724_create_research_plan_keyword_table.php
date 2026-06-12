@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('duplicate_count')->default(0);
             $table->integer('unmatched_tier_count')->default(0);
             $table->integer('missing_doi_count')->default(0);
+            $table->integer('out_of_year_range_count')->default(0);
             $table->timestamps();
         });
     }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class ResearchPlan extends Model
 {
@@ -19,6 +20,29 @@ class ResearchPlan extends Model
         'extraction_count',
         'user_id',
     ];
+
+    protected $appends = [
+        'scopus_quantity',
+        'pubmed_quantity'
+    ];
+
+    public function getScopusQuantityAttribute(): int
+    {
+        return DB::table('filtered_articles')
+            ->join('raw_articles', 'filtered_articles.raw_article_id', '=', 'raw_articles.id')
+            ->where('filtered_articles.research_plan_id', $this->research_plan_id)
+            ->where('raw_articles.source_db', 'scopus')
+            ->count();
+    }
+
+    public function getPubmedQuantityAttribute(): int
+    {
+        return DB::table('filtered_articles')
+            ->join('raw_articles', 'filtered_articles.raw_article_id', '=', 'raw_articles.id')
+            ->where('filtered_articles.research_plan_id', $this->research_plan_id)
+            ->where('raw_articles.source_db', 'pubmed')
+            ->count();
+    }
 
     public function user()
     {

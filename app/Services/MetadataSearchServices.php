@@ -636,6 +636,7 @@ class MetadataSearchServices
             $insertData[] = [
                 'research_plan_id' => $planId,
                 'raw_article_id'   => $articleId,
+                'keyword_id'       => $keywordId,
                 'created_at'       => $now,
                 'updated_at'       => $now,
             ];

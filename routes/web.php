@@ -41,6 +41,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         
     Route::post('/search/cancel/{batchId}', [MetadataSearchController::class, 'cancelSearch'])
         ->name('search.cancel');
+
+    Route::get('/filtered-articles', [FilteredArticleController::class, 'index'])
+        ->name('filtered-articles.index');
         
     Route::post('/filtered-articles/check-doi', [FilteredArticleController::class, 'store'])
         ->name('filtered-articles.check-doi');

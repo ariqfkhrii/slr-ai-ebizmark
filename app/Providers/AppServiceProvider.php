@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\AutoReporting;
+use App\Services\FilteredArticleService;
 use App\Services\MetadataSearchServices;
 use App\Services\PubMedApiService;
 use App\Services\ResearchPlanKeyword\ResearchPlanKeywordService;
@@ -37,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PubMedApiService::class);
         $this->app->bind(ScopusApiService::class);
         $this->app->bind(MetadataSearchServices::class);
+        $this->app->bind(FilteredArticleService::class);
     }
 
     /**

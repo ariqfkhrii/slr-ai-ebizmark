@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\GetFilteredArticlesRequest;
 use App\Models\FilteredArticle;
 use App\Models\ResearchPlan;
 use App\Services\FilteredArticleDoiService;
+use App\Services\FilteredArticleService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -13,7 +15,8 @@ use Illuminate\Validation\ValidationException;
 class FilteredArticleController extends Controller
 {
     public function __construct(
-        protected FilteredArticleDoiService $service
+        protected FilteredArticleDoiService $service,
+        protected FilteredArticleService $filteredArticleService,
     ) {
     }
 
@@ -114,5 +117,31 @@ class FilteredArticleController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Status retrieval berhasil diupdate.');
+    }
+    
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(GetFilteredArticlesRequest $request)
+    {
+        $validated = $request->validated();
+
+        $planId = $validated['research_plan_id'];
+        $keywordId = $validated['keyword_id'];
+        $size = $validated['size'] ?? 10;
+
+        $paginator = $this->filteredArticleService->getPaginatedArticles($planId, $keywordId, $size);
+
+        $formattedData = $paginator->through(function ($filteredArticle) {
+            return [
+                'filtered_article_id' => $filteredArticle->id,
+                'doi'                 => $filteredArticle->rawArticle->doi ?? '-',
+                'title'               => $filteredArticle->rawArticle->title ?? 'Tidak Ada Judul',
+                'publish_year'        => $filteredArticle->rawArticle->publish_year ?? '-',
+                'tier'                => $filteredArticle->rawArticle->tier ?? '-',
+            ];
+        });
+
+        return response()->json($formattedData);
     }
 }

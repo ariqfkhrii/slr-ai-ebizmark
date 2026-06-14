@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('research_plan_id')->constrained('research_plans', 'research_plan_id')->onDelete('cascade');
             $table->foreignId('raw_article_id')->constrained()->onDelete('cascade');
+            $table->foreignId('keyword_id')->constrained('keywords', 'id')->onDelete('cascade');
             $table->boolean('included')->default(false);
             $table->boolean('retrieved')->default(false);
             $table->boolean('novelty_status')->default(false);

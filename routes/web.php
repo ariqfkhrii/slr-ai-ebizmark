@@ -39,6 +39,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/metadata/batches/{batchId}/progress', [MetadataSearchController::class, 'batchProgress'])
         ->name('metadata.batch-progress');
         
+    Route::post('/search/cancel/{batchId}', [MetadataSearchController::class, 'cancelSearch'])
+        ->name('search.cancel');
+        
     Route::post('/filtered-articles/check-doi', [FilteredArticleController::class, 'store'])
         ->name('filtered-articles.check-doi');
 

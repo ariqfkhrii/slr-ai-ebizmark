@@ -569,6 +569,27 @@ class MetadataSearchServices
                 \Illuminate\Support\Facades\Log::error("Metadata Search Batch failed: " . $e->getMessage());
                 cache()->forget("active_search_plan_{$planId}_kw_{$keywordId}");
             })
+            ->finally(function (\Illuminate\Bus\Batch $batch) use ($planId, $keywordId, $source) {
+                if ($batch->canceled()) {
+                    cache()->forget("active_search_plan_{$planId}_kw_{$keywordId}");
+                    cache()->forget("pending_batches_{$planId}_{$keywordId}");
+                    cache()->forget("batch_done_{$planId}_{$keywordId}_{$source}");
+
+                    ArticleMetadataTemp::where('batch_id', $batch->id)->delete();
+
+                    ResearchPlanKeyword::where('research_plan_id', $planId)
+                        ->where('keyword_id', $keywordId)
+                        ->update([
+                            'article_count'           => 0,
+                            'duplicate_count'         => 0,
+                            'unmatched_tier_count'    => 0,
+                            'missing_doi_count'       => 0,
+                            'out_of_year_range_count' => 0,
+                        ]);
+                    
+                    \Illuminate\Support\Facades\Log::info("Metadata Search Batch {$batch->id} was cleanly cancelled and counts reset to 0.");
+                }
+            })
             ->dispatch();
 
         return (string) $dispatched->id;

@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\MetadataSearchRequest;
 use App\Http\Requests\PreviewSearchRequest;
 use App\Services\MetadataSearchServices;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class MetadataSearchController extends Controller
 {
@@ -93,6 +94,32 @@ class MetadataSearchController extends Controller
                 'status' => $result['status'] ?? null,
             ], 500),
         };
+    }
+
+    /**
+     * Handle the request to cancel an ongoing search batch.
+     *
+     * @param string $batchId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function cancelSearch(string $batchId)
+    {
+        $batch = Bus::findBatch($batchId);
+
+        if (! $batch) {
+            return response()->json(['message' => 'Batch not found.'], 404);
+        }
+
+        if ($batch->finished()) {
+            return response()->json(['message' => 'Cannot cancel a completed batch.'], 400);
+        }
+        
+        $batch->cancel();
+
+        return response()->json([
+            'message' => 'Search job cancelled successfully.',
+            'batch_id' => $batch->id
+        ], 200);
     }
 
     public function batchProgress(string $batchId)

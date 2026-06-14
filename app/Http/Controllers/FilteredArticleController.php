@@ -127,14 +127,13 @@ class FilteredArticleController extends Controller
         $validated = $request->validated();
 
         $planId = $validated['research_plan_id'];
-        $keywordId = $validated['keyword_id'];
+        $keywordId = $validated['keyword_id'] ?? null;
         $size = $validated['size'] ?? 10;
 
         $paginator = $this->filteredArticleService->getPaginatedArticles($planId, $keywordId, $size);
 
         $formattedData = $paginator->through(function ($filteredArticle) {
             return [
-                'filtered_article_id' => $filteredArticle->id,
                 'doi'                 => $filteredArticle->rawArticle->doi ?? '-',
                 'title'               => $filteredArticle->rawArticle->title ?? 'Tidak Ada Judul',
                 'publish_year'        => $filteredArticle->rawArticle->publish_year ?? '-',

@@ -24,7 +24,7 @@ class GetFilteredArticlesRequest extends FormRequest
     {
         return [
             'research_plan_id' => 'required|integer',
-            'keyword_id'       => 'required|integer',
+            'keyword_id'       => 'nullable|integer',
             'size'             => 'nullable|integer|min:1|max:100',
         ];
     }
@@ -39,7 +39,6 @@ class GetFilteredArticlesRequest extends FormRequest
         return [
             'research_plan_id.required' => 'The research plan ID is required.',
             'research_plan_id.integer'  => 'The research plan ID must be an integer.',
-            'keyword_id.required'       => 'The keyword ID is required.',
             'keyword_id.integer'        => 'The keyword ID must be an integer.',
             'size.integer'              => 'The size must be an integer.',
             'size.min'                  => 'The size must be at least 1.',

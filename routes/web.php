@@ -7,6 +7,7 @@ use App\Http\Controllers\ClassificationController;
 use App\Http\Controllers\ExtractionController;
 use App\Http\Controllers\FilteredArticleController;
 use App\Http\Controllers\MetadataSearchController;
+use App\Http\Controllers\PurificationController;
 use App\Http\Controllers\ResearchPlanController;
 use App\Http\Controllers\ResearchPlanKeywordController;
 use Illuminate\Support\Facades\Route;
@@ -44,6 +45,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/filtered-articles', [FilteredArticleController::class, 'index'])
         ->name('filtered-articles.index');
+
+    Route::get('/research-plans/{planId}/purification', [PurificationController::class, 'index'])
+        ->name('purification.index');
+    
+    Route::put('/purification/update-status', [PurificationController::class, 'update'])
+        ->name('purification.update');
         
     Route::post('/filtered-articles/check-doi', [FilteredArticleController::class, 'store'])
         ->name('filtered-articles.check-doi');

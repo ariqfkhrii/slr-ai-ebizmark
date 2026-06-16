@@ -13,7 +13,7 @@ class FilteredArticleService
             ->when($keywordId, function ($query, $keywordId) {
                 return $query->where('keyword_id', $keywordId);
             })
-            ->with('rawArticle:id,title,publish_year,tier,doi') 
+            ->with('rawArticle:id,doi,title,authors,keyword,abstract,tier,citation_count,publish_year')
             ->paginate($size);
     }
 }

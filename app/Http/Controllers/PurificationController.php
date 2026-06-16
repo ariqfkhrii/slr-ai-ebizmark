@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\GetPurificationRequest;
+use App\Http\Requests\UpdatePurificationRequest;
 use App\Services\FilteredArticleService;
 use Illuminate\Http\Request;
 
@@ -38,8 +39,15 @@ class PurificationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdatePurificationRequest $request)
     {
-        //
+        $id = $request->validated('filtered_article_id');
+        $included = $request->validated('included');
+
+        $this->filteredArticleService->updateIncludedStatus($id, $included);
+
+        return response()->json([
+            'message' => 'Status included berhasil diupdate.'
+        ]);
     }
 }

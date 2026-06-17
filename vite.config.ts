@@ -28,11 +28,4 @@ export default defineConfig({
       formVariants: true,
     }),
   ],
-  build: {
-    outDir: 'public/build',
-    manifest: true,
-    rollupOptions: {
-      input: 'resources/js/app.tsx',
-    },
-  },
 });

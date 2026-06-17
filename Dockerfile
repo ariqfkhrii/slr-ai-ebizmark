@@ -41,6 +41,10 @@ RUN composer install \
 
 RUN npm ci
 RUN npm run build
+RUN echo "=== BUILD CHECK ===" \
+ && ls -lah public \
+ && ls -lah public/build \
+ && cat public/build/manifest.json
 
 # ============================================
 # STAGE 2: Runtime
@@ -57,7 +61,10 @@ RUN docker-php-ext-install pdo_sqlite
 
 WORKDIR /var/www/html
 
-COPY --from=builder /app .
+COPY --from=builder /app /var/www/html
+
+RUN echo "===== RUNTIME CONTENT =====" \
+ && find public/build -type f || true
 
 RUN mkdir -p \
     storage/framework/cache/data \

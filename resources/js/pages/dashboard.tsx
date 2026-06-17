@@ -198,7 +198,7 @@ export default function Dashboard({ auth, researchPlans = [] }: any) {
                 }}
               >
                 <Typography variant="h5" sx={{ fontWeight: 800 }}>
-                  Research Plans
+                  Rencana Penelitian
                 </Typography>
               </Stack>
 

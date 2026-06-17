@@ -59,20 +59,32 @@ WORKDIR /var/www/html
 
 COPY --from=builder /app .
 
-RUN mkdir -p database \
-    && touch database/database.sqlite \
-    && chmod 777 database/database.sqlite
+RUN mkdir -p \
+    database \
+    storage/framework/cache \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/logs \
+    bootstrap/cache \
+    /tmp
+
+RUN touch database/database.sqlite
+
+RUN chmod -R 777 \
+    storage \
+    bootstrap/cache \
+    database \
+    /tmp
+
+ENV TMPDIR=/tmp
+ENV DB_CONNECTION=sqlite
+ENV DB_DATABASE=/var/www/html/database/database.sqlite
 
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY docker/supervisord.conf /etc/supervisord.conf
 COPY docker/entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh
-
-ENV APP_ENV=production \
-    APP_DEBUG=false \
-    DB_CONNECTION=sqlite \
-    DB_DATABASE=/var/www/html/database/database.sqlite
 
 EXPOSE 8080
 

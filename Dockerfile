@@ -53,20 +53,18 @@ RUN apk add --no-cache \
     sqlite \
     sqlite-dev
 
-RUN docker-php-ext-install pdo_sqlite
+RUN docker-php-ext-install sqlite3 pdo_sqlite
 
 WORKDIR /var/www/html
 
 COPY --from=builder /app .
 
 RUN mkdir -p \
-    database \
-    storage/framework/cache \
+    storage/framework/cache/data \
     storage/framework/sessions \
     storage/framework/views \
     storage/logs \
-    bootstrap/cache \
-    /tmp
+    bootstrap/cache
 
 RUN touch database/database.sqlite
 

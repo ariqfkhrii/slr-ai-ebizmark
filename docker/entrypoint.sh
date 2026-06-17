@@ -10,11 +10,11 @@ mkdir -p bootstrap/cache
 chmod -R 777 storage
 chmod -R 777 bootstrap/cache
 
+php artisan migrate --force
+
 php artisan config:clear
 php artisan cache:clear
 php artisan view:clear
-
-php artisan migrate --force
 
 php artisan config:cache
 php artisan route:cache

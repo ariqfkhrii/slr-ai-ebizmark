@@ -7,7 +7,7 @@ WORKDIR /frontend
 
 # Copy package files untuk caching
 COPY package*.json ./
-COPY npm-workspace.yaml ./
+COPY pnpm-workspace.yaml ./
 COPY .npmrc ./
 
 # Install dependencies
@@ -17,9 +17,7 @@ RUN npm ci
 COPY resources/ ./resources/
 COPY tsconfig.json ./
 COPY vite.config.ts ./
-COPY eslint.config.js ./
 COPY components.json ./
-COPY .prettierrc ./
 
 # Build assets (Vite akan compile TypeScript)
 RUN npm run build

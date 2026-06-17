@@ -20,8 +20,3 @@ composer.phar
 .gitattributes
 .gitignore
 .editorconfig
-.prettierrc
-.prettierignore
-eslint.config.js
-pint.json
-phpunit.xml

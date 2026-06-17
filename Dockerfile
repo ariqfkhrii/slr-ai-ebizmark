@@ -1,9 +1,8 @@
 # ============================================
 # STAGE 1: Build Laravel + Frontend Assets
 # ============================================
-FROM php:8.2-fpm-alpine AS builder
+FROM php:8.4-fpm-alpine AS builder
 
-# System dependencies
 RUN apk add --no-cache \
     git \
     unzip \

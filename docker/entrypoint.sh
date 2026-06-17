@@ -3,27 +3,33 @@ set -e
 
 echo "Starting MariaDB..."
 
-# Inisialisasi pertama kali
+# Init database jika belum ada
 if [ ! -d "/var/lib/mysql/mysql" ]; then
+    echo "Initializing MariaDB..."
     mariadb-install-db \
         --user=mysql \
         --datadir=/var/lib/mysql
 fi
 
-# Start MariaDB
-mysqld \
-    --user=mysql \
-    --datadir=/var/lib/mysql &
+# Socket directory
+mkdir -p /run/mysqld
+chown mysql:mysql /run/mysqld
 
-# Tunggu sampai siap
-until mariadb-admin ping --silent; do
+# Start MariaDB
+mariadbd \
+  --user=mysql \
+  --datadir=/var/lib/mysql \
+  --socket=/run/mysqld/mysqld.sock &
+
+# Wait until ready
+until mariadb-admin ping --socket=/run/mysqld/mysqld.sock --silent; do
     echo "Waiting for MariaDB..."
     sleep 2
 done
 
 echo "Creating database..."
 
-mariadb -u root <<EOF
+mariadb --socket=/run/mysqld/mysqld.sock -u root <<EOF
 CREATE DATABASE IF NOT EXISTS demo_db;
 CREATE USER IF NOT EXISTS 'demo_user'@'localhost' IDENTIFIED BY 'demo_password';
 GRANT ALL PRIVILEGES ON demo_db.* TO 'demo_user'@'localhost';

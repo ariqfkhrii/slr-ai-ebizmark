@@ -53,7 +53,7 @@ RUN apk add --no-cache \
     sqlite \
     sqlite-dev
 
-RUN docker-php-ext-install sqlite3 pdo_sqlite
+RUN docker-php-ext-install pdo_sqlite
 
 WORKDIR /var/www/html
 

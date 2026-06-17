@@ -56,18 +56,11 @@ FROM serversideup/php:8.4.11-fpm-nginx-alpine3.21-v3.6.0
 
 WORKDIR /var/www/html
 
-# Copy app
-COPY --from=builder /app ./
+COPY --from=builder --chown=www-data:www-data /app ./
 
-# Permissions
-RUN chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache
-
-# Custom configs
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY docker/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
 
-# Entrypoint
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 

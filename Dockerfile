@@ -20,7 +20,6 @@ COPY vite.config.ts ./
 COPY eslint.config.js ./
 COPY components.json ./
 COPY .prettierrc ./
-COPY .prettierignore ./
 
 # Build assets (Vite akan compile TypeScript)
 RUN npm run build

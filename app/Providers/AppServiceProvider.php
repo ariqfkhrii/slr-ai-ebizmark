@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\AutoReporting;
+use App\Services\FilteredArticleService;
 use App\Services\MetadataSearchServices;
 use App\Services\PubMedApiService;
 use App\Services\ResearchPlanKeyword\ResearchPlanKeywordService;
@@ -9,6 +11,7 @@ use App\Services\ScopusApiService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -35,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PubMedApiService::class);
         $this->app->bind(ScopusApiService::class);
         $this->app->bind(MetadataSearchServices::class);
+        $this->app->bind(FilteredArticleService::class);
     }
 
     /**
@@ -42,6 +46,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Route model binding
+        Route::model('autoReporting', AutoReporting::class);
+        
         $this->configureDefaults();
     }
 

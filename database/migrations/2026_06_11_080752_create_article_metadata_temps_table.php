@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('temp_preview_caches', function (Blueprint $table) {
+        Schema::create('article_metadata_temps', function (Blueprint $table) {
             $table->id();
             $table->string('batch_id')->nullable();
             $table->string('cache_key')->nullable();
             $table->foreignId('raw_article_id')->nullable()->constrained()->onDelete('set null');
+            $table->string('status')->nullable();
             $table->timestamp('created_at')->nullable();
         });
     }
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('temp_preview_caches');
+        Schema::dropIfExists('article_metadata_temps');
     }
 };

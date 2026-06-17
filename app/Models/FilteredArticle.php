@@ -11,6 +11,7 @@ class FilteredArticle extends Model
     protected $fillable = [
         'research_plan_id',
         'raw_article_id',
+        'keyword_id',
         'included',
         'retrieved',
         'novelty_status',
@@ -48,5 +49,10 @@ class FilteredArticle extends Model
     public function rawArticle()
     {
         return $this->belongsTo(RawArticle::class);
+    }
+
+    public function keyword()
+    {
+        return $this->belongsTo(Keyword::class);
     }
 }

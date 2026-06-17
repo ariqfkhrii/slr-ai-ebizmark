@@ -17,7 +17,7 @@ return new class extends Migration
 
             $table->string('title');
 
-            $table->string('source_database');
+            $table->string('source_database')->nullable()->default('scopus');
 
             $table->integer('scopus_quantity')->nullable();
 

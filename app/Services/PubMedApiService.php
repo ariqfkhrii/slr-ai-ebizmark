@@ -158,17 +158,22 @@ class PubMedApiService
      * and applies filters to ensure that only journal articles indexed in Medline are counted, excluding preprints.
      *
      * @param string $keyword The keyword to search for in the articles.
-     * @param int $startYear The starting publication year for the search.
-     * @param int $endYear The ending publication year for the search.
+     * @param int|null $startYear The starting publication year for the search.
+     * @param int|null $endYear The ending publication year for the search.
      * @return int The total count of matching articles.
      */
-    public function getTotalCount(string $keyword, int $startYear, int $endYear): int
+    public function getTotalCount(string $keyword, ?int $startYear, ?int $endYear): int
     {
         $this->enforceRateLimit();
 
         $searchQuery = '("' . $keyword . '"[Title/Abstract] OR "' . $keyword . '"[Other Term] OR "' . $keyword . '"[MeSH Terms])';
         $qualityFilter = '("Journal Article"[pt] AND "medline"[sb] NOT "preprint"[pt])';
-        $term = $searchQuery . ' AND ' . $qualityFilter . ' AND ' . $startYear . ':' . $endYear . '[dp]';
+        
+        $term = $searchQuery . ' AND ' . $qualityFilter;
+
+        if ($startYear !== null && $endYear !== null) {
+            $term .= ' AND ' . $startYear . ':' . $endYear . '[dp]';
+        }
 
         $response = Http::get($this->buildEndpoint('esearch.fcgi'), [
             'db'      => 'pubmed',

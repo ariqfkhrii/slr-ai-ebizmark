@@ -11,6 +11,7 @@ class RawArticle extends Model
         'title',
         'authors',
         'keyword',
+        'abstract',
         'issn_print',
         'issn_e',
         'tier',

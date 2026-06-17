@@ -2,10 +2,12 @@
 
 use App\Http\Controllers\AiClassificationController;
 use App\Http\Controllers\AiExtractionController;
+use App\Http\Controllers\AutoReportingController;
 use App\Http\Controllers\ClassificationController;
 use App\Http\Controllers\ExtractionController;
 use App\Http\Controllers\FilteredArticleController;
 use App\Http\Controllers\MetadataSearchController;
+use App\Http\Controllers\PurificationController;
 use App\Http\Controllers\ResearchPlanController;
 use App\Http\Controllers\ResearchPlanKeywordController;
 use Illuminate\Support\Facades\Route;
@@ -38,6 +40,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/metadata/batches/{batchId}/progress', [MetadataSearchController::class, 'batchProgress'])
         ->name('metadata.batch-progress');
         
+    Route::post('/search/cancel/{batchId}', [MetadataSearchController::class, 'cancelSearch'])
+        ->name('search.cancel');
+
+    Route::get('/filtered-articles', [FilteredArticleController::class, 'index'])
+        ->name('filtered-articles.index');
+
+    Route::get('/research-plans/{planId}/purification', [PurificationController::class, 'index'])
+        ->name('purification.index');
+    
+    Route::put('/purification/update-status', [PurificationController::class, 'update'])
+        ->name('purification.update');
+        
     Route::post('/filtered-articles/check-doi', [FilteredArticleController::class, 'store'])
         ->name('filtered-articles.check-doi');
 
@@ -61,6 +75,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         
     Route::get('prisma', [ResearchPlanController::class, 'prisma'])
         ->name('prisma');
+
+    Route::get('/research-plans/{researchPlanId}/auto-reporting', [AutoReportingController::class, 'index'])
+        ->name('auto-reporting.index');
+    Route::post('/auto-reportings/{autoReporting}/generate', [AutoReportingController::class, 'generate'])
+        ->name('auto-reporting.generate');
+    Route::put('/auto-reportings/{autoReporting}', [AutoReportingController::class, 'update'])
+        ->name('auto-reporting.update');
+    Route::post('/auto-reportings/{autoReporting}/regenerate', [AutoReportingController::class, 'regenerate'])
+        ->name('auto-reporting.regenerate');
 
     // Research Plan Keywords
     Route::get('/research-plans/{researchPlanId}/keywords', [ResearchPlanKeywordController::class, 'index']);

@@ -2,10 +2,11 @@
 
 namespace App\Services;
 
+use App\Enums\ArticleTempStatus;
+use App\Models\ArticleMetadataTemp;
 use App\Models\Keyword;
 use App\Models\RawArticle;
 use App\Models\ScimagoJournal;
-use App\Models\TempPreviewCache;
 use Illuminate\Support\Facades\DB;
 
 class ScopusIngestService
@@ -17,7 +18,7 @@ class ScopusIngestService
     /**
      * Ingest articles from the Scopus API based on the provided search criteria and pagination parameters.
      *
-     * This method retrieves articles from the Scopus API in batches defined by the start and end page parameters. It processes each batch of articles, normalizing DOIs, extracting relevant information, and determining the journal tier based on ISSN values. Valid articles are then upserted into the RawArticle database table, and a subset of articles that meet the preview criteria are stored in the TempPreviewCache for later retrieval.
+     * This method retrieves articles from the Scopus API in batches defined by the start and end page parameters. It processes each batch of articles, normalizing DOIs, extracting relevant information, and determining the journal tier based on ISSN values. Valid articles are then upserted into the RawArticle database table, and a subset of articles that meet the preview criteria are stored in the ArticleMetadataTemp table for later retrieval.
      *
      * @param array $validatedRequest The validated request data containing search criteria such as keyword ID, start year, end year, and selected tiers.
      * @param int $startPage The starting page number for pagination (inclusive).
@@ -49,108 +50,108 @@ class ScopusIngestService
     /**
      * Process a batch of article entries retrieved from the Scopus API, normalizing data, determining journal tiers, and storing valid articles in the database.
      *
-     * This method takes a batch of article entries and performs several processing steps. It normalizes DOIs, extracts relevant information such as title, authors, keywords, and publication year, and determines the journal tier based on ISSN values using a pre-fetched dictionary. Valid articles are then upserted into the RawArticle database table, and a subset of articles that meet the preview criteria are stored in the TempPreviewCache for later retrieval.
+     * This method takes a batch of article entries and performs several processing steps. It normalizes DOIs, extracts relevant information such as title, authors, keywords, and publication year, and determines the journal tier based on ISSN values using a pre-fetched dictionary. Valid articles are then upserted into the RawArticle database table, and a subset of articles that meet the preview criteria are stored in the ArticleMetadataTemp table for later retrieval.
      *
      * @param array $entries The batch of article entries retrieved from the Scopus API to be processed.
      * @param array $validatedRequest The validated request data containing search criteria such as selected tiers for filtering articles.
      * @param string|null $batchId An optional identifier for the batch being processed, used for tracking purposes when storing preview articles.
-     * @param string $cacheKey A unique key used to associate preview articles with a specific cache entry in the TempPreviewCache.
+     * @param string $cacheKey A unique key used to associate preview articles with a specific cache entry in the ArticleMetadataTemp.
      */
     private function processBatch(array $entries, array $validatedRequest, ?string $batchId, string $cacheKey): void
     {
-        $validEntries = [];
+        $rawArticleBatch = [];
+        $tempBatchData = [];
+        $now = now();
+        $requestedTiers = array_map('strtolower', $validatedRequest['tiers'] ?? []);
         $issns = [];
+
+        foreach ($entries as $entry) {
+            if (!empty($entry['dc:title']) && !empty($this->normalizeDoi($entry['prism:doi'] ?? null))) {
+                if (!empty($entry['prism:issn'])) $issns[] = $entry['prism:issn'];
+                if (!empty($entry['prism:eIssn'])) $issns[] = $entry['prism:eIssn'];
+            }
+        }
+
+        $tiersDictionary = $this->fetchTiersDictionary(array_unique($issns));
 
         foreach ($entries as $entry) {
             $doi = $this->normalizeDoi($entry['prism:doi'] ?? null);
             $title = $entry['dc:title'] ?? '';
 
             if ($title === '' || $doi === null) {
+                $tempBatchData[] = [
+                    'batch_id'       => $batchId,
+                    'raw_article_id' => null,
+                    'cache_key'      => $cacheKey,
+                    'status'         => ArticleTempStatus::MISSING_DOI->value,
+                    'created_at'     => $now,
+                ];
                 continue;
             }
 
             $issnPrint = $entry['prism:issn'] ?? null;
             $issnE = $entry['prism:eIssn'] ?? null;
-
-            if ($issnPrint) $issns[] = $issnPrint;
-            if ($issnE) $issns[] = $issnE;
-
-            $entry['_doi'] = $doi;
-            $validEntries[] = $entry;
-        }
-
-        if (empty($validEntries)) {
-            return;
-        }
-
-        $tiersDictionary = $this->fetchTiersDictionary(array_unique($issns));
-        
-        $rawArticleBatch = [];
-        $previewDois = [];
-        $now = now();
-        
-        $requestedTiers = array_map('strtolower', $validatedRequest['tiers'] ?? []);
-        
-        foreach ($validEntries as $entry) {
-            $doi = $entry['_doi'];
-            $title = $entry['dc:title'];
-            $issnPrint = $entry['prism:issn'] ?? null;
-            $issnE = $entry['prism:eIssn'] ?? null;
             $tier = $this->resolveTierFromDictionary($issnPrint, $issnE, $tiersDictionary);
+            $status = ArticleTempStatus::ACCEPTED->value;
 
-            if (!empty($requestedTiers)) {
-                if ($tier === null || !in_array(strtolower($tier), $requestedTiers)) {
-                    continue;
-                }
+            if (!empty($requestedTiers) && ($tier === null || !in_array(strtolower($tier), $requestedTiers))) {
+                $status = ArticleTempStatus::UNMATCHED_TIER->value;
             }
 
             $rawArticleBatch[] = [
-                'doi' => $doi,
-                'title' => $title,
-                'authors' => $this->extractAuthors($entry),
-                'keyword' => $this->extractArticleKeywords($entry),
-                'abstract' => $entry['dc:description'] ?? null,
-                'issn_print' => $issnPrint,
-                'issn_e' => $issnE,
-                'tier' => $tier,
+                'doi'            => $doi,
+                'title'          => $title,
+                'authors'        => $this->extractAuthors($entry),
+                'keyword'        => $this->extractArticleKeywords($entry),
+                'abstract'       => $entry['dc:description'] ?? null,
+                'issn_print'     => $issnPrint,
+                'issn_e'         => $issnE,
+                'tier'           => $tier,
                 'citation_count' => isset($entry['citedby-count']) ? (int) $entry['citedby-count'] : null,
-                'publish_year' => $this->extractPublishYear($entry['prism:coverDate'] ?? null),
-                'source_db' => 'scopus',
-                'created_at' => $now,
-                'updated_at' => $now,
+                'publish_year'   => $this->extractPublishYear($entry['prism:coverDate'] ?? null),
+                'source_db'      => 'scopus',
+                'created_at'     => $now,
+                'updated_at'     => $now,
             ];
 
-            $previewDois[] = $doi;
+            $tempBatchData[] = [
+                'doi'    => $doi,
+                'status' => $status,
+            ];
         }
 
-        if (empty($rawArticleBatch)) {
-            return;
-        }
+        DB::transaction(function () use ($rawArticleBatch, $tempBatchData, $batchId, $cacheKey, $now) {
+            if (!empty($rawArticleBatch)) {
+                RawArticle::upsert(
+                    $rawArticleBatch,
+                    ['doi'],
+                    ['title', 'authors', 'keyword', 'abstract', 'issn_print', 'issn_e', 'tier', 'citation_count', 'publish_year', 'updated_at']
+                );
+            }
 
-        DB::transaction(function () use ($rawArticleBatch, $previewDois, $batchId, $cacheKey, $now) {
-            RawArticle::upsert(
-                $rawArticleBatch,
-                ['doi'],
-                ['title', 'authors', 'keyword', 'abstract', 'issn_print', 'issn_e', 'tier', 'citation_count', 'publish_year', 'updated_at']
-            );
+            $doisToFetch = collect($tempBatchData)->whereNotNull('doi')->pluck('doi')->unique()->toArray();
+            $articleIds = !empty($doisToFetch) 
+                ? RawArticle::whereIn('doi', $doisToFetch)->pluck('id', 'doi') 
+                : collect();
 
-            $uniquePreviewDois = array_unique($previewDois);
-            $articleIds = RawArticle::whereIn('doi', $uniquePreviewDois)->pluck('id', 'doi');
-            $previewBatch = [];
+            $finalTempInsert = [];
 
-            foreach ($uniquePreviewDois as $doi) {
-                if (isset($articleIds[$doi])) {
-                    $previewBatch[] = [
-                        'batch_id' => $batchId,
-                        'raw_article_id' => $articleIds[$doi],
-                        'cache_key' => $cacheKey,
-                        'created_at' => $now,
+            foreach ($tempBatchData as $temp) {
+                if (isset($temp['status']) && $temp['status'] === ArticleTempStatus::MISSING_DOI->value) {
+                    $finalTempInsert[] = $temp;
+                } elseif (isset($temp['doi']) && isset($articleIds[$temp['doi']])) {
+                    $finalTempInsert[] = [
+                        'batch_id'       => $batchId,
+                        'raw_article_id' => $articleIds[$temp['doi']],
+                        'cache_key'      => $cacheKey,
+                        'status'         => $temp['status'],
+                        'created_at'     => $now,
                     ];
                 }
             }
 
-            if (!empty($previewBatch)) {
-                TempPreviewCache::insertOrIgnore($previewBatch);
+            if (!empty($finalTempInsert)) {
+                ArticleMetadataTemp::insert($finalTempInsert);
             }
         });
     }

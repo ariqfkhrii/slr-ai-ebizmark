@@ -13,6 +13,7 @@ class ResearchPlanKeyword extends Pivot
         'duplicate_count',
         'unmatched_tier_count',
         'missing_doi_count',
+        'out_of_year_range_count',
     ];
 
     public function researchPlan()

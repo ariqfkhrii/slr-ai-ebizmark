@@ -1,7 +1,7 @@
 import { Box, Button } from '@mui/material';
-import { BarChart3, Cloud, History } from 'lucide-react';
+import { BarChart3, Globe } from 'lucide-react';
 
-type TabValue = 'analysis' | 'wordCloud' | 'history';
+type TabValue = 'analysis' | 'globalOverview';
 
 type Props = {
   value: TabValue;
@@ -15,14 +15,9 @@ const tabs = [
     icon: BarChart3,
   },
   {
-    label: 'Word Cloud',
-    value: 'wordCloud',
-    icon: Cloud,
-  },
-  {
-    label: 'Riwayat',
-    value: 'history',
-    icon: History,
+    label: 'Global Overview',
+    value: 'globalOverview',
+    icon: Globe,
   },
 ] as const;
 

@@ -1,18 +1,11 @@
 import { Box, Typography } from '@mui/material';
-import { Keyword, RawArticle } from '../types';
-import ArticleYearChart from './ArticleYearChart';
-import RawArticleTable from './RawArticleTable';
 
 type Props = {
-  keywords: Keyword[];
-  articles: RawArticle[];
+  keywordId: number;
+  researchPlanId: number;
 };
 
-export default function GlobalPanel({ keywords, articles }: Props) {
-  const fetchedKeywordCount = keywords.filter(
-    (keyword) => (keyword.retrievedCount ?? 0) > 0,
-  ).length;
-
+export default function GlobalPanel({ keywordId, researchPlanId }: Props) {
   return (
     <Box
       sx={{
@@ -37,34 +30,12 @@ export default function GlobalPanel({ keywords, articles }: Props) {
             textTransform: 'uppercase',
           }}
         >
-          Global View
+          Guide
         </Typography>
 
-        <Typography sx={{ fontSize: 18, fontWeight: 800 }}>Overview</Typography>
-      </Box>
-
-      <Box
-        sx={{
-          flex: 1,
-          minHeight: 0,
-          overflowY: 'auto',
-          p: 1.5,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 1.5,
-        }}
-      >
-        <ArticleYearChart
-          articles={articles}
-          title={`Artikel per Tahun · ${fetchedKeywordCount} Keyword · ${articles.length} Total`}
-        />
-
-        <Box sx={{ minHeight: 0, flex: 1 }}>
-          <RawArticleTable
-            articles={articles}
-            maxHeight="calc(100vh - 480px)"
-          />
-        </Box>
+        <Typography sx={{ fontSize: 18, fontWeight: 800 }}>
+          Page Guide
+        </Typography>
       </Box>
     </Box>
   );

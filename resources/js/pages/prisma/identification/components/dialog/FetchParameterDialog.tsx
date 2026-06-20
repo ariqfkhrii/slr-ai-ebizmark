@@ -9,8 +9,8 @@ import {
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
-import { MetadataPreviewResult } from '../../hooks/useIdentification';
 import { Keyword } from '../../types';
+import { MetadataPreviewResult } from '../KeywordDetail';
 import FetchPreviewDialog from './FetchPreviewDialog';
 
 export type FetchParams = {
@@ -68,7 +68,7 @@ export default function FetchParameterDialog({
     const params = {
       yearFrom,
       yearTo,
-      tiers: isScopus ? tiers : [],
+      tiers: isScopus ? tiers.map((t) => t.toLowerCase()) : [],
       includeAbstract,
     };
 

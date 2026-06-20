@@ -10,6 +10,7 @@ import {
   ListItemButton,
   ListItemText,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
@@ -124,6 +125,7 @@ export default function KeywordList({
                   opacity: 1,
                   pointerEvents: 'auto',
                 },
+                pr: 5,
               }}
               secondaryAction={
                 isEditing ? (
@@ -147,15 +149,17 @@ export default function KeywordList({
                       alignItems: 'center',
                       gap: 0.75,
                       pr: 1,
+                      width: 70,
+                      flexShrink: 0,
                     }}
                   >
                     <Box
                       className="keyword-actions"
                       sx={{
+                        width: 28,
                         display: 'flex',
-                        gap: 0.25,
+                        justifyContent: 'center',
                         opacity: 0,
-                        pointerEvents: 'none',
                         transition: 'opacity .15s ease',
                       }}
                     >
@@ -189,6 +193,7 @@ export default function KeywordList({
                         borderColor: hasMetadata
                           ? 'rgba(20,184,166,.25)'
                           : 'divider',
+                        flexShrink: 0,
                       }}
                     >
                       {hasMetadata ? retrievedCount : '–'}
@@ -198,7 +203,14 @@ export default function KeywordList({
               }
             >
               {isEditing ? (
-                <Box sx={{ width: '100%', pr: 10, px: 1, py: 0.75 }}>
+                <Box
+                  sx={{
+                    width: '100%',
+                    pr: 12,
+                    px: 1.5,
+                    py: 0.75,
+                  }}
+                >
                   <TextField
                     size="small"
                     fullWidth
@@ -213,6 +225,7 @@ export default function KeywordList({
                       '& .MuiInputBase-input': {
                         fontSize: 12,
                         py: 0.8,
+                        pr: 5,
                       },
                     }}
                   />
@@ -228,9 +241,19 @@ export default function KeywordList({
                   }}
                 >
                   <ListItemText
+                    sx={{
+                      minWidth: 0,
+                      overflow: 'hidden',
+                    }}
                     primary={
                       <Box
-                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          width: '100%',
+                          minWidth: 0,
+                        }}
                       >
                         <Box
                           sx={{
@@ -242,16 +265,21 @@ export default function KeywordList({
                           }}
                         />
 
-                        <Typography
-                          variant="body2"
-                          noWrap
-                          sx={{
-                            fontSize: 12,
-                            fontWeight: 700,
-                          }}
-                        >
-                          {k.name}
-                        </Typography>
+                        <Tooltip title={k.name} arrow placement="top">
+                          <Typography
+                            sx={{
+                              fontSize: 12,
+                              fontWeight: 700,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              display: 'block',
+                              maxWidth: '100%',
+                            }}
+                          >
+                            {k.name}
+                          </Typography>
+                        </Tooltip>
                       </Box>
                     }
                   />

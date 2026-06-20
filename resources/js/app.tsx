@@ -1,8 +1,14 @@
 import { initializeTheme } from '@/hooks/use-appearance';
 import { store } from '@/lib/store';
+import '@fontsource/poppins/300.css';
+import '@fontsource/poppins/400.css';
+import '@fontsource/poppins/500.css';
+import '@fontsource/poppins/600.css';
+import '@fontsource/poppins/700.css';
 import { createInertiaApp } from '@inertiajs/react';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { Provider } from 'react-redux';
+
 import '../css/app.css';
 import './bootstrap';
 
@@ -12,6 +18,9 @@ import SnackbarProvider from './components/snackbar-provider';
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 const muiTheme = createTheme({
+  typography: {
+    fontFamily: 'Poppins, sans-serif',
+  },
   palette: {
     mode: 'light',
     background: {

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Country;
 use App\Models\FilteredArticle;
+use App\Models\Keyword;
 use App\Models\RawArticle;
 use App\Models\ResearchPlan;
 use App\Models\User;
@@ -24,13 +25,19 @@ class PrismaDemoSeeder extends Seeder
         $countryOne = Country::firstOrCreate(['name' => 'United States']);
         $countryTwo = Country::firstOrCreate(['name' => 'Indonesia']);
 
-        // 🔥 FIX UTAMA (PASTI AMAN, GAK NULL)
         $researchPlan = ResearchPlan::first();
 
         if (!$researchPlan) {
             throw new \Exception('ResearchPlan kosong. Jalankan ResearchPlanSeeder dulu.');
         }
 
+        $keyword = Keyword::first();
+
+        if (!$keyword) {
+            throw new \Exception('Keyword kosong. Jalankan KeywordSeeder dulu.');
+        }
+
+        // ✅ RAW ARTICLE 1
         $firstRawArticle = RawArticle::query()->updateOrCreate(
             ['doi' => '10.1016/j.appet.2022.106350'],
             [
@@ -49,6 +56,7 @@ class PrismaDemoSeeder extends Seeder
 
         $firstRawArticle->countries()->syncWithoutDetaching([$countryOne->id]);
 
+        // ✅ RAW ARTICLE 2
         $secondRawArticle = RawArticle::query()->updateOrCreate(
             ['doi' => '10.1080/23750472.2022.2089204'],
             [
@@ -67,11 +75,12 @@ class PrismaDemoSeeder extends Seeder
 
         $secondRawArticle->countries()->syncWithoutDetaching([$countryTwo->id]);
 
-        // 🔥 FIX UTAMA: PAKAI getKey() (ANTI NULL / ANTI PK ISSUE)
+        // ✅ FILTERED ARTICLE 1
         FilteredArticle::query()->updateOrCreate(
             [
                 'raw_article_id' => $firstRawArticle->id,
-                'research_plan_id' => $researchPlan->getKey(),
+                'research_plan_id' => $researchPlan->research_plan_id,
+                'keyword_id' => $keyword->id,
             ],
             [
                 'novelty_status' => true,
@@ -83,10 +92,12 @@ class PrismaDemoSeeder extends Seeder
             ]
         );
 
+        // ✅ FILTERED ARTICLE 2
         FilteredArticle::query()->updateOrCreate(
             [
                 'raw_article_id' => $secondRawArticle->id,
-                'research_plan_id' => $researchPlan->getKey(),
+                'research_plan_id' => $researchPlan->research_plan_id,
+                'keyword_id' => $keyword->id,
             ],
             [
                 'novelty_status' => false,

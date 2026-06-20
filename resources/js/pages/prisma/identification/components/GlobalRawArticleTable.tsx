@@ -17,11 +17,10 @@ import { getFilteredArticles } from '../hooks/useIdentification';
 import { RawArticle } from '../types';
 
 type Props = {
-  keywordId: number;
   researchPlanId: number;
 };
 
-export default function RawArticleTable({ keywordId, researchPlanId }: Props) {
+export default function GlobalRawArticleTable({ researchPlanId }: Props) {
   const [articles, setArticles] = useState<RawArticle[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -34,7 +33,6 @@ export default function RawArticleTable({ keywordId, researchPlanId }: Props) {
 
     try {
       const response = await getFilteredArticles({
-        keywordId,
         researchPlanId,
         page,
         size,
@@ -50,11 +48,7 @@ export default function RawArticleTable({ keywordId, researchPlanId }: Props) {
 
   useEffect(() => {
     loadArticles();
-  }, [keywordId, page, size]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [keywordId]);
+  }, [page, size]);
 
   return (
     <>

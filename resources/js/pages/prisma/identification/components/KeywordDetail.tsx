@@ -1,16 +1,24 @@
 import { Box, Button, Typography } from '@mui/material';
 import { ArrowDownFromLine, RotateCcw, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { MetadataPreviewResult } from '../hooks/useIdentification';
 import { FetchHistory, Keyword } from '../types';
 import DeleteKeywordConfirmationDialog from './dialog/DeleteKeywordConfirmationDialog';
 import FetchParameterDialog, {
   FetchParams,
 } from './dialog/FetchParameterDialog';
-import FetchHistoryPanel from './FetchHistoryPanel';
+import GlobalRawArticleTable from './GlobalRawArticleTable';
 import KeywordTabs, { TabValue } from './KeywordTabs';
 import RawArticleTable from './RawArticleTable';
-import WordCloudTitle from './WordCloudTitle';
+
+export type MetadataPreviewResult = {
+  message: string;
+  can_execute: boolean;
+  data: {
+    total_count: number;
+    is_recommended: boolean;
+    [key: string]: any;
+  };
+};
 
 type Props = {
   keyword: Keyword | null;
@@ -35,10 +43,14 @@ export default function KeywordDetail({
   researchPlanId,
 }: Props) {
   const hasMetadata = (keyword?.retrievedCount ?? 0) > 0;
-  const articles = keyword?.articles ?? [];
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [tab, setTab] = useState<TabValue>('analysis');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleRefresh = () => {
+    setRefreshKey((prev) => prev + 1);
+  };
 
   if (!keyword) {
     return (
@@ -138,6 +150,7 @@ export default function KeywordDetail({
           onSubmit={(params) => {
             onFetchMetadata(keyword.id, params);
             setAnchorEl(null);
+            handleRefresh();
           }}
         />
       </Box>
@@ -145,11 +158,16 @@ export default function KeywordDetail({
       <KeywordTabs value={tab} onChange={setTab} />
 
       {/* CONTENT */}
-      {tab === 'analysis' && <RawArticleTable articles={articles} />}
+      {tab === 'analysis' && (
+        <RawArticleTable
+          keywordId={keyword.id}
+          researchPlanId={researchPlanId}
+        />
+      )}
 
-      {tab === 'wordCloud' && <WordCloudTitle articles={articles} />}
-
-      {tab === 'history' && <FetchHistoryPanel histories={histories} />}
+      {tab === 'globalOverview' && (
+        <GlobalRawArticleTable researchPlanId={researchPlanId} />
+      )}
 
       {/* DELETE DIALOG */}
       <DeleteKeywordConfirmationDialog

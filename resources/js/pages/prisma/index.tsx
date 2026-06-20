@@ -8,28 +8,25 @@ import Classification from './classification';
 import PrismaStepper from './components/PrismaStepper';
 import Extraction from './extraction';
 import Identification from './identification';
-import { useIdentification } from './identification/hooks/useIdentification';
 import Retrieval from './retrieval';
 import Screening from './screening';
 import { useScreening } from './screening/hooks/useScreening';
-import { getUniqueArticlesByDoi } from './utils/articles';
 
 export default function Prisma(props: any) {
   const researchPlanId = Number(props?.researchPlan?.research_plan_id ?? 0);
-  const identification = useIdentification(researchPlanId);
   const [activeStep, setActiveStep] = useState(0);
   const [classificationMode, setClassificationMode] = useState<'manual' | 'ai'>(
     'ai',
   );
   const [extractionMode, setExtractionMode] = useState<'manual' | 'ai'>('ai');
 
-  const globalArticles = getUniqueArticlesByDoi(identification.keywords);
-  const screening = useScreening(globalArticles, researchPlanId);
-  const canOpenScreening = globalArticles.length > 0;
-  const canOpenRetrieval = screening.counters.included > 0;
-  const canOpenClassification = true;
-  const canOpenExtraction = true;
-  const canOpenReport = researchPlanId > 0;
+  const globalArticles = undefined;
+  const screening = useScreening([], researchPlanId);
+  // const canOpenScreening = globalArticles.length > 0;
+  // const canOpenRetrieval = screening.counters.included > 0;
+  // const canOpenClassification = true;
+  // const canOpenExtraction = true;
+  // const canOpenReport = researchPlanId > 0;
 
   const sourceDatabase = String(
     props?.researchPlan?.source_database ?? 'scopus',
@@ -94,21 +91,26 @@ export default function Prisma(props: any) {
           >
             <PrismaStepper
               activeStep={activeStep}
-              canOpenScreening={canOpenScreening}
-              canOpenRetrieval={canOpenRetrieval}
-              canOpenClassification={canOpenClassification}
-              canOpenExtraction={canOpenExtraction}
-              canOpenReport={canOpenReport}
+              // canOpenScreening={canOpenScreening}
+              // canOpenRetrieval={canOpenRetrieval}
+              // canOpenClassification={canOpenClassification}
+              // canOpenExtraction={canOpenExtraction}
+              // canOpenReport={canOpenReport}
+              canOpenScreening={true}
+              canOpenRetrieval={true}
+              canOpenClassification={true}
+              canOpenExtraction={true}
+              canOpenReport={true}
               classificationMode={classificationMode}
               onClassificationModeChange={setClassificationMode}
               extractionMode={extractionMode}
               onExtractionModeChange={setExtractionMode}
               onStepClick={(step) => {
-                if (step === 1 && !canOpenScreening) return;
-                if (step === 2 && !canOpenRetrieval) return;
-                if (step === 3 && !canOpenClassification) return;
-                if (step === 4 && !canOpenExtraction) return;
-                if (step === 5 && !canOpenReport) return;
+                // if (step === 1 && !canOpenScreening) return;
+                // if (step === 2 && !canOpenRetrieval) return;
+                // if (step === 3 && !canOpenClassification) return;
+                // if (step === 4 && !canOpenExtraction) return;
+                // if (step === 5 && !canOpenReport) return;
 
                 setActiveStep(step);
               }}
@@ -119,10 +121,8 @@ export default function Prisma(props: any) {
         <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
           {activeStep === 0 && (
             <Identification
-              {...identification}
-              globalArticles={globalArticles}
-              sourceDatabase={sourceDatabase}
               researchPlanId={researchPlanId}
+              sourceDatabase={sourceDatabase}
             />
           )}
 
@@ -163,7 +163,9 @@ export default function Prisma(props: any) {
               researchPlanId={researchPlanId}
               researchPlan={props.researchPlan}
               items={props.items ?? []}
-              filteredArticles={(props.filteredArticles ?? []).filter((a: any) => a.article_status === 'included')}
+              filteredArticles={(props.filteredArticles ?? []).filter(
+                (a: any) => a.article_status === 'included',
+              )}
             />
           )}
         </Box>

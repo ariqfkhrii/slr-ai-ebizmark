@@ -18,6 +18,11 @@ class RawArticle extends Model
         'citation_count',
         'publish_year',
         'source_db',
+        'embedding',
+    ];
+
+    protected $casts = [
+        'embedding' => 'array',
     ];
 
     public function countries()

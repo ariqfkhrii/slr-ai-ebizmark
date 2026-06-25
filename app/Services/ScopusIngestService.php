@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\ArticleTempStatus;
+use App\Jobs\GenerateArticleEmbeddingsJob;
 use App\Models\ArticleMetadataTemp;
 use App\Models\Keyword;
 use App\Models\RawArticle;
@@ -120,7 +121,9 @@ class ScopusIngestService
             ];
         }
 
-        DB::transaction(function () use ($rawArticleBatch, $tempBatchData, $batchId, $cacheKey, $now) {
+        $insertedOrUpdatedIds = [];
+
+        DB::transaction(function () use ($rawArticleBatch, $tempBatchData, $batchId, $cacheKey, $now, &$insertedOrUpdatedIds) {
             if (!empty($rawArticleBatch)) {
                 RawArticle::upsert(
                     $rawArticleBatch,
@@ -133,6 +136,8 @@ class ScopusIngestService
             $articleIds = !empty($doisToFetch) 
                 ? RawArticle::whereIn('doi', $doisToFetch)->pluck('id', 'doi') 
                 : collect();
+
+            $insertedOrUpdatedIds = $articleIds->values()->all();
 
             $finalTempInsert = [];
 
@@ -154,6 +159,10 @@ class ScopusIngestService
                 ArticleMetadataTemp::insert($finalTempInsert);
             }
         });
+
+        if (!empty($insertedOrUpdatedIds)) {
+            GenerateArticleEmbeddingsJob::dispatch($insertedOrUpdatedIds);
+        }
     }
 
     /**

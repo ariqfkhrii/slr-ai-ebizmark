@@ -31,6 +31,7 @@ type Props = {
   histories: FetchHistory[];
   sourceDatabase: string;
   researchPlanId: number;
+  refreshTrigger: number;
 };
 
 export default function KeywordDetail({
@@ -41,16 +42,12 @@ export default function KeywordDetail({
   histories,
   sourceDatabase,
   researchPlanId,
+  refreshTrigger,
 }: Props) {
   const hasMetadata = (keyword?.retrievedCount ?? 0) > 0;
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [tab, setTab] = useState<TabValue>('analysis');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const handleRefresh = () => {
-    setRefreshKey((prev) => prev + 1);
-  };
 
   if (!keyword) {
     return (
@@ -150,7 +147,6 @@ export default function KeywordDetail({
           onSubmit={(params) => {
             onFetchMetadata(keyword.id, params);
             setAnchorEl(null);
-            handleRefresh();
           }}
         />
       </Box>
@@ -162,6 +158,7 @@ export default function KeywordDetail({
         <RawArticleTable
           keywordId={keyword.id}
           researchPlanId={researchPlanId}
+          refreshTrigger={refreshTrigger}
         />
       )}
 

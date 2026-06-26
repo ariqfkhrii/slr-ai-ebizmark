@@ -3,7 +3,6 @@
 import { Box } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 
-import GlobalPanel from './components/GlobalPanel';
 import KeywordDetail from './components/KeywordDetail';
 import KeywordList from './components/KeywordList';
 
@@ -25,6 +24,8 @@ import {
   updateProgressSnackbar,
 } from '@/lib/store/snackbarSlice';
 import { useDispatch } from 'react-redux';
+import { useGuide } from '../components/prisma-layout';
+import IdentificationGuide from '../guides/IdentificationGuide';
 import { FetchParams } from './components/dialog/FetchParameterDialog';
 import { FetchHistory, Keyword } from './types';
 
@@ -50,11 +51,21 @@ export default function Identification({
   const [histories] = useState<FetchHistory[]>([]);
   const [loadingKeywords, setLoadingKeywords] = useState(false);
   const progress = useAppSelector((state) => state.snackbar.progress);
+  const [articleRefreshKey, setArticleRefreshKey] = useState(0);
+
+  useGuide({
+    title: 'Identification',
+    content: <IdentificationGuide />,
+  });
 
   const selectedKeyword = useMemo(
     () => keywords.find((k) => k.id === selectedId) ?? null,
     [keywords, selectedId],
   );
+
+  const refreshArticles = () => {
+    setArticleRefreshKey((prev) => prev + 1);
+  };
 
   const loadKeywords = async () => {
     if (!researchPlanId) return;
@@ -116,6 +127,7 @@ export default function Identification({
       dispatch(showSuccess('Metadata berhasil dimuat dari cache'));
 
       await loadKeywords();
+      refreshArticles();
 
       return;
     }
@@ -132,6 +144,7 @@ export default function Identification({
     }
 
     await loadKeywords();
+    refreshArticles();
   };
 
   useEffect(() => {
@@ -161,7 +174,8 @@ export default function Identification({
         ) {
           window.clearInterval(interval);
 
-          loadKeywords();
+          await loadKeywords();
+          refreshArticles();
 
           window.setTimeout(() => {
             dispatch(hideProgressSnackbar());
@@ -209,9 +223,8 @@ export default function Identification({
         onFetchMetadata={handleFetchMetadata}
         onPreviewMetadata={handlePreviewMetadata}
         onDeleteKeyword={handleDeleteKeyword}
+        refreshTrigger={articleRefreshKey}
       />
-
-      <GlobalPanel keywordId={selectedId!} researchPlanId={researchPlanId} />
     </Box>
   );
 }

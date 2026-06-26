@@ -9,7 +9,11 @@ class Keyword extends Model
 {
     use HasFactory;
     
-    protected $fillable = ['keyword'];
+    protected $fillable = ['keyword', 'embedding'];
+
+    protected $casts = [
+        'embedding' => 'array',
+    ];
     
     public function researchPlans()
     {

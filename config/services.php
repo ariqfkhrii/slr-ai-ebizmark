@@ -49,4 +49,8 @@ return [
         'api_key' => env('GEMINI_API_KEY'),
     ],
 
+    'embedding' => [
+        'url' => env('EMBEDDING_API_URL'),
+    ],
+
 ];

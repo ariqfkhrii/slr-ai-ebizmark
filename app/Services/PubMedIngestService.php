@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\ArticleTempStatus;
+use App\Jobs\GenerateArticleEmbeddingsJob;
 use App\Models\ArticleMetadataTemp;
 use App\Models\Keyword;
 use App\Models\RawArticle;
@@ -109,7 +110,9 @@ class PubMedIngestService
             ];
         }
 
-        DB::transaction(function () use ($rawArticleBatch, $tempBatchData, $batchId, $cacheKey, $now) {
+        $insertedOrUpdatedIds = [];
+
+        DB::transaction(function () use ($rawArticleBatch, $tempBatchData, $batchId, $cacheKey, $now, &$insertedOrUpdatedIds) {
             if (!empty($rawArticleBatch)) {
                 RawArticle::upsert(
                     $rawArticleBatch,
@@ -122,6 +125,8 @@ class PubMedIngestService
             $articleIds = !empty($doisToFetch) 
                 ? RawArticle::whereIn('doi', $doisToFetch)->pluck('id', 'doi') 
                 : collect();
+
+            $insertedOrUpdatedIds = $articleIds->values()->all();
 
             $finalTempInsert = [];
 
@@ -143,6 +148,10 @@ class PubMedIngestService
                 ArticleMetadataTemp::insert($finalTempInsert);
             }
         });
+
+        if (!empty($insertedOrUpdatedIds)) {
+            GenerateArticleEmbeddingsJob::dispatch($insertedOrUpdatedIds);
+        }
     }
 
     /**

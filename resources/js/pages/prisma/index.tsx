@@ -5,6 +5,7 @@ import AiClassification from './ai-classification';
 import AiExtraction from './ai-extraction';
 import AutoReportingPage from './auto-reporting';
 import Classification from './classification';
+import { GuideProvider, PrismaLayout } from './components/prisma-layout';
 import PrismaStepper from './components/PrismaStepper';
 import Extraction from './extraction';
 import Identification from './identification';
@@ -119,55 +120,59 @@ export default function Prisma(props: any) {
         </Paper>
 
         <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-          {activeStep === 0 && (
-            <Identification
-              researchPlanId={researchPlanId}
-              sourceDatabase={sourceDatabase}
-            />
-          )}
-
-          {activeStep === 1 && <Screening {...screening} />}
-
-          {activeStep === 2 && <Retrieval {...props} />}
-
-          {activeStep === 3 &&
-            (classificationMode === 'manual' ? (
-              <Classification
-                filteredArticles={props.filteredArticles}
-                researchPlanId={researchPlanId}
-                classificationSetup={props.classificationSetup ?? null}
-              />
-            ) : (
-              <AiClassification
-                filteredArticles={props.filteredArticles}
-                researchPlanId={researchPlanId}
-                classificationSetup={props.classificationSetup ?? null}
-              />
-            ))}
-
-          {activeStep === 4 &&
-            (extractionMode === 'manual' ? (
-              <Extraction
-                filteredArticles={props.filteredArticles}
-                researchPlanId={researchPlanId}
-              />
-            ) : (
-              <AiExtraction
-                filteredArticles={props.filteredArticles}
-                researchPlanId={researchPlanId}
-              />
-            ))}
-
-          {activeStep === 5 && (
-            <AutoReportingPage
-              researchPlanId={researchPlanId}
-              researchPlan={props.researchPlan}
-              items={props.items ?? []}
-              filteredArticles={(props.filteredArticles ?? []).filter(
-                (a: any) => a.article_status === 'included',
+          <GuideProvider>
+            <PrismaLayout>
+              {activeStep === 0 && (
+                <Identification
+                  researchPlanId={researchPlanId}
+                  sourceDatabase={sourceDatabase}
+                />
               )}
-            />
-          )}
+
+              {activeStep === 1 && <Screening {...screening} />}
+
+              {activeStep === 2 && <Retrieval {...props} />}
+
+              {activeStep === 3 &&
+                (classificationMode === 'manual' ? (
+                  <Classification
+                    filteredArticles={props.filteredArticles}
+                    researchPlanId={researchPlanId}
+                    classificationSetup={props.classificationSetup ?? null}
+                  />
+                ) : (
+                  <AiClassification
+                    filteredArticles={props.filteredArticles}
+                    researchPlanId={researchPlanId}
+                    classificationSetup={props.classificationSetup ?? null}
+                  />
+                ))}
+
+              {activeStep === 4 &&
+                (extractionMode === 'manual' ? (
+                  <Extraction
+                    filteredArticles={props.filteredArticles}
+                    researchPlanId={researchPlanId}
+                  />
+                ) : (
+                  <AiExtraction
+                    filteredArticles={props.filteredArticles}
+                    researchPlanId={researchPlanId}
+                  />
+                ))}
+
+              {activeStep === 5 && (
+                <AutoReportingPage
+                  researchPlanId={researchPlanId}
+                  researchPlan={props.researchPlan}
+                  items={props.items ?? []}
+                  filteredArticles={(props.filteredArticles ?? []).filter(
+                    (a: any) => a.article_status === 'included',
+                  )}
+                />
+              )}
+            </PrismaLayout>
+          </GuideProvider>
         </Box>
       </Box>
     </>

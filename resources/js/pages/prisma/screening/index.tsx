@@ -1,5 +1,7 @@
 import { Box, Button } from '@mui/material';
 import { Check, X } from 'lucide-react';
+import { useGuide } from '../components/prisma-layout';
+import ScreeningGuide from '../guides/ScreeningGuide';
 import ScreeningColumn from './components/ScreeningColumn';
 import ScreeningStatusCounter from './components/ScreeningStatusCounter';
 import { useScreening } from './hooks/useScreening';
@@ -20,6 +22,11 @@ export default function Screening({
   const leftArticles = filteredArticles.filter(
     (item) => item.included === false || item.included === null,
   );
+
+  useGuide({
+    title: 'Screening',
+    content: <ScreeningGuide />,
+  });
 
   return (
     <Box

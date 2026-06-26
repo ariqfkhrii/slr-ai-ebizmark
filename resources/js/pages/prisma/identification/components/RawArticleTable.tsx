@@ -19,9 +19,14 @@ import { RawArticle } from '../types';
 type Props = {
   keywordId: number;
   researchPlanId: number;
+  refreshTrigger?: number;
 };
 
-export default function RawArticleTable({ keywordId, researchPlanId }: Props) {
+export default function RawArticleTable({
+  keywordId,
+  researchPlanId,
+  refreshTrigger,
+}: Props) {
   const [articles, setArticles] = useState<RawArticle[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -50,7 +55,7 @@ export default function RawArticleTable({ keywordId, researchPlanId }: Props) {
 
   useEffect(() => {
     loadArticles();
-  }, [keywordId, page, size]);
+  }, [keywordId, page, size, refreshTrigger]);
 
   useEffect(() => {
     setPage(1);

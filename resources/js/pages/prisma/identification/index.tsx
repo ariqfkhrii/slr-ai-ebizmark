@@ -53,9 +53,11 @@ export default function Identification({
   const progress = useAppSelector((state) => state.snackbar.progress);
   const [articleRefreshKey, setArticleRefreshKey] = useState(0);
 
+  const guideContent = useMemo(() => <IdentificationGuide />, []);
+
   useGuide({
     title: 'Identification',
-    content: <IdentificationGuide />,
+    content: guideContent,
   });
 
   const selectedKeyword = useMemo(

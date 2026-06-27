@@ -13,7 +13,7 @@ export default function ScreeningArticleCard({
   onInclude,
   onExclude,
 }: Props) {
-  const article = item.rawArticle;
+  const article = item.raw_article;
 
   const isIncluded = item.included === true;
   const isExcluded = item.included === false;
@@ -91,7 +91,7 @@ export default function ScreeningArticleCard({
                 color: '#0f172a',
               }}
             >
-              {article.title}
+              {article?.title ?? '-'}
             </Typography>
 
             <Box
@@ -104,7 +104,7 @@ export default function ScreeningArticleCard({
             >
               <Chip
                 size="small"
-                label={statusConfig.label}
+                label={statusConfig?.label ?? '-'}
                 sx={{
                   height: 22,
                   fontSize: 11,
@@ -116,7 +116,7 @@ export default function ScreeningArticleCard({
 
               <Chip
                 size="small"
-                label={article.tier}
+                label={article?.tier ?? '-'}
                 sx={{
                   height: 22,
                   fontSize: 11,
@@ -128,7 +128,7 @@ export default function ScreeningArticleCard({
 
               <Chip
                 size="small"
-                label={`${article.publish_year}`}
+                label={`${article?.publish_year ?? '-'}`}
                 sx={{
                   height: 22,
                   fontSize: 11,
@@ -140,7 +140,7 @@ export default function ScreeningArticleCard({
 
               <Chip
                 size="small"
-                label={`${article.citation_count} sitasi`}
+                label={`${article?.citation_count ?? '-'} sitasi`}
                 sx={{
                   height: 22,
                   fontSize: 11,
@@ -155,7 +155,7 @@ export default function ScreeningArticleCard({
           <Tooltip title="Buka DOI">
             <Button
               component="a"
-              href={article.link}
+              href={'#'}
               target="_blank"
               rel="noopener noreferrer"
               size="small"
@@ -190,7 +190,7 @@ export default function ScreeningArticleCard({
               overflow: 'hidden',
             }}
           >
-            {article.abstract}
+            {article?.abstract ?? '-'}
           </Typography>
         </Box>
 
@@ -202,7 +202,7 @@ export default function ScreeningArticleCard({
             wordBreak: 'break-word',
           }}
         >
-          DOI: {article.doi} · ISSN: {article.issn}
+          DOI: {article?.doi ?? '-'}
         </Typography>
 
         <Box

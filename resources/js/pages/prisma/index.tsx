@@ -11,7 +11,6 @@ import Extraction from './extraction';
 import Identification from './identification';
 import Retrieval from './retrieval';
 import Screening from './screening';
-import { useScreening } from './screening/hooks/useScreening';
 
 export default function Prisma(props: any) {
   const researchPlanId = Number(props?.researchPlan?.research_plan_id ?? 0);
@@ -22,7 +21,6 @@ export default function Prisma(props: any) {
   const [extractionMode, setExtractionMode] = useState<'manual' | 'ai'>('ai');
 
   const globalArticles = undefined;
-  const screening = useScreening([], researchPlanId);
   // const canOpenScreening = globalArticles.length > 0;
   // const canOpenRetrieval = screening.counters.included > 0;
   // const canOpenClassification = true;
@@ -129,7 +127,9 @@ export default function Prisma(props: any) {
                 />
               )}
 
-              {activeStep === 1 && <Screening {...screening} />}
+              {activeStep === 1 && (
+                <Screening researchPlanId={researchPlanId} />
+              )}
 
               {activeStep === 2 && <Retrieval {...props} />}
 

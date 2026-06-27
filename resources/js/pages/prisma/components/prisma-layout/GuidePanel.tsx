@@ -1,12 +1,32 @@
 'use client';
 
 import { Box, Divider, Typography } from '@mui/material';
+import { isValidElement, ReactNode } from 'react';
 import { useGuideContext } from './GuideContext';
 
 const GUIDE_WIDTH = 360;
 
 export default function GuidePanel() {
   const { open, title, content } = useGuideContext();
+
+  const renderContent = () => {
+    if (!content) return null;
+
+    if (
+      isValidElement(content) ||
+      typeof content === 'string' ||
+      typeof content === 'number'
+    ) {
+      return content;
+    }
+
+    if (typeof content === 'function') {
+      const Component = content as () => ReactNode;
+      return <Component />;
+    }
+
+    return null;
+  };
 
   return (
     <Box
@@ -52,7 +72,7 @@ export default function GuidePanel() {
 
         <Divider />
 
-        <Box sx={{ p: 2 }}>{content}</Box>
+        <Box sx={{ p: 2 }}>{renderContent()}</Box>
       </Box>
     </Box>
   );

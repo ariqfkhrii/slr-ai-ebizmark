@@ -1,11 +1,19 @@
 'use client';
 
-import { ReactNode, createContext, useContext, useMemo, useState } from 'react';
+import {
+  ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 type GuideContextType = {
   open: boolean;
   title: string;
-  content: ReactNode;
+  content: ReactNode | null;
 
   toggle: () => void;
   openGuide: () => void;
@@ -30,30 +38,54 @@ export function GuideProvider({ children }: Props) {
   });
 
   const [title, setTitle] = useState('');
-  const [content, setContent] = useState<ReactNode>(null);
+  const [content, setContent] = useState<ReactNode | null>(null);
 
-  const saveState = (value: boolean) => {
+  const prevTitleRef = useRef('');
+  const prevContentRef = useRef<ReactNode | null>(null);
+
+  const saveState = useCallback((value: boolean) => {
     setOpen(value);
 
     if (typeof window !== 'undefined') {
       localStorage.setItem('prisma-guide', String(value));
     }
-  };
+  }, []);
+
+  const setGuide = useCallback((newTitle: string, newContent: ReactNode) => {
+    const titleChanged = prevTitleRef.current !== newTitle;
+    const contentChanged = prevContentRef.current !== newContent;
+
+    if (titleChanged || contentChanged) {
+      prevTitleRef.current = newTitle;
+      prevContentRef.current = newContent;
+      setTitle(newTitle);
+      setContent(newContent);
+    }
+  }, []);
+
+  const toggle = useCallback(() => {
+    saveState(!open);
+  }, [open, saveState]);
+
+  const openGuide = useCallback(() => {
+    saveState(true);
+  }, [saveState]);
+
+  const closeGuide = useCallback(() => {
+    saveState(false);
+  }, [saveState]);
 
   const value = useMemo(
     () => ({
       open,
       title,
       content,
-      toggle: () => saveState(!open),
-      openGuide: () => saveState(true),
-      closeGuide: () => saveState(false),
-      setGuide: (title: string, content: ReactNode) => {
-        setTitle(title);
-        setContent(content);
-      },
+      toggle,
+      openGuide,
+      closeGuide,
+      setGuide,
     }),
-    [open, title, content],
+    [open, title, content, toggle, openGuide, closeGuide, setGuide],
   );
 
   return (

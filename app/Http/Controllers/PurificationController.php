@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\GetPurificationRequest;
 use App\Http\Requests\UpdatePurificationRequest;
+use App\Http\Requests\UpdateAllPurificationRequest;
 use App\Services\FilteredArticleService;
-use Illuminate\Http\Request;
 
 class PurificationController extends Controller
 {
@@ -36,6 +36,21 @@ class PurificationController extends Controller
         return response()->json($paginatedData);
     }
 
+    public function getAll(int $planId)
+    {
+        $articles = $this->filteredArticleService->getAllArticles($planId);
+
+        $data = $articles->map(function ($filteredArticle) {
+            return [
+                'filtered_article_id' => $filteredArticle->id,
+                'included' => $filteredArticle->included,
+                'raw_article' => $filteredArticle->rawArticle,
+            ];
+        });
+
+        return response()->json($data);
+    }
+
     /**
      * Update the specified resource in storage.
      */
@@ -48,6 +63,21 @@ class PurificationController extends Controller
 
         return response()->json([
             'message' => 'Status included berhasil diupdate.'
+        ]);
+    }
+
+    public function updateAll(UpdateAllPurificationRequest $request)
+    {
+        $researchPlanId = $request->validated('research_plan_id');
+        $included = $request->validated('included');
+
+        $this->filteredArticleService->updateAllIncludedStatus(
+            $researchPlanId,
+            $included
+        );
+
+        return response()->json([
+            'message' => 'Status included seluruh artikel berhasil diupdate.'
         ]);
     }
 }

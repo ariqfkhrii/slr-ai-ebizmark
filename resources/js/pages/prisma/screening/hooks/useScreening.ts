@@ -1,67 +1,58 @@
-import { useEffect, useMemo, useState } from 'react';
-import { RawArticle } from '../../identification/types';
+import {
+  getAllPurificationArticles,
+  updateAllPurificationStatus,
+  updatePurificationStatus,
+} from '@/clients/screening';
+import { showError, showSuccess } from '@/lib/store/snackbarSlice';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useDispatch } from 'react-redux';
 import { FilteredArticle } from '../types';
-import { createFilteredArticles } from '../utils';
 
-export function useScreening(articles: RawArticle[], researchPlanId: number) {
-  const initialData = useMemo(
-    () => createFilteredArticles(articles, researchPlanId),
-    [articles, researchPlanId],
-  );
+interface UseScreeningProps {
+  researchPlanId: number;
+  page?: number;
+  size?: number;
+}
 
-  const [filteredArticles, setFilteredArticles] = useState<FilteredArticle[]>(
-    [],
-  );
+export const useScreening = ({ researchPlanId }: UseScreeningProps) => {
+  const queryClient = useQueryClient();
+  const dispatch = useDispatch();
 
-  useEffect(() => {
-    setFilteredArticles(initialData);
-  }, [initialData]);
+  const query = useQuery<FilteredArticle[]>({
+    queryKey: ['purification-all', researchPlanId],
+    queryFn: () =>
+      getAllPurificationArticles({
+        researchPlanId,
+      }),
+    enabled: !!researchPlanId,
+  });
 
-  const updateStatus = (id: number, included: boolean) => {
-    setFilteredArticles((prev) =>
-      prev.map((item) =>
-        item.filtered_article_id === id
-          ? {
-              ...item,
-              included,
-              article_status: included ? 'included' : 'excluded',
-            }
-          : item,
-      ),
-    );
-  };
+  const updateStatus = useMutation({
+    mutationFn: updatePurificationStatus,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['purification', researchPlanId],
+      });
+    },
+  });
 
-  const includeAll = () => {
-    setFilteredArticles((prev) =>
-      prev.map((item) => ({
-        ...item,
-        included: true,
-        article_status: 'included',
-      })),
-    );
-  };
+  const updateAllStatus = useMutation({
+    mutationFn: updateAllPurificationStatus,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['purification', researchPlanId],
+      });
 
-  const excludeAll = () => {
-    setFilteredArticles((prev) =>
-      prev.map((item) => ({
-        ...item,
-        included: false,
-        article_status: 'excluded',
-      })),
-    );
-  };
-
-  const counters = {
-    included: filteredArticles.filter((item) => item.included === true).length,
-    excluded: filteredArticles.filter((item) => item.included === false).length,
-    pending: filteredArticles.filter((item) => item.included === null).length,
-  };
+      dispatch(showSuccess('Status seluruh artikel berhasil diperbarui.'));
+    },
+    onError: () => {
+      dispatch(showError('Gagal memperbarui seluruh status artikel.'));
+    },
+  });
 
   return {
-    filteredArticles,
-    counters,
+    ...query,
     updateStatus,
-    includeAll,
-    excludeAll,
+    updateAllStatus,
   };
-}
+};

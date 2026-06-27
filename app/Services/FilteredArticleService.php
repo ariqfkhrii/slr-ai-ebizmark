@@ -6,6 +6,16 @@ use App\Models\FilteredArticle;
 
 class FilteredArticleService
 {
+    public function getAllArticles(int $planId)
+    {
+        return FilteredArticle::query()
+            ->where('research_plan_id', $planId)
+            ->with([
+                'rawArticle:id,doi,title,authors,keyword,abstract,tier,citation_count,publish_year'
+            ])
+            ->get();
+    }
+
     public function getPaginatedArticles(int $planId, ?int $keywordId, int $size)
     {
         return FilteredArticle::query()
@@ -26,5 +36,14 @@ class FilteredArticleService
         ]);
 
         return $filteredArticle;
+    }
+
+    public function updateAllIncludedStatus(int $researchPlanId, bool $included)
+    {
+        FilteredArticle::query()
+            ->where('research_plan_id', $researchPlanId)
+            ->update([
+                'included' => $included,
+            ]);
     }
 }

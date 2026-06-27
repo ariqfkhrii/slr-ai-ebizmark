@@ -1,6 +1,6 @@
 'use client';
 
-import DashboardPage from './dashboard/dashboard';
+import DashboardPage from './dashboard/Dashboard';
 import GuideInitializer from './GuideInitializer';
 import { GuideProvider } from './prisma/components/prisma-layout';
 

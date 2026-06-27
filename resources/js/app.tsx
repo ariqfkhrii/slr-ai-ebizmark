@@ -7,6 +7,7 @@ import '@fontsource/poppins/600.css';
 import '@fontsource/poppins/700.css';
 import { createInertiaApp } from '@inertiajs/react';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Provider } from 'react-redux';
 
 import '../css/app.css';
@@ -16,6 +17,7 @@ import { createRoot, hydrateRoot } from 'react-dom/client';
 import SnackbarProvider from './components/snackbar-provider';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const queryClient = new QueryClient();
 
 const muiTheme = createTheme({
   typography: {
@@ -56,13 +58,15 @@ createInertiaApp({
 
   setup({ el, App, props }) {
     const root = (
-      <Provider store={store}>
-        <ThemeProvider theme={muiTheme}>
-          <CssBaseline />
-          <App {...props} />
-          <SnackbarProvider />
-        </ThemeProvider>
-      </Provider>
+      <QueryClientProvider client={queryClient}>
+        <Provider store={store}>
+          <ThemeProvider theme={muiTheme}>
+            <CssBaseline />
+            <App {...props} />
+            <SnackbarProvider />
+          </ThemeProvider>
+        </Provider>
+      </QueryClientProvider>
     );
 
     if (typeof window !== 'undefined' && el && (el as Element).nodeType === 1) {

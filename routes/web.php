@@ -48,9 +48,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/research-plans/{planId}/purification', [PurificationController::class, 'index'])
         ->name('purification.index');
+
+    Route::get('/research-plans/{planId}/purification/all', [PurificationController::class, 'getAll'])
+        ->name('purification.all');
     
     Route::put('/purification/update-status', [PurificationController::class, 'update'])
         ->name('purification.update');
+
+    Route::put('/purification/update-all-status', [PurificationController::class, 'updateAll'])
+        ->name('purification.update-all');
         
     Route::post('/filtered-articles/check-doi', [FilteredArticleController::class, 'store'])
         ->name('filtered-articles.check-doi');

@@ -1,14 +1,13 @@
 export type RawArticle = {
-  // article_id: number;
-  // country_id: number;
+  id: number;
   doi: string;
   title: string;
-  // issn: string;
-  publish_year: number;
+  authors: string;
+  keyword: string | null;
+  abstract: string | null;
   tier: 'q1' | 'q2' | 'q3' | 'q4';
-  // link: string;
-  // abstract?: string;
-  // citation_count?: number;
+  citation_count: number;
+  publish_year: number;
 };
 
 export type Keyword = {

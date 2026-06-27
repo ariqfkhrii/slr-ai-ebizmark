@@ -1,32 +1,60 @@
-import { Box, Button } from '@mui/material';
-import { Check, X } from 'lucide-react';
+import { Box, Button, CircularProgress } from '@mui/material';
+import { useMemo } from 'react';
 import { useGuide } from '../components/prisma-layout';
 import ScreeningGuide from '../guides/ScreeningGuide';
 import ScreeningColumn from './components/ScreeningColumn';
 import ScreeningStatusCounter from './components/ScreeningStatusCounter';
 import { useScreening } from './hooks/useScreening';
 
-type Props = ReturnType<typeof useScreening>;
+type Props = {
+  researchPlanId: number;
+};
 
-export default function Screening({
-  filteredArticles,
-  counters,
-  updateStatus,
-  includeAll,
-  excludeAll,
-}: Props) {
-  const rightArticles = filteredArticles.filter(
-    (item) => item.included === true,
-  );
-
-  const leftArticles = filteredArticles.filter(
-    (item) => item.included === false || item.included === null,
-  );
-
+export default function Screening({ researchPlanId }: Props) {
+  const guideContent = useMemo(() => <ScreeningGuide />, []);
   useGuide({
     title: 'Screening',
-    content: <ScreeningGuide />,
+    content: guideContent,
   });
+
+  const { data, isLoading, updateStatus, updateAllStatus } = useScreening({
+    researchPlanId,
+  });
+
+  const filteredArticles = data ?? [];
+  const leftArticles = useMemo(
+    () => filteredArticles.filter((item) => item.included !== true),
+    [filteredArticles],
+  );
+
+  const rightArticles = useMemo(
+    () => filteredArticles.filter((item) => item.included === true),
+    [filteredArticles],
+  );
+
+  const counters = useMemo(
+    () => ({
+      included: filteredArticles.filter((x) => x.included === true).length,
+      excluded: filteredArticles.filter((x) => x.included === false).length,
+      pending: filteredArticles.filter((x) => x.included === null).length,
+    }),
+    [filteredArticles],
+  );
+
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          height: 'calc(100vh - 128px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <CircularProgress size={48} />
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -45,8 +73,12 @@ export default function Screening({
             size="small"
             color="error"
             variant="contained"
-            startIcon={<X size={14} />}
-            onClick={excludeAll}
+            onClick={() =>
+              updateAllStatus.mutate({
+                researchPlanId,
+                included: false,
+              })
+            }
           >
             Exclude All
           </Button>
@@ -55,8 +87,12 @@ export default function Screening({
             size="small"
             color="success"
             variant="contained"
-            startIcon={<Check size={14} />}
-            onClick={includeAll}
+            onClick={() =>
+              updateAllStatus.mutate({
+                researchPlanId,
+                included: true,
+              })
+            }
           >
             Include All
           </Button>
@@ -74,15 +110,35 @@ export default function Screening({
         <ScreeningColumn
           title="Pending / Excluded Record"
           articles={leftArticles}
-          onInclude={(id) => updateStatus(id, true)}
-          onExclude={(id) => updateStatus(id, false)}
+          onInclude={(id) =>
+            updateStatus.mutate({
+              filteredArticleId: id,
+              included: true,
+            })
+          }
+          onExclude={(id) =>
+            updateStatus.mutate({
+              filteredArticleId: id,
+              included: false,
+            })
+          }
         />
 
         <ScreeningColumn
           title="Included Record"
           articles={rightArticles}
-          onInclude={(id) => updateStatus(id, true)}
-          onExclude={(id) => updateStatus(id, false)}
+          onInclude={(id) =>
+            updateStatus.mutate({
+              filteredArticleId: id,
+              included: true,
+            })
+          }
+          onExclude={(id) =>
+            updateStatus.mutate({
+              filteredArticleId: id,
+              included: false,
+            })
+          }
         />
       </Box>
     </Box>

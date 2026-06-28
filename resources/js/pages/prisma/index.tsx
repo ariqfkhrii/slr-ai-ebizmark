@@ -19,8 +19,14 @@ export default function Prisma(props: any) {
     'ai',
   );
   const [extractionMode, setExtractionMode] = useState<'manual' | 'ai'>('ai');
+  // const globalArticles = await getFilteredArticles({
+  //   keywordId,
+  //   researchPlanId,
+  //   page: 0,
+  //   size: 10,
+  // });
 
-  const globalArticles = undefined;
+  // const globalArticles = undefined;
   // const canOpenScreening = globalArticles.length > 0;
   // const canOpenRetrieval = screening.counters.included > 0;
   // const canOpenClassification = true;

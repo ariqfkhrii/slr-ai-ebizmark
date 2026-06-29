@@ -8,6 +8,7 @@ import Classification from './classification';
 import { GuideProvider, PrismaLayout } from './components/prisma-layout';
 import PrismaStepper from './components/PrismaStepper';
 import Extraction from './extraction';
+import { usePrismaStatus } from './hooks/usePrismaStatus';
 import Identification from './identification';
 import Retrieval from './retrieval';
 import Screening from './screening';
@@ -19,23 +20,43 @@ export default function Prisma(props: any) {
     'ai',
   );
   const [extractionMode, setExtractionMode] = useState<'manual' | 'ai'>('ai');
-  // const globalArticles = await getFilteredArticles({
-  //   keywordId,
-  //   researchPlanId,
-  //   page: 0,
-  //   size: 10,
-  // });
 
-  // const globalArticles = undefined;
-  // const canOpenScreening = globalArticles.length > 0;
-  // const canOpenRetrieval = screening.counters.included > 0;
-  // const canOpenClassification = true;
-  // const canOpenExtraction = true;
-  // const canOpenReport = researchPlanId > 0;
+  const {
+    loading,
+    error,
+    screeningCounters,
+    canOpenScreening,
+    canOpenRetrieval,
+    canOpenClassification,
+    canOpenExtraction,
+    canOpenReport,
+    refetch,
+    invalidate,
+  } = usePrismaStatus({
+    researchPlanId,
+  });
 
   const sourceDatabase = String(
     props?.researchPlan?.source_database ?? 'scopus',
   ).toLowerCase();
+
+  if (loading) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography>Loading PRISMA data...</Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography color="error">Error: {error}</Typography>
+        <button onClick={refetch}>Retry</button>
+      </Box>
+    );
+  }
+
   return (
     <>
       <Head title="PRISMA" />
@@ -96,26 +117,21 @@ export default function Prisma(props: any) {
           >
             <PrismaStepper
               activeStep={activeStep}
-              // canOpenScreening={canOpenScreening}
-              // canOpenRetrieval={canOpenRetrieval}
-              // canOpenClassification={canOpenClassification}
-              // canOpenExtraction={canOpenExtraction}
-              // canOpenReport={canOpenReport}
-              canOpenScreening={true}
-              canOpenRetrieval={true}
-              canOpenClassification={true}
-              canOpenExtraction={true}
-              canOpenReport={true}
+              canOpenScreening={canOpenScreening}
+              canOpenRetrieval={canOpenRetrieval}
+              canOpenClassification={canOpenClassification}
+              canOpenExtraction={canOpenExtraction}
+              canOpenReport={canOpenReport}
               classificationMode={classificationMode}
               onClassificationModeChange={setClassificationMode}
               extractionMode={extractionMode}
               onExtractionModeChange={setExtractionMode}
               onStepClick={(step) => {
-                // if (step === 1 && !canOpenScreening) return;
-                // if (step === 2 && !canOpenRetrieval) return;
-                // if (step === 3 && !canOpenClassification) return;
-                // if (step === 4 && !canOpenExtraction) return;
-                // if (step === 5 && !canOpenReport) return;
+                if (step === 1 && !canOpenScreening) return;
+                if (step === 2 && !canOpenRetrieval) return;
+                if (step === 3 && !canOpenClassification) return;
+                if (step === 4 && !canOpenExtraction) return;
+                if (step === 5 && !canOpenReport) return;
 
                 setActiveStep(step);
               }}
@@ -134,7 +150,10 @@ export default function Prisma(props: any) {
               )}
 
               {activeStep === 1 && (
-                <Screening researchPlanId={researchPlanId} />
+                <Screening
+                  researchPlanId={researchPlanId}
+                  onScreeningComplete={invalidate}
+                />
               )}
 
               {activeStep === 2 && <Retrieval {...props} />}

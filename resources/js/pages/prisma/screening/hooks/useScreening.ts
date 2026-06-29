@@ -12,14 +12,19 @@ interface UseScreeningProps {
   researchPlanId: number;
   page?: number;
   size?: number;
+  onStatusChange?: () => void;
 }
 
-export const useScreening = ({ researchPlanId }: UseScreeningProps) => {
+export const useScreening = ({
+  researchPlanId,
+  onStatusChange,
+}: UseScreeningProps) => {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
+  const queryKey = ['purification-all', researchPlanId];
 
   const query = useQuery<FilteredArticle[]>({
-    queryKey: ['purification-all', researchPlanId],
+    queryKey,
     queryFn: () =>
       getAllPurificationArticles({
         researchPlanId,
@@ -29,22 +34,39 @@ export const useScreening = ({ researchPlanId }: UseScreeningProps) => {
 
   const updateStatus = useMutation({
     mutationFn: updatePurificationStatus,
+
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
       queryClient.invalidateQueries({
         queryKey: ['purification', researchPlanId],
       });
+
+      if (onStatusChange) {
+        onStatusChange();
+      }
+    },
+
+    onError: () => {
+      dispatch(showError('Gagal memperbarui status artikel.'));
     },
   });
 
   const updateAllStatus = useMutation({
     mutationFn: updateAllPurificationStatus,
+
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
       queryClient.invalidateQueries({
         queryKey: ['purification', researchPlanId],
       });
 
+      if (onStatusChange) {
+        onStatusChange();
+      }
+
       dispatch(showSuccess('Status seluruh artikel berhasil diperbarui.'));
     },
+
     onError: () => {
       dispatch(showError('Gagal memperbarui seluruh status artikel.'));
     },

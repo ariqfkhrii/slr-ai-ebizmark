@@ -8,9 +8,13 @@ import { useScreening } from './hooks/useScreening';
 
 type Props = {
   researchPlanId: number;
+  onScreeningComplete?: () => void; // Tambahkan prop ini
 };
 
-export default function Screening({ researchPlanId }: Props) {
+export default function Screening({
+  researchPlanId,
+  onScreeningComplete,
+}: Props) {
   const guideContent = useMemo(() => <ScreeningGuide />, []);
   useGuide({
     title: 'Screening',
@@ -19,6 +23,7 @@ export default function Screening({ researchPlanId }: Props) {
 
   const { data, isLoading, updateStatus, updateAllStatus } = useScreening({
     researchPlanId,
+    onStatusChange: onScreeningComplete,
   });
 
   const filteredArticles = data ?? [];

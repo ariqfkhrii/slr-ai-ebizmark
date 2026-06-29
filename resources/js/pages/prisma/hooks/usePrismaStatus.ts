@@ -1,5 +1,5 @@
-// hooks/usePrismaStatus.ts
-import { useEffect, useState } from 'react';
+import { getAllPurificationArticles } from '@/clients/screening';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getFilteredArticles } from '../identification/hooks/useIdentification';
 import { FilteredArticle, PaginationResponse } from '../screening/types';
 
@@ -12,80 +12,84 @@ export const usePrismaStatus = ({
   researchPlanId,
   keywordId,
 }: UsePrismaStatusProps) => {
-  const [loading, setLoading] = useState(true);
-  const [articles, setArticles] = useState<FilteredArticle[]>([]);
-  const [totalArticles, setTotalArticles] = useState(0);
-  const [screeningCounters, setScreeningCounters] = useState({
-    total: 0,
-    included: 0,
-    excluded: 0,
-    pending: 0,
-  });
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const queryKey = ['prisma-status', researchPlanId, keywordId];
 
-  const fetchArticles = async () => {
-    if (!researchPlanId) {
-      setLoading(false);
-      return;
-    }
+  const query = useQuery({
+    queryKey,
+    queryFn: async () => {
+      if (!researchPlanId) {
+        return {
+          articles: [],
+          totalArticles: 0,
+          screeningCounters: { total: 0, included: 0, excluded: 0, pending: 0 },
+        };
+      }
 
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await getFilteredArticles({
+      const identificationResponse = await getFilteredArticles({
         researchPlanId,
         keywordId,
         page: 1,
-        size: 1000,
+        size: 100,
       });
 
-      const data = response as PaginationResponse<FilteredArticle>;
+      const purificationResponse = await getAllPurificationArticles({
+        researchPlanId,
+      });
+
+      const data =
+        identificationResponse as PaginationResponse<FilteredArticle>;
+      const purificationData = purificationResponse as FilteredArticle[];
       const articlesData = data?.data || [];
 
       const counters = {
-        total: articlesData.length,
-        included: articlesData.filter((a) => a.included === true).length,
-        excluded: articlesData.filter((a) => a.included === false).length,
-        pending: articlesData.filter(
+        total: purificationData.length,
+        included: purificationData.filter((a) => a.included === true).length,
+        excluded: purificationData.filter((a) => a.included === false).length,
+        pending: purificationData.filter(
           (a) => a.included === null || a.included === undefined,
         ).length,
       };
 
-      setArticles(articlesData);
-      setTotalArticles(data?.total || 0);
-      setScreeningCounters(counters);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Gagal mengambil data artikel',
-      );
-      setArticles([]);
-      setTotalArticles(0);
-      setScreeningCounters({ total: 0, included: 0, excluded: 0, pending: 0 });
-    } finally {
-      setLoading(false);
-    }
+      return {
+        articles: articlesData,
+        totalArticles: data?.total || 0,
+        screeningCounters: counters,
+      };
+    },
+    enabled: !!researchPlanId,
+  });
+
+  const refetch = () => {
+    return query.refetch();
   };
 
-  useEffect(() => {
-    fetchArticles();
-  }, [researchPlanId, keywordId]);
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey });
+  };
+
+  const data = query.data || {
+    articles: [],
+    totalArticles: 0,
+    screeningCounters: { total: 0, included: 0, excluded: 0, pending: 0 },
+  };
 
   return {
-    articles,
-    totalArticles,
-    screeningCounters,
-    loading,
-    error,
-    refetch: fetchArticles,
-    canOpenScreening: articles.length > 0,
-    canOpenRetrieval: screeningCounters.included > 0,
-    canOpenClassification: screeningCounters.included > 0,
-    canOpenExtraction: screeningCounters.included > 0,
-    canOpenReport: screeningCounters.included > 0,
-    includedArticles: articles.filter((a) => a.included === true),
-    excludedArticles: articles.filter((a) => a.included === false),
-    pendingArticles: articles.filter(
+    articles: data.articles,
+    totalArticles: data.totalArticles,
+    screeningCounters: data.screeningCounters,
+    loading: query.isLoading,
+    error: query.error instanceof Error ? query.error.message : null,
+    refetch,
+    invalidate, // Tambahkan fungsi invalidate
+    canOpenScreening: data.articles.length > 0,
+    canOpenRetrieval: data.screeningCounters.included > 0,
+    canOpenClassification: data.screeningCounters.included > 0,
+    canOpenExtraction: data.screeningCounters.included > 0,
+    canOpenReport: data.screeningCounters.included > 0,
+    includedArticles: data.articles.filter((a) => a.included === true),
+    excludedArticles: data.articles.filter((a) => a.included === false),
+    pendingArticles: data.articles.filter(
       (a) => a.included === null || a.included === undefined,
     ),
   };

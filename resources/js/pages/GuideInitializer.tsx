@@ -1,12 +1,12 @@
 'use client';
 
-import { useGuide } from './prisma/components/prisma-layout';
-import IdentificationGuide from './prisma/guides/IdentificationGuide';
+import { useGuide } from './spar/components/spar-layout';
+import AcquisitionGuide from './spar/guides/IdentificationGuide';
 
 export default function GuideInitializer() {
   useGuide({
     title: 'Dashboard',
-    content: <IdentificationGuide />,
+    content: <AcquisitionGuide />,
   });
 
   return null;

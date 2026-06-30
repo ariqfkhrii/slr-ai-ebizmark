@@ -454,7 +454,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                           <Button
                             onClick={() =>
                               router.visit(
-                                `/prisma?research_plan_id=${plan.research_plan_id}`,
+                                `/spar?research_plan_id=${plan.research_plan_id}`,
                               )
                             }
                             variant="contained"

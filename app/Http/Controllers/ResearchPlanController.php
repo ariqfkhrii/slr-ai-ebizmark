@@ -83,7 +83,7 @@ class ResearchPlanController extends Controller
         return redirect()->back()->with('success', 'Research Plan berhasil dihapus');
     }
 
-    public function prisma(Request $request)
+    public function spar(Request $request)
     {
         $researchPlans = $request->user()
             ->researchPlans()
@@ -147,7 +147,7 @@ class ResearchPlanController extends Controller
 
         $autoReportingItems = $this->autoReportingService->ensureDefaultItems($selectedId);
 
-        return Inertia::render('prisma/index', [
+        return Inertia::render('spar/index', [
             'researchPlanId'   => $selectedId,
             'researchPlan'     => $researchPlan,
             'researchPlans'    => $researchPlans,

@@ -82,8 +82,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/extraction/{filteredArticle}', [ExtractionController::class, 'update'])
         ->name('extraction.update');
         
-    Route::get('prisma', [ResearchPlanController::class, 'prisma'])
-        ->name('prisma');
+    Route::get('spar', [ResearchPlanController::class, 'spar'])
+        ->name('spar');
 
     Route::get('/research-plans/{researchPlanId}/auto-reporting', [AutoReportingController::class, 'index'])
         ->name('auto-reporting.index');

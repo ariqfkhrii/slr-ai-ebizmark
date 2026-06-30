@@ -2,7 +2,7 @@
 
 import DashboardPage from './dashboard/Dashboard';
 import GuideInitializer from './GuideInitializer';
-import { GuideProvider } from './prisma/components/prisma-layout';
+import { GuideProvider } from './spar/components/spar-layout';
 
 export default function Dashboard({ auth, researchPlans }: any) {
   return (

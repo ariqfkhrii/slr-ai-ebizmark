@@ -67,6 +67,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/filtered-articles/{filteredArticle}/retrieval', [FilteredArticleController::class, 'updateRetrieval'])
         ->name('filtered-articles.update-retrieval');
 
+    Route::post('/filtered-articles/{filteredArticle}/auto-fetch', [FilteredArticleController::class, 'autoFetch'])
+        ->name('filtered-articles.auto-fetch');
+
+    Route::post('/research-plans/{researchPlanId}/auto-fetch-all', [FilteredArticleController::class, 'autoFetchAll'])
+        ->name('research-plans.auto-fetch-all');
     Route::put('/classification-setup', [ClassificationController::class, 'upsertSetup'])
         ->name('classification-setup.upsert');
 

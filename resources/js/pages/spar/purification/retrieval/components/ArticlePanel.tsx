@@ -2,16 +2,22 @@ import {
   AlertCircle,
   CheckCircle2,
   ExternalLink,
+  Sparkles,
 } from 'lucide-react';
 
 import {
   Box,
   Button,
   Chip,
+  CircularProgress,
+  IconButton,
   Paper,
   Stack,
+  Tooltip,
   Typography,
 } from '@mui/material';
+import { useState } from 'react';
+import { router } from '@inertiajs/react';
 
 import type { ArticlePanelProps } from '../types';
 
@@ -32,7 +38,21 @@ export default function ArticlePanel({
   preLink,
   postLink,
   onToggleRetrieved,
+  onAutoFetch,
 }: ArticlePanelProps) {
+  const [fetchingId, setFetchingId] = useState<number | null>(null);
+
+  const handleAutoFetch = (articleId: number) => {
+    setFetchingId(articleId);
+    router.post(
+      `/filtered-articles/${articleId}/auto-fetch`,
+      {},
+      {
+        preserveScroll: true,
+        onFinish: () => setFetchingId(null),
+      },
+    );
+  };
   return (
     <Paper
       elevation={0}
@@ -232,28 +252,59 @@ export default function ArticlePanel({
                     </Typography>
                   </Box>
 
-                  <Button
-                    size="small"
-                    variant={
-                      article.retrieved
-                        ? 'contained'
-                        : 'outlined'
-                    }
-                    endIcon={
-                      <ExternalLink
-                        size={14}
-                      />
-                    }
-                    href={buildArticleLink(
-                      preLink,
-                      article.doi,
-                      postLink,
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    {/* Auto-Fetch button — only for NOT RETRIEVED articles */}
+                    {!article.retrieved && onAutoFetch && (
+                      <Tooltip title="Cari & Unduh PDF otomatis (OpenAlex)">
+                        <span>
+                          <IconButton
+                            size="small"
+                            disabled={fetchingId === article.id}
+                            onClick={() => handleAutoFetch(article.id)}
+                            sx={{
+                              color: 'primary.main',
+                              border: '1px solid',
+                              borderColor: 'primary.light',
+                              borderRadius: 1.5,
+                              p: 0.6,
+                              '&:hover': {
+                                bgcolor: 'primary.50',
+                              },
+                            }}
+                          >
+                            {fetchingId === article.id ? (
+                              <CircularProgress size={14} />
+                            ) : (
+                              <Sparkles size={14} />
+                            )}
+                          </IconButton>
+                        </span>
+                      </Tooltip>
                     )}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    View
-                  </Button>
+
+                    <Button
+                      size="small"
+                      variant={
+                        article.retrieved
+                          ? 'contained'
+                          : 'outlined'
+                      }
+                      endIcon={
+                        <ExternalLink
+                          size={14}
+                        />
+                      }
+                      href={buildArticleLink(
+                        preLink,
+                        article.doi,
+                        postLink,
+                      )}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      View
+                    </Button>
+                  </Box>
                 </Box>
               </Stack>
             </Paper>

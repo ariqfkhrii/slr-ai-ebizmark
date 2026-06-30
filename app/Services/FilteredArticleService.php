@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\FetchOpenAlexPdfJob;
 use App\Models\FilteredArticle;
 
 class FilteredArticleService
@@ -35,6 +36,11 @@ class FilteredArticleService
             'included' => $included
         ]);
 
+        // Auto-dispatch background OpenAlex fetch when article is included and has no PDF yet
+        if ($included && ! $filteredArticle->pdf_path) {
+            dispatch(new FetchOpenAlexPdfJob($filteredArticle->id));
+        }
+
         return $filteredArticle;
     }
 
@@ -45,5 +51,47 @@ class FilteredArticleService
             ->update([
                 'included' => $included,
             ]);
+
+        // Dispatch fetch jobs for all newly included articles that still lack a PDF
+        if ($included) {
+            FilteredArticle::query()
+                ->where('research_plan_id', $researchPlanId)
+                ->whereNull('pdf_path')
+                ->select('id')
+                ->each(function (FilteredArticle $article) {
+                    dispatch(new FetchOpenAlexPdfJob($article->id));
+                });
+        }
+    }
+
+    /**
+     * Manually trigger an OpenAlex PDF fetch for a single article.
+     */
+    public function triggerOpenAlexFetch(int $id): void
+    {
+        $filteredArticle = FilteredArticle::findOrFail($id);
+
+        dispatch(new FetchOpenAlexPdfJob($filteredArticle->id));
+    }
+
+    /**
+     * Manually trigger OpenAlex PDF fetch for all un-retrieved articles in a plan.
+     */
+    public function triggerAllOpenAlexFetch(int $researchPlanId): int
+    {
+        $articles = FilteredArticle::query()
+            ->where('research_plan_id', $researchPlanId)
+            ->where(function ($query) {
+                $query->whereNull('pdf_path')
+                      ->orWhere('retrieved', false);
+            })
+            ->select('id')
+            ->get();
+
+        foreach ($articles as $article) {
+            dispatch(new FetchOpenAlexPdfJob($article->id));
+        }
+
+        return $articles->count();
     }
 }

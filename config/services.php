@@ -53,4 +53,9 @@ return [
         'url' => env('EMBEDDING_API_URL'),
     ],
 
+    'openalex' => [
+        'base_url' => env('OPENALEX_BASE_URL', 'https://api.openalex.org'),
+        'email'    => env('OPENALEX_EMAIL'),
+    ],
+
 ];

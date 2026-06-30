@@ -143,4 +143,42 @@ class FilteredArticleController extends Controller
 
         return response()->json($formattedData);
     }
+
+    /**
+     * Manually trigger OpenAlex PDF fetch for a single filtered article.
+     * POST /filtered-articles/{filteredArticle}/auto-fetch
+     */
+    public function autoFetch(Request $request, FilteredArticle $filteredArticle)
+    {
+        $filteredArticle->loadMissing('researchPlan');
+
+        if ($filteredArticle->researchPlan?->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $this->filteredArticleService->triggerOpenAlexFetch($filteredArticle->id);
+
+        return redirect()->back()->with(
+            'success',
+            'Proses pencarian PDF publik (OpenAlex) telah dijadwalkan untuk artikel ini.'
+        );
+    }
+
+    /**
+     * Manually trigger OpenAlex PDF fetch for all un-retrieved articles in a plan.
+     * POST /research-plans/{researchPlanId}/auto-fetch-all
+     */
+    public function autoFetchAll(Request $request, int $researchPlanId)
+    {
+        $researchPlan = ResearchPlan::where('research_plan_id', $researchPlanId)
+            ->where('user_id', $request->user()->id)
+            ->firstOrFail();
+
+        $dispatched = $this->filteredArticleService->triggerAllOpenAlexFetch($researchPlan->research_plan_id);
+
+        return redirect()->back()->with(
+            'success',
+            "Proses pencarian PDF publik (OpenAlex) telah dijadwalkan untuk {$dispatched} artikel."
+        );
+    }
 }

@@ -5,12 +5,15 @@ import {
   BookOpen,
   Download,
   ExternalLink,
+  InfoIcon,
   Link2,
   Search,
   ShieldCheck,
+  Sparkles,
 } from 'lucide-react';
 
 import {
+  Alert,
   Box,
   Button,
   Divider,
@@ -80,6 +83,14 @@ export default function Retrieval({
       {
         preserveScroll: true,
       },
+    );
+  };
+
+  const handleAutoFetchAll = () => {
+    router.post(
+      `/research-plans/${researchPlan.research_plan_id}/auto-fetch-all`,
+      {},
+      { preserveScroll: true },
     );
   };
 
@@ -187,6 +198,7 @@ export default function Retrieval({
               preLink={preLink}
               postLink={postLink}
               onToggleRetrieved={updateRetrievalStatus}
+              onAutoFetch={(id) => id}
             />
 
             <ArticlePanel
@@ -213,65 +225,55 @@ export default function Retrieval({
             gap: 2,
           }}
         >
-          {/* LINK */}
+          {/* AUTO-FETCH PDF */}
           <Typography
             sx={{
               fontWeight: 900,
               textAlign: 'center',
             }}
           >
-            CONFIGURE LINK
+            UNDUH PDF OTOMATIS
           </Typography>
 
-          <Box
+          {/* Disclaimer notice */}
+          <Alert
+            severity="info"
+            icon={<InfoIcon size={16} />}
             sx={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 1,
+              fontSize: 11.5,
+              lineHeight: 1.5,
+              '& .MuiAlert-message': { p: 0 },
             }}
           >
-            {shortcutPresets.map((preset) => (
-              <Button
-                key={preset.label}
-                size="small"
-                variant={preLink === preset.preLink ? 'contained' : 'outlined'}
-                onClick={() => handleShortcut(preset)}
-              >
-                {preset.label}
-              </Button>
-            ))}
-          </Box>
+            Fitur unduh otomatis hanya dapat memperoleh artikel yang bersifat
+            publik (Open Access). Untuk artikel non-publik, silakan gunakan
+            tombol upload manual.
+          </Alert>
 
-          <TextField
-            size="small"
-            label="Pre-link"
-            value={preLink}
-            onChange={(e) => setPreLink(e.target.value)}
-          />
-
-          <TextField
-            size="small"
-            label="Post-link"
-            value={postLink}
-            onChange={(e) => setPostLink(e.target.value)}
-          />
-
-          <Paper
-            variant="outlined"
+          <Button
+            variant="contained"
+            fullWidth
+            startIcon={<Sparkles size={14} />}
+            disabled={notRetrievedArticles.length === 0}
+            onClick={handleAutoFetchAll}
             sx={{
-              p: 1,
-              fontSize: 12,
+              background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+              color: 'white',
+              fontWeight: 700,
+              boxShadow: '0 4px 12px rgba(168, 85, 247, 0.25)',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                boxShadow: '0 6px 16px rgba(168, 85, 247, 0.4)',
+                transform: 'translateY(-1px)',
+              },
+              '&.Mui-disabled': {
+                background: '#e0e0e0',
+                color: '#a6a6a6',
+                boxShadow: 'none',
+              }
             }}
           >
-            {buildArticleLink(
-              preLink,
-              articles[0]?.doi ?? '10.0000/example',
-              postLink,
-            )}
-          </Paper>
-
-          <Button variant="contained" fullWidth endIcon={<Link2 size={14} />}>
-            Simpan
+            Unduh PDF Otomatis
           </Button>
 
           <Divider />
@@ -341,8 +343,67 @@ export default function Retrieval({
             Upload & Scan DOI
           </Button>
 
-          <Button variant="outlined" startIcon={<ExternalLink size={14} />}>
-            Upload History
+          <Divider />
+
+          {/* LINK */}
+          <Typography
+            sx={{
+              fontWeight: 900,
+              textAlign: 'center',
+            }}
+          >
+            CONFIGURE LINK
+          </Typography>
+
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 1,
+            }}
+          >
+            {shortcutPresets.map((preset) => (
+              <Button
+                key={preset.label}
+                size="small"
+                variant={preLink === preset.preLink ? 'contained' : 'outlined'}
+                onClick={() => handleShortcut(preset)}
+              >
+                {preset.label}
+              </Button>
+            ))}
+          </Box>
+
+          <TextField
+            size="small"
+            label="Pre-link"
+            value={preLink}
+            onChange={(e) => setPreLink(e.target.value)}
+          />
+
+          <TextField
+            size="small"
+            label="Post-link"
+            value={postLink}
+            onChange={(e) => setPostLink(e.target.value)}
+          />
+
+          <Paper
+            variant="outlined"
+            sx={{
+              p: 1,
+              fontSize: 12,
+            }}
+          >
+            {buildArticleLink(
+              preLink,
+              articles[0]?.doi ?? '10.0000/example',
+              postLink,
+            )}
+          </Paper>
+
+          <Button variant="contained" fullWidth endIcon={<Link2 size={14} />}>
+            Simpan
           </Button>
         </Paper>
       </Box>

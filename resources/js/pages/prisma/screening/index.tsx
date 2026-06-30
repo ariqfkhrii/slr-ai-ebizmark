@@ -1,5 +1,6 @@
 import { Box, Button, CircularProgress } from '@mui/material';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useBreadcrumb } from '../components/BreadcrumbContext';
 import { useGuide } from '../components/prisma-layout';
 import ScreeningGuide from '../guides/ScreeningGuide';
 import ScreeningColumn from './components/ScreeningColumn';
@@ -8,7 +9,7 @@ import { useScreening } from './hooks/useScreening';
 
 type Props = {
   researchPlanId: number;
-  onScreeningComplete?: () => void; // Tambahkan prop ini
+  onScreeningComplete?: () => void;
 };
 
 export default function Screening({
@@ -16,10 +17,16 @@ export default function Screening({
   onScreeningComplete,
 }: Props) {
   const guideContent = useMemo(() => <ScreeningGuide />, []);
+  const { setTitle } = useBreadcrumb();
+
   useGuide({
     title: 'Screening',
     content: guideContent,
   });
+
+  useEffect(() => {
+    setTitle('Purification');
+  }, [setTitle]);
 
   const { data, isLoading, updateStatus, updateAllStatus } = useScreening({
     researchPlanId,

@@ -24,6 +24,7 @@ import {
   updateProgressSnackbar,
 } from '@/lib/store/snackbarSlice';
 import { useDispatch } from 'react-redux';
+import { useBreadcrumb } from '../components/BreadcrumbContext';
 import { useGuide } from '../components/prisma-layout';
 import IdentificationGuide from '../guides/IdentificationGuide';
 import { FetchParams } from './components/dialog/FetchParameterDialog';
@@ -54,11 +55,16 @@ export default function Identification({
   const [articleRefreshKey, setArticleRefreshKey] = useState(0);
 
   const guideContent = useMemo(() => <IdentificationGuide />, []);
+  const { setTitle } = useBreadcrumb();
 
   useGuide({
     title: 'Identification',
     content: guideContent,
   });
+
+  useEffect(() => {
+    setTitle('Acquisition');
+  }, [setTitle]);
 
   const selectedKeyword = useMemo(
     () => keywords.find((k) => k.id === selectedId) ?? null,

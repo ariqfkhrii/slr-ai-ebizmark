@@ -31,6 +31,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/research-plans/{researchPlan}', [ResearchPlanController::class, 'destroy'])
         ->name('research-plans.destroy');
 
+    Route::get('/research-plans/{researchPlanId}', [ResearchPlanController::class, 'getById'])
+        ->name('research-plans.getById');
+
     Route::post('/research-plans/{id}/metadata/preview', [MetadataSearchController::class, 'getPreview'])
         ->name('metadata.preview');
 

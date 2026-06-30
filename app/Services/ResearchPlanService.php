@@ -21,6 +21,11 @@ class ResearchPlanService implements ResearchPlanServiceInterface
         return $this->repository->getAllForUser($user);
     }
 
+    public function getById(int $id): ?ResearchPlan
+    {
+        return $this->repository->getById($id);
+    }
+
     public function createForUser($user, array $data): ResearchPlan
     {
         return $this->repository->createForUser($user, $data);

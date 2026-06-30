@@ -7,6 +7,8 @@ use App\Models\ResearchPlan;
 interface ResearchPlanServiceInterface
 {
     public function listForUser($user);
+    
+    public function getById(int $id): ?ResearchPlan;
 
     public function createForUser($user, array $data): ResearchPlan;
 

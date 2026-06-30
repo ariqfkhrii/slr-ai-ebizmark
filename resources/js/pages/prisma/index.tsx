@@ -1,10 +1,16 @@
+import { getResearchPlanById } from '@/clients/researchPlan';
 import { Head } from '@inertiajs/react';
 import { Box, Paper, Typography } from '@mui/material';
-import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import AiClassification from './ai-classification';
 import AiExtraction from './ai-extraction';
 import AutoReportingPage from './auto-reporting';
 import Classification from './classification';
+import {
+  BreadcrumbProvider,
+  useBreadcrumb,
+} from './components/BreadcrumbContext';
 import { GuideProvider, PrismaLayout } from './components/prisma-layout';
 import PrismaStepper from './components/PrismaStepper';
 import Extraction from './extraction';
@@ -12,6 +18,16 @@ import { usePrismaStatus } from './hooks/usePrismaStatus';
 import Identification from './identification';
 import Retrieval from './retrieval';
 import Screening from './screening';
+import { ResearchPlan } from './types';
+
+const BreadcrumbDisplay = () => {
+  const { title } = useBreadcrumb();
+  return (
+    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+      {title}
+    </Typography>
+  );
+};
 
 export default function Prisma(props: any) {
   const researchPlanId = Number(props?.researchPlan?.research_plan_id ?? 0);
@@ -24,7 +40,6 @@ export default function Prisma(props: any) {
   const {
     loading,
     error,
-    screeningCounters,
     canOpenScreening,
     canOpenRetrieval,
     canOpenClassification,
@@ -35,6 +50,19 @@ export default function Prisma(props: any) {
   } = usePrismaStatus({
     researchPlanId,
   });
+
+  const topic = useQuery<ResearchPlan>({
+    queryKey: ['research_plan', researchPlanId],
+    queryFn: () =>
+      getResearchPlanById({
+        researchPlanId,
+      }),
+    enabled: !!researchPlanId,
+  });
+
+  useEffect(() => {
+    console.log('TOPIC: ', topic);
+  }, [topic]);
 
   const sourceDatabase = String(
     props?.researchPlan?.source_database ?? 'scopus',
@@ -58,7 +86,7 @@ export default function Prisma(props: any) {
   }
 
   return (
-    <>
+    <BreadcrumbProvider>
       <Head title="PRISMA" />
 
       <Box
@@ -75,9 +103,7 @@ export default function Prisma(props: any) {
           elevation={2}
           sx={{ px: 2, py: 1.5, borderRadius: 0, flexShrink: 0 }}
         >
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            PRISMA
-          </Typography>
+          <BreadcrumbDisplay />
         </Paper>
 
         <Paper
@@ -102,7 +128,7 @@ export default function Prisma(props: any) {
             }}
           >
             <Typography variant="h5" sx={{ fontWeight: 700 }}>
-              Topik
+              {topic.data?.title ? topic.data?.title : '-'}
             </Typography>
           </Box>
 
@@ -200,6 +226,6 @@ export default function Prisma(props: any) {
           </GuideProvider>
         </Box>
       </Box>
-    </>
+    </BreadcrumbProvider>
   );
 }

@@ -78,7 +78,7 @@ export default function KeywordList({
     >
       <Box sx={{ px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
         <Typography sx={{ fontSize: 18, fontWeight: 800, lineHeight: 1.1 }}>
-          Keywords
+          Kata Kunci / Judul
         </Typography>
       </Box>
 
@@ -91,7 +91,7 @@ export default function KeywordList({
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleAdd();
           }}
-          placeholder="Tambah keyword"
+          placeholder="Tambah kata kunci / judul"
           sx={{
             '& .MuiInputBase-input': {
               fontSize: 12,

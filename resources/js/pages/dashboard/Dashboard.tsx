@@ -72,7 +72,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
       preserveScroll: true,
 
       onSuccess: () => {
-        dispatch(showSuccess('Research plan berhasil dibuat'));
+        dispatch(showSuccess('Topik penelitian berhasil dibuat'));
 
         reset();
         setShowCreateModal(false);
@@ -106,7 +106,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
       preserveScroll: true,
 
       onSuccess: () => {
-        dispatch(showSuccess('Research plan berhasil diperbarui'));
+        dispatch(showSuccess('Topik Penelitian berhasil diperbarui'));
 
         reset();
         setShowEditModal(false);
@@ -132,7 +132,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
       preserveScroll: true,
 
       onSuccess: () => {
-        dispatch(showSuccess('Research plan berhasil dihapus'));
+        dispatch(showSuccess('Topik penelitian berhasil dihapus'));
 
         setShowDeleteModal(false);
         setSelectedPlan(null);
@@ -199,7 +199,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                 }}
               >
                 <Typography variant="h5" sx={{ fontWeight: 800 }}>
-                  Research Plan
+                  Topik Penelitian
                 </Typography>
               </Stack>
 
@@ -208,7 +208,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                 color="text.secondary"
                 sx={{ mt: 0.5 }}
               >
-                {researchPlans.length} research plan
+                {researchPlans.length} topik
               </Typography>
             </Box>
 
@@ -460,7 +460,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                             variant="contained"
                             fullWidth
                           >
-                            Lihat Research
+                            Lihat Detail
                           </Button>
 
                           <Stack
@@ -517,7 +517,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
               }}
             >
               <Typography sx={{ fontWeight: 700, color: 'text.secondary' }}>
-                Belum ada research plan.
+                Belum ada topik penelitian.
               </Typography>
 
               <Typography
@@ -525,7 +525,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                 color="text.secondary"
                 sx={{ mt: 0.5 }}
               >
-                Buat research plan pertama untuk mulai proses PRISMA.
+                Buat topik penelitian pertama untuk mulai proses PRISMA.
               </Typography>
             </Box>
           )}
@@ -543,14 +543,16 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 800 }}>Buat Research Plan</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800 }}>
+          Buat Topik Penelitian
+        </DialogTitle>
 
         <form onSubmit={submit}>
           <DialogContent>
             <Stack spacing={3} sx={{ mt: 1 }}>
               <TextField
-                label="Research Title"
-                placeholder="Masukkan judul research"
+                label="Topik Penelitian"
+                placeholder="Masukkan topik penelitian"
                 value={data.title}
                 onChange={(e) => setData('title', e.target.value)}
                 error={Boolean(errors.title)}
@@ -559,9 +561,9 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
               />
 
               <FormControl fullWidth error={Boolean(errors.source_database)}>
-                <InputLabel>Source Database</InputLabel>
+                <InputLabel>Basis Data Literatur Ilmiah</InputLabel>
                 <Select
-                  label="Source Database"
+                  label="Basis Data Literatur Ilmiah"
                   value={data.source_database}
                   onChange={(e) =>
                     setData('source_database', String(e.target.value))
@@ -599,7 +601,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
               disabled={processing}
               sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 700 }}
             >
-              Buat Plan
+              Buat Topik Penelitian
             </Button>
           </DialogActions>
         </form>
@@ -616,13 +618,15 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 800 }}>Edit Research Plan</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800 }}>
+          Edit Topik Penelitian
+        </DialogTitle>
 
         <form onSubmit={updatePlan}>
           <DialogContent>
             <Stack spacing={3} sx={{ mt: 1 }}>
               <TextField
-                label="Judul Research Plan"
+                label="Judul Topik Penelitian"
                 value={data.title}
                 onChange={(e) => setData('title', e.target.value)}
                 error={Boolean(errors.title)}
@@ -631,9 +635,9 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
               />
 
               <FormControl fullWidth error={Boolean(errors.source_database)}>
-                <InputLabel>Source Database</InputLabel>
+                <InputLabel>Basis Data Literatur Ilmiah</InputLabel>
                 <Select
-                  label="Source Database"
+                  label="Basis Data Literatur Ilmiah"
                   value={data.source_database}
                   onChange={(e) =>
                     setData('source_database', String(e.target.value))
@@ -688,11 +692,13 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 800 }}>Hapus Research Plan</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800 }}>
+          Hapus Topik Penelitian
+        </DialogTitle>
 
         <DialogContent>
           <Typography color="text.secondary">
-            Apakah Anda yakin ingin menghapus research plan{' '}
+            Apakah Anda yakin ingin menghapus topik penelitian{' '}
             <strong>{selectedPlan?.title}</strong>?
           </Typography>
         </DialogContent>

@@ -35,6 +35,17 @@ class ResearchPlanController extends Controller
         ]);
     }
 
+    public function getById(Int $id) 
+    {
+        $researchPlan = $this->service->getById($id);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Research plan retrieved successfully',
+            'data' => $researchPlan
+        ], 200);
+    }
+
     // Menggunakan FormRequest untuk validasi
     public function store(StoreResearchPlanRequest $request)
     {

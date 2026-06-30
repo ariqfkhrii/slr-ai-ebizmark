@@ -8,6 +8,8 @@ interface ResearchPlanRepositoryInterface
 {
     public function getAllForUser($user);
 
+    public function getById(int $id): ?ResearchPlan;
+
     public function createForUser($user, array $data): ResearchPlan;
 
     public function update(ResearchPlan $researchPlan, array $data): bool;

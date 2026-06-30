@@ -12,6 +12,11 @@ class ResearchPlanRepository implements ResearchPlanRepositoryInterface
         return $user->researchPlans()->latest()->get();
     }
 
+    public function getById(int $id): ?ResearchPlan
+    {
+        return ResearchPlan::query()->find($id);
+    }
+
     public function createForUser($user, array $data): ResearchPlan
     {
         return $user->researchPlans()->create($data);

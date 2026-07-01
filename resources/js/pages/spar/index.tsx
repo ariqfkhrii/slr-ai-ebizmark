@@ -16,8 +16,7 @@ import { GuideProvider, SparLayout } from './components/spar-layout';
 import SparStepper from './components/SparStepper';
 import Extraction from './extraction';
 import { useSparStatus } from './hooks/useSparStatus';
-import Retrieval from './purification/retrieval';
-import Screening from './purification/screening';
+import Purification from './purification';
 import { ApiResponse, ResearchPlan } from './types';
 
 const BreadcrumbDisplay = () => {
@@ -30,7 +29,7 @@ const BreadcrumbDisplay = () => {
 };
 
 export default function Spar(props: any) {
-  const researchPlanId = Number(props?.researchPlan?.research_plan_id ?? 0);
+  const researchPlanId = Number(props?.researchPlanId ?? 0);
   const [activeStep, setActiveStep] = useState(0);
   const [classificationMode, setClassificationMode] = useState<'manual' | 'ai'>(
     'ai',
@@ -64,7 +63,8 @@ export default function Spar(props: any) {
 
   useEffect(() => {
     console.log('TOPIC: ', topic);
-  }, [topic]);
+    console.log('PROPS: ', props);
+  }, [topic, props]);
 
   const sourceDatabase = String(
     props?.researchPlan?.source_database ?? 'scopus',
@@ -72,8 +72,8 @@ export default function Spar(props: any) {
 
   if (loading) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Typography>Loading PRISMA data...</Typography>
+      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center' }}>
+        <Typography>Memuat...</Typography>
       </Box>
     );
   }
@@ -177,15 +177,14 @@ export default function Spar(props: any) {
               )}
 
               {activeStep === 1 && (
-                <Screening
+                <Purification
                   researchPlanId={researchPlanId}
-                  onScreeningComplete={invalidate}
+                  researchPlan={props.researchPlan}
+                  filteredArticles={props.filteredArticles}
                 />
               )}
 
-              {activeStep === 2 && <Retrieval {...props} />}
-
-              {activeStep === 3 &&
+              {activeStep === 2 &&
                 (classificationMode === 'manual' ? (
                   <Classification
                     filteredArticles={props.filteredArticles}
@@ -200,7 +199,7 @@ export default function Spar(props: any) {
                   />
                 ))}
 
-              {activeStep === 4 &&
+              {activeStep === 3 &&
                 (extractionMode === 'manual' ? (
                   <Extraction
                     filteredArticles={props.filteredArticles}
@@ -213,7 +212,7 @@ export default function Spar(props: any) {
                   />
                 ))}
 
-              {activeStep === 5 && (
+              {activeStep === 4 && (
                 <AutoReportingPage
                   researchPlanId={researchPlanId}
                   researchPlan={props.researchPlan}

@@ -1,4 +1,5 @@
 import {
+  bulkUpdatePurificationStatus,
   getAllPurificationArticles,
   updateAllPurificationStatus,
   updatePurificationStatus,
@@ -72,9 +73,30 @@ export const useScreening = ({
     },
   });
 
+  const bulkUpdateStatus = useMutation({
+    mutationFn: bulkUpdatePurificationStatus,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+
+      queryClient.invalidateQueries({
+        queryKey: ['purification', researchPlanId],
+      });
+
+      dispatch(showSuccess('Status artikel berhasil diperbarui.'));
+
+      onStatusChange?.();
+    },
+
+    onError: () => {
+      dispatch(showError('Gagal memperbarui status artikel.'));
+    },
+  });
+
   return {
     ...query,
     updateStatus,
     updateAllStatus,
+    bulkUpdateStatus,
   };
 };

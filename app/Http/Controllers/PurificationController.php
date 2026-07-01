@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\GetPurificationRequest;
 use App\Http\Requests\UpdatePurificationRequest;
 use App\Http\Requests\UpdateAllPurificationRequest;
+use App\Http\Requests\BulkUpdatePurificationRequest;
 use App\Services\FilteredArticleService;
 
 class PurificationController extends Controller
@@ -78,6 +79,21 @@ class PurificationController extends Controller
 
         return response()->json([
             'message' => 'Status included seluruh artikel berhasil diupdate.'
+        ]);
+    }
+
+    public function bulkUpdate(BulkUpdatePurificationRequest $request)
+    {
+        $articleIds = $request->validated('article_ids');
+        $included = $request->validated('included');
+
+        $this->filteredArticleService->bulkUpdateIncludedStatus(
+            $articleIds,
+            $included
+        );
+
+        return response()->json([
+            'message' => 'Status artikel berhasil diperbarui.'
         ]);
     }
 }

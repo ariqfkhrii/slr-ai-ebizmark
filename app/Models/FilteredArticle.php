@@ -12,6 +12,7 @@ class FilteredArticle extends Model
         'research_plan_id',
         'raw_article_id',
         'keyword_id',
+        'similarity_score',
         'included',
         'retrieved',
         'novelty_status',

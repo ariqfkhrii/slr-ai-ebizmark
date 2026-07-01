@@ -60,6 +60,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::put('/purification/update-all-status', [PurificationController::class, 'updateAll'])
         ->name('purification.update-all');
+
+    Route::put('/purification/bulk-update', [PurificationController::class, 'bulkUpdate'])
+        ->name('purification.bulk-update');
         
     Route::post('/filtered-articles/check-doi', [FilteredArticleController::class, 'store'])
         ->name('filtered-articles.check-doi');

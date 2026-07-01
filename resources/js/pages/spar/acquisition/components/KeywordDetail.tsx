@@ -46,7 +46,7 @@ export default function KeywordDetail({
 }: Props) {
   const hasMetadata = (keyword?.retrievedCount ?? 0) > 0;
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-  const [tab, setTab] = useState<TabValue>('analysis');
+  const [tab, setTab] = useState<TabValue>('per-keyword');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   if (!keyword) {
@@ -156,15 +156,14 @@ export default function KeywordDetail({
       <KeywordTabs value={tab} onChange={setTab} />
 
       {/* CONTENT */}
-      {tab === 'analysis' && (
+      {tab === 'per-keyword' && (
         <RawArticleTable
           keywordId={keyword.id}
           researchPlanId={researchPlanId}
-          refreshTrigger={refreshTrigger}
         />
       )}
 
-      {tab === 'globalOverview' && (
+      {tab === 'all-keywords' && (
         <GlobalRawArticleTable researchPlanId={researchPlanId} />
       )}
 

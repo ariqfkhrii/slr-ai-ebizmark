@@ -1,19 +1,22 @@
-import TableBottom from '@/components/table/TableBottom';
 import {
+  Box,
   Chip,
+  CircularProgress,
   IconButton,
-  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   Typography,
 } from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
 import { ExternalLink } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { getFilteredArticles } from '../hooks/useAcquisition';
+import { useMemo, useState } from 'react';
+
+import { getFilteredArticles } from '@/clients/acquisition';
 import { RawArticle } from '../types';
 
 type Props = {
@@ -21,44 +24,44 @@ type Props = {
 };
 
 export default function GlobalRawArticleTable({ researchPlanId }: Props) {
-  const [articles, setArticles] = useState<RawArticle[]>([]);
-  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(10);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
 
-  const loadArticles = async () => {
-    setLoading(true);
-
-    try {
-      const response = await getFilteredArticles({
+  const { data, isLoading } = useQuery({
+    queryKey: ['filtered-articles', researchPlanId, page, size],
+    queryFn: () =>
+      getFilteredArticles({
         researchPlanId,
         page,
         size,
-      });
+      }),
+    enabled: !!researchPlanId,
+  });
 
-      setArticles(response.data ?? []);
-      setTotalItems(response.total ?? 0);
-      setTotalPages(response.last_page ?? 1);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const articles: RawArticle[] = useMemo(() => data?.data ?? [], [data]);
 
-  useEffect(() => {
-    loadArticles();
-  }, [page, size]);
+  const totalItems = data?.total ?? 0;
+  const totalPages = data?.last_page ?? 1;
 
   return (
-    <>
+    <Box
+      sx={{
+        flex: 1,
+        minHeight: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        border: 1,
+        borderColor: 'divider',
+        borderRadius: 2,
+        bgcolor: 'background.paper',
+      }}
+    >
       <TableContainer
-        component={Paper}
-        variant="outlined"
         sx={{
-          borderRadius: 2,
+          flex: 1,
+          minHeight: 0,
           overflow: 'auto',
-          maxHeight: 'none',
 
           '&::-webkit-scrollbar': {
             width: 8,
@@ -97,19 +100,25 @@ export default function GlobalRawArticleTable({ researchPlanId }: Props) {
           </TableHead>
 
           <TableBody>
-            {articles.length === 0 ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
+                  <CircularProgress size={28} />
+                </TableCell>
+              </TableRow>
+            ) : articles.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
                   <Typography variant="body2" color="text.secondary">
-                    Belum ada metadata. Klik Fetch Metadata terlebih dahulu.
+                    Belum ada metadata.
                   </Typography>
                 </TableCell>
               </TableRow>
             ) : (
               articles.map((article, index) => (
-                <TableRow key={index} hover>
+                <TableRow key={article.id ?? index} hover>
                   <TableCell sx={{ fontSize: 12, color: 'text.secondary' }}>
-                    {index + 1}
+                    {(page - 1) * size + index + 1}
                   </TableCell>
 
                   <TableCell>
@@ -132,10 +141,11 @@ export default function GlobalRawArticleTable({ researchPlanId }: Props) {
                   </TableCell>
 
                   <TableCell sx={{ fontSize: 12 }}>{article.doi}</TableCell>
+
                   <TableCell>
                     <IconButton
                       component="a"
-                      href={'#'}
+                      href="#"
                       target="_blank"
                       rel="noopener noreferrer"
                       size="small"
@@ -149,17 +159,19 @@ export default function GlobalRawArticleTable({ researchPlanId }: Props) {
           </TableBody>
         </Table>
       </TableContainer>
-      <TableBottom
-        page={page}
-        size={size}
-        totalItems={totalItems}
-        totalPages={totalPages}
-        onPageChange={setPage}
-        onSizeChange={(newSize) => {
-          setSize(newSize);
+
+      <TablePagination
+        component="div"
+        count={totalItems}
+        page={page - 1}
+        rowsPerPage={size}
+        onPageChange={(_, newPage) => setPage(newPage + 1)}
+        onRowsPerPageChange={(event) => {
+          setSize(Number(event.target.value));
           setPage(1);
         }}
+        rowsPerPageOptions={[5, 10, 20, 50]}
       />
-    </>
+    </Box>
   );
 }

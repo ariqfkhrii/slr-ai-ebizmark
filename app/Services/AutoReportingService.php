@@ -120,7 +120,7 @@ class AutoReportingService
         }
 
         $articles = $researchPlan->filteredArticles()
-            ->where('article_status', 'included')
+            ->where('included', true)
             ->with([
                 'rawArticle:id,title,authors,abstract,publish_year,source_db,doi',
                 'review.articleClassification',
@@ -135,7 +135,8 @@ class AutoReportingService
             'doi' => $article->rawArticle?->doi,
             'year' => $article->rawArticle?->publish_year,
             'source_db' => $article->rawArticle?->source_db,
-            'article_status' => $article->article_status,
+            'included' => $article->included,
+            'retrieved' => $article->retrieved,
         ])->values();
 
         $extractions = $articles->map(fn ($article) => [

@@ -4,12 +4,14 @@ import {
   Box,
   Button,
   Chip,
+  CircularProgress,
   Dialog,
   DialogContent,
   IconButton,
   TextField,
   Typography,
 } from '@mui/material';
+import { useEffect, useState } from 'react';
 import { ClassificationArticle, ClassificationCategory } from '../types';
 
 type Props = {
@@ -17,12 +19,12 @@ type Props = {
   article: ClassificationArticle | null;
   activeCategories: ClassificationCategory[];
   onClose: () => void;
-  onUpdateResearchMethod: (articleId: number, value: string) => void;
-  onUpdateClassification: (
+  onSave: (
     articleId: number,
-    categoryId: number,
-    value: string,
-  ) => void;
+    researchMethod: string,
+    classifications: Record<number, string>,
+  ) => Promise<boolean>;
+  saving?: boolean;
 };
 
 export default function AiClassificationDetailDialog({
@@ -30,10 +32,27 @@ export default function AiClassificationDetailDialog({
   article,
   activeCategories,
   onClose,
-  onUpdateResearchMethod,
-  onUpdateClassification,
+  onSave,
+  saving = false,
 }: Props) {
+  const [draftResearchMethod, setDraftResearchMethod] = useState('');
+  const [draftClassifications, setDraftClassifications] = useState<Record<number, string>>({});
+
+  useEffect(() => {
+    if (!article) return;
+
+    setDraftResearchMethod(article.researchMethod ?? '');
+    setDraftClassifications({ ...article.classifications });
+  }, [article]);
+
   if (!article) return null;
+
+  const handleSave = async () => {
+    const ok = await onSave(article.id, draftResearchMethod, draftClassifications);
+    if (ok) {
+      onClose();
+    }
+  };
 
   return (
     <Dialog
@@ -134,7 +153,7 @@ export default function AiClassificationDetailDialog({
               }}
             >
               {activeCategories.map((category) => {
-                const value = article.classifications[category.id];
+                const value = draftClassifications[category.id];
 
                 return (
                   <Box
@@ -175,10 +194,8 @@ export default function AiClassificationDetailDialog({
             <TextField
               fullWidth
               size="small"
-              value={article.researchMethod}
-              onChange={(e) =>
-                onUpdateResearchMethod(article.id, e.target.value)
-              }
+              value={draftResearchMethod}
+              onChange={(e) => setDraftResearchMethod(e.target.value)}
               placeholder="Enter research method..."
               sx={{
                 '& .MuiOutlinedInput-root': {
@@ -213,14 +230,13 @@ export default function AiClassificationDetailDialog({
                   fullWidth
                   multiline
                   minRows={4}
-                  value={article.classifications[category.id] ?? ''}
-                  onChange={(e) =>
-                    onUpdateClassification(
-                      article.id,
-                      category.id,
-                      e.target.value,
-                    )
-                  }
+                  value={draftClassifications[category.id] ?? ''}
+                  onChange={(e) => {
+                    setDraftClassifications((prev) => ({
+                      ...prev,
+                      [category.id]: e.target.value,
+                    }));
+                  }}
                   placeholder={`Fill ${category.name.toLowerCase()}...`}
                   sx={{
                     '& .MuiOutlinedInput-root': {
@@ -259,10 +275,11 @@ export default function AiClassificationDetailDialog({
           <Button
             variant="contained"
             startIcon={<SaveIcon fontSize="small" />}
-            onClick={onClose}
+            onClick={handleSave}
+            disabled={saving}
             sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 900 }}
           >
-            Save AI Classification
+            {saving ? <CircularProgress size={18} color="inherit" /> : 'Save AI Classification'}
           </Button>
         </Box>
       </DialogContent>

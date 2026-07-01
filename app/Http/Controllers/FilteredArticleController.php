@@ -161,7 +161,14 @@ class FilteredArticleController extends Controller
             abort(403);
         }
 
-        $this->filteredArticleService->triggerOpenAlexFetch($filteredArticle->id);
+        $dispatched = $this->filteredArticleService->triggerOpenAlexFetch($filteredArticle->id);
+
+        if (! $dispatched) {
+            return redirect()->back()->with(
+                'warning',
+                'Fetch OpenAlex dilewati karena artikel belum included atau sudah retrieved.'
+            );
+        }
 
         return redirect()->back()->with(
             'success',

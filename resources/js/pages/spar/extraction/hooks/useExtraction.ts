@@ -25,7 +25,7 @@ const mapFilteredToExtractionArticles = (
         year: raw?.publish_year ?? 0,
         title: raw?.title ?? 'Untitled',
         journal: raw?.issn ?? '-',
-        aiUsage: Boolean(item.article_status),
+        aiUsage: Boolean(item.included),
         citation: 0,
         quartile: raw?.tier ?? '-',
         text: 0,

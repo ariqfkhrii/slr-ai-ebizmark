@@ -1,4 +1,5 @@
 import { useAppDispatch } from '@/lib/store/hooks';
+import { showError } from '@/store/slices/snackbarSlice';
 import { showSuccess } from '@/store/slices/snackbarSlice';
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -50,6 +51,7 @@ export function useExtraction(
     null,
   );
   const [dialogMode, setDialogMode] = useState<'detail' | 'edit'>('detail');
+  const [isSavingManualEdit, setIsSavingManualEdit] = useState(false);
 
   const [syncOpen, setSyncOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState<
@@ -126,15 +128,46 @@ export function useExtraction(
     setSelectedArticleId(null);
   };
 
-  const updateExtraction = (
+  const updateExtraction = async (
     articleId: number,
     next: Partial<ExtractionArticle>,
-  ) => {
-    setArticles((prev) =>
-      prev.map((article) =>
-        article.id === articleId ? { ...article, ...next } : article,
-      ),
-    );
+  ): Promise<boolean> => {
+    setIsSavingManualEdit(true);
+
+    return await new Promise<boolean>((resolve) => {
+      router.put(
+        `/extraction/${articleId}`,
+        {
+          abstract: next.abstract ?? null,
+          introduction: next.introduction ?? null,
+          result: next.result ?? null,
+          conclusion: next.conclusion ?? null,
+          recommendation: next.recommendation ?? null,
+          novelty_gap: next.noveltyGap ?? null,
+          future_research: next.futureResearch ?? null,
+          limitation: next.limitation ?? null,
+        },
+        {
+          preserveScroll: true,
+          onSuccess: () => {
+            setArticles((prev) =>
+              prev.map((article) =>
+                article.id === articleId ? { ...article, ...next } : article,
+              ),
+            );
+            dispatch(showSuccess('Manual extraction berhasil disimpan.'));
+            resolve(true);
+          },
+          onError: () => {
+            dispatch(showError('Gagal menyimpan manual extraction.'));
+            resolve(false);
+          },
+          onFinish: () => {
+            setIsSavingManualEdit(false);
+          },
+        },
+      );
+    });
   };
 
   const runAiExtraction = async () => {
@@ -204,6 +237,7 @@ export function useExtraction(
     openEdit,
     closeDialog,
     updateExtraction,
+    isSavingManualEdit,
     syncOpen,
     syncStatus,
     syncProgress,

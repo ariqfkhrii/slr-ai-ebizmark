@@ -29,9 +29,8 @@ class FilteredArticleService
         ?int $yearFrom = null,
         ?int $yearTo = null,
         ?array $tiers = null,
+        ?string $sort = null,
     ) {
-    public function getPaginatedArticles(int $planId, ?int $keywordId, int $size, ?string $sort = null)
-    {
         return FilteredArticle::query()
             ->where('research_plan_id', $planId)
 
@@ -68,12 +67,10 @@ class FilteredArticleService
                 })
             )
 
-            ->when($keywordId, function ($query, $keywordId) {
-                return $query->where('keyword_id', $keywordId);
-            })
-            ->when($sort === 'relevance', function ($query) {
-                return $query->orderBy('similarity_score', 'desc');
-            })
+            ->when($sort === 'relevance', fn ($q) =>
+                $q->orderByDesc('similarity_score')
+            )
+
             ->with('rawArticle:id,doi,title,authors,keyword,abstract,tier,citation_count,publish_year')
             ->paginate($size);
     }

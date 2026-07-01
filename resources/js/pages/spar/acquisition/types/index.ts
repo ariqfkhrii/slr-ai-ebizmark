@@ -1,6 +1,7 @@
 export type RawArticle = {
   id: number;
   doi: string;
+  included: boolean;
   title: string;
   authors: string;
   keyword: string | null;

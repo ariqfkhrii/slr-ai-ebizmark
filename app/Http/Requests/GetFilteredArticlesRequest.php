@@ -26,6 +26,12 @@ class GetFilteredArticlesRequest extends FormRequest
             'research_plan_id' => 'required|integer',
             'keyword_id'       => 'nullable|integer',
             'size'             => 'nullable|integer|min:1|max:100',
+            'search' => ['nullable', 'string'],
+            'included' => ['nullable'],
+            'year_from' => ['nullable', 'integer'],
+            'year_to' => ['nullable', 'integer'],
+            'tiers' => 'nullable|array',
+            'tiers.*' => 'string|in:q1,q2,q3,q4',
         ];
     }
 
@@ -43,6 +49,9 @@ class GetFilteredArticlesRequest extends FormRequest
             'size.integer'              => 'The size must be an integer.',
             'size.min'                  => 'The size must be at least 1.',
             'size.max'                  => 'The size must not exceed 100.',
+            'tiers.array'               => 'The tiers must be an array.',
+            'tiers.*.string'            => 'Each tier must be a string.',
+            'tiers.*.in'                => 'Each tier must be one of: q1, q2, q3, q4.',
         ];
     }
 }

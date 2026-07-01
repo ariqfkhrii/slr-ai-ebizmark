@@ -12,7 +12,7 @@ import {
   showProgressSnackbar,
   showSuccess,
   updateProgressSnackbar,
-} from '@/lib/store/snackbarSlice';
+} from '@/store/slices/snackbarSlice';
 import { useDispatch } from 'react-redux';
 import { useBreadcrumb } from '../components/BreadcrumbContext';
 import { useGuide } from '../components/spar-layout';

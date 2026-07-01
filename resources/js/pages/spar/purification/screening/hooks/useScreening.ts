@@ -4,7 +4,7 @@ import {
   updateAllPurificationStatus,
   updatePurificationStatus,
 } from '@/clients/screening';
-import { showError, showSuccess } from '@/lib/store/snackbarSlice';
+import { showError, showSuccess } from '@/store/slices/snackbarSlice';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { FilteredArticle } from '../types';

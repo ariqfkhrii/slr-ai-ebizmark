@@ -126,22 +126,27 @@ class FilteredArticleController extends Controller
     {
         $validated = $request->validated();
 
-        $planId = $validated['research_plan_id'];
-        $keywordId = $validated['keyword_id'] ?? null;
-        $size = $validated['size'] ?? 10;
+        $paginator = $this->filteredArticleService->getPaginatedArticles(
+            planId: $validated['research_plan_id'],
+            keywordId: $validated['keyword_id'] ?? null,
+            size: $validated['size'] ?? 10,
+            search: $validated['search'] ?? null,
+            included: isset($validated['included']) ? filter_var($validated['included'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null,
+            yearFrom: $validated['year_from'] ?? null,
+            yearTo: $validated['year_to'] ?? null,
+            tiers: $validated['tiers'] ?? null,
+        );
 
-        $paginator = $this->filteredArticleService->getPaginatedArticles($planId, $keywordId, $size);
-
-        $formattedData = $paginator->through(function ($filteredArticle) {
-            return [
-                'doi'                 => $filteredArticle->rawArticle->doi ?? '-',
-                'title'               => $filteredArticle->rawArticle->title ?? 'Tidak Ada Judul',
-                'publish_year'        => $filteredArticle->rawArticle->publish_year ?? '-',
-                'tier'                => $filteredArticle->rawArticle->tier ?? '-',
-            ];
-        });
-
-        return response()->json($formattedData);
+        return response()->json(
+            $paginator->through(fn ($fa) => [
+                'id' => $fa->id,
+                'doi' => $fa->rawArticle->doi ?? '-',
+                'title' => $fa->rawArticle->title ?? '-',
+                'publish_year' => $fa->rawArticle->publish_year ?? '-',
+                'tier' => $fa->rawArticle->tier ?? '-',
+                'included' => $fa->included,
+            ])
+        );
     }
 
     /**

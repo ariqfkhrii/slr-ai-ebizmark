@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Checkbox,
   Chip,
   Paper,
   Table,
@@ -12,7 +13,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import { Check, ExternalLink, X } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { FilteredArticle } from '../types';
 
@@ -20,14 +21,16 @@ type Props = {
   title: string;
   articles: FilteredArticle[];
   actionLabel: 'Include' | 'Exclude';
-  onAction: (id: number) => void;
+  selectedIds: number[];
+  onSelectionChange: (ids: number[]) => void;
 };
 
 export default function ScreeningTable({
   title,
   articles,
   actionLabel,
-  onAction,
+  selectedIds,
+  onSelectionChange,
 }: Props) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -42,25 +45,47 @@ export default function ScreeningTable({
   }, [articles.length]);
 
   return (
-    <Box>
-      <Typography
+    <Paper
+      sx={{
+        flex: 1,
+        minHeight: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
+      <Box
         sx={{
-          fontSize: 22,
-          fontWeight: 700,
-          mb: 2,
+          px: 2,
+          py: 1.5,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderBottom: 1,
+          borderColor: 'divider',
         }}
       >
-        {title} ({articles.length})
-      </Typography>
+        <Typography
+          sx={{
+            fontSize: 18,
+            fontWeight: 700,
+          }}
+        >
+          {title}
+        </Typography>
+
+        <Chip
+          label={`${articles.length} Articles`}
+          color={actionLabel === 'Include' ? 'error' : 'success'}
+          size="small"
+        />
+      </Box>
 
       <TableContainer
-        component={Paper}
         sx={{
-          borderRadius: 2,
-          border: 1,
-          borderColor: 'divider',
-          maxHeight: '70vh',
-          maxWidth: '100vh',
+          flex: 1,
+          minHeight: 0,
+          overflow: 'auto',
 
           '&::-webkit-scrollbar': {
             width: 8,
@@ -85,12 +110,51 @@ export default function ScreeningTable({
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Tahun</TableCell>
+              <TableCell width={70}>Tahun</TableCell>
               <TableCell>Judul</TableCell>
-              <TableCell>Tier</TableCell>
-              <TableCell>Jumlah Sitasi</TableCell>
-              <TableCell>DOI</TableCell>
-              <TableCell>Aksi</TableCell>
+              <TableCell width={70}>Tier</TableCell>
+              <TableCell width={90}>Sitasi</TableCell>
+              <TableCell width={70}>DOI</TableCell>
+
+              <TableCell width={90} align="center">
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 0.5,
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontWeight: 700,
+                    }}
+                  >
+                    {actionLabel}
+                  </Typography>
+
+                  <Checkbox
+                    checked={
+                      articles.length > 0 &&
+                      selectedIds.length === articles.length
+                    }
+                    indeterminate={
+                      selectedIds.length > 0 &&
+                      selectedIds.length < articles.length
+                    }
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        onSelectionChange(
+                          articles.map((a) => a.filtered_article_id),
+                        );
+                      } else {
+                        onSelectionChange([]);
+                      }
+                    }}
+                  />
+                </Box>
+              </TableCell>
             </TableRow>
           </TableHead>
 
@@ -103,7 +167,13 @@ export default function ScreeningTable({
                   <TableCell>{article.publish_year}</TableCell>
 
                   <TableCell>
-                    <Typography sx={{ fontWeight: 600, fontSize: 13 }}>
+                    <Typography
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: 13,
+                        mb: 0.25,
+                      }}
+                    >
                       {article.title}
                     </Typography>
 
@@ -123,27 +193,32 @@ export default function ScreeningTable({
                       size="small"
                       href={`https://doi.org/${article.doi}`}
                       target="_blank"
+                      sx={{
+                        minWidth: 36,
+                      }}
                     >
                       <ExternalLink size={16} />
                     </Button>
                   </TableCell>
 
-                  <TableCell>
-                    <Button
-                      size="small"
-                      color={actionLabel === 'Include' ? 'success' : 'error'}
-                      variant="contained"
-                      startIcon={
-                        actionLabel === 'Include' ? (
-                          <Check size={14} />
-                        ) : (
-                          <X size={14} />
-                        )
-                      }
-                      onClick={() => onAction(item.filtered_article_id)}
-                    >
-                      {actionLabel}
-                    </Button>
+                  <TableCell align="center">
+                    <Checkbox
+                      checked={selectedIds.includes(item.filtered_article_id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          onSelectionChange([
+                            ...selectedIds,
+                            item.filtered_article_id,
+                          ]);
+                        } else {
+                          onSelectionChange(
+                            selectedIds.filter(
+                              (id) => id !== item.filtered_article_id,
+                            ),
+                          );
+                        }
+                      }}
+                    />
                   </TableCell>
                 </TableRow>
               );
@@ -151,6 +226,7 @@ export default function ScreeningTable({
           </TableBody>
         </Table>
       </TableContainer>
+
       <TablePagination
         component="div"
         count={articles.length}
@@ -163,6 +239,6 @@ export default function ScreeningTable({
         }}
         rowsPerPageOptions={[5, 10, 20, 50]}
       />
-    </Box>
+    </Paper>
   );
 }

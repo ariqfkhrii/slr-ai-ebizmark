@@ -1,200 +1,191 @@
+import {
+  createKeyword,
+  deleteKeyword,
+  executeMetadata,
+  getBatchProgress,
+  getFilteredArticles,
+  getKeywords,
+  previewMetadata,
+  updateKeyword,
+} from '@/clients/acquisition';
+import { showError, showSuccess } from '@/lib/store/snackbarSlice';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useDispatch } from 'react-redux';
 import { FetchParams } from '../components/dialog/FetchParameterDialog';
 
-const getCsrfToken = () =>
-  document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ??
-  '';
-
-export const getKeywords = async (researchPlanId: number) => {
-  const res = await fetch(`/research-plans/${researchPlanId}/keywords`, {
-    headers: {
-      Accept: 'application/json',
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error('Gagal mengambil keyword');
-  }
-
-  return await res.json();
-};
-
-export const createKeyword = async (
-  researchPlanId: number,
-  keyword: string,
-) => {
-  const res = await fetch(`/research-plans/${researchPlanId}/keywords`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      'X-CSRF-TOKEN': getCsrfToken(),
-    },
-    body: JSON.stringify({
-      keyword,
-    }),
-  });
-
-  if (!res.ok) {
-    throw new Error('Gagal menambah keyword');
-  }
-
-  return await res.json();
-};
-
-export const updateKeyword = async (
-  researchPlanId: number,
-  id: number,
-  name: string,
-) => {
-  const res = await fetch(`/research-plans/${researchPlanId}/keywords`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      'X-CSRF-TOKEN': getCsrfToken(),
-    },
-    body: JSON.stringify({
-      old_keyword_id: id,
-      new_keyword: name,
-    }),
-  });
-
-  if (!res.ok) {
-    throw new Error('Gagal mengubah keyword');
-  }
-
-  return await res.json();
-};
-
-export const deleteKeyword = async (
-  researchPlanId: number,
-  keywordId: number,
-) => {
-  const res = await fetch(
-    `/research-plans/${researchPlanId}/keywords/${keywordId}`,
-    {
-      method: 'DELETE',
-      headers: {
-        Accept: 'application/json',
-        'X-CSRF-TOKEN': getCsrfToken(),
-      },
-    },
-  );
-
-  if (!res.ok) {
-    throw new Error('Gagal menghapus keyword');
-  }
-};
-
-export const previewMetadata = async (
-  researchPlanId: number,
-  keywordId: number,
-  params: FetchParams,
-) => {
-  const res = await fetch(
-    `/research-plans/${researchPlanId}/metadata/preview`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'X-CSRF-TOKEN': getCsrfToken(),
-      },
-      body: JSON.stringify({
-        keyword_id: keywordId,
-        start_year: params.yearFrom,
-        end_year: params.yearTo,
-      }),
-    },
-  );
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data?.message ?? 'Gagal mengambil preview metadata');
-  }
-
-  return data;
-};
-
-export const executeMetadata = async (
-  researchPlanId: number,
-  keywordId: number,
-  params: FetchParams,
-) => {
-  const res = await fetch(
-    `/research-plans/${researchPlanId}/metadata/execute`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'X-CSRF-TOKEN': getCsrfToken(),
-      },
-      body: JSON.stringify({
-        keyword_id: keywordId,
-        start_year: params.yearFrom,
-        end_year: params.yearTo,
-        tiers: params.tiers,
-        can_execute: true,
-      }),
-    },
-  );
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data?.message ?? 'Gagal menjalankan metadata search');
-  }
-
-  return data;
-};
-
-export const getBatchProgress = async (batchId: string) => {
-  const res = await fetch(`/metadata/batches/${batchId}/progress`, {
-    headers: {
-      Accept: 'application/json',
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error('Gagal mengambil progress batch');
-  }
-
-  return await res.json();
-};
-
-export const getFilteredArticles = async ({
-  keywordId,
-  researchPlanId,
-  page = 1,
-  size = 10,
-}: {
-  keywordId?: number;
+interface UseAcquisitionProps {
   researchPlanId: number;
+  keywordId?: number;
+  batchId?: string;
   page?: number;
   size?: number;
-}) => {
-  const params = new URLSearchParams();
+  onKeywordChange?: () => void;
+  onMetadataExecute?: () => void;
+}
 
-  if (keywordId) {
-    params.append('keyword_id', String(keywordId));
-  }
-  params.append('research_plan_id', String(researchPlanId));
-  params.append('page', String(page));
-  params.append('size', String(size));
+export const useAcquisition = ({
+  researchPlanId,
+  keywordId,
+  batchId,
+  page = 1,
+  size = 10,
+  onKeywordChange,
+  onMetadataExecute,
+}: UseAcquisitionProps) => {
+  const queryClient = useQueryClient();
+  const dispatch = useDispatch();
 
-  const res = await fetch(`/filtered-articles?${params.toString()}`, {
-    headers: {
-      Accept: 'application/json',
+  const keywordQueryKey = ['keywords', researchPlanId];
+  const filteredArticleQueryKey = [
+    'filtered-articles',
+    researchPlanId,
+    keywordId,
+    page,
+    size,
+  ];
+
+  const keywordsQuery = useQuery<any>({
+    queryKey: keywordQueryKey,
+    queryFn: () => getKeywords(researchPlanId),
+    enabled: !!researchPlanId,
+  });
+
+  const filteredArticlesQuery = useQuery<any>({
+    queryKey: filteredArticleQueryKey,
+    queryFn: () =>
+      getFilteredArticles({
+        researchPlanId,
+        keywordId,
+        page,
+        size,
+      }),
+    enabled: !!researchPlanId,
+  });
+
+  const batchProgressQuery = useQuery<any>({
+    queryKey: ['metadata-progress', batchId],
+    queryFn: () => getBatchProgress(batchId!),
+    enabled: !!batchId,
+    refetchInterval: (query) => {
+      const data: any = query.state.data;
+
+      if (!data) return 3000;
+
+      if (
+        data.status === 'completed' ||
+        data.status === 'failed' ||
+        data.finished
+      ) {
+        return false;
+      }
+
+      return 3000;
     },
   });
 
-  const data = await res.json();
+  const createKeywordMutation = useMutation({
+    mutationFn: (keyword: string) => createKeyword(researchPlanId, keyword),
 
-  if (!res.ok) {
-    throw new Error(data?.message ?? 'Gagal mengambil filtered articles');
-  }
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: keywordQueryKey,
+      });
 
-  return data;
+      dispatch(showSuccess('Keyword berhasil ditambahkan.'));
+      onKeywordChange?.();
+    },
+
+    onError: () => {
+      dispatch(showError('Gagal menambahkan keyword.'));
+    },
+  });
+
+  const updateKeywordMutation = useMutation({
+    mutationFn: ({ id, name }: { id: number; name: string }) =>
+      updateKeyword(researchPlanId, id, name),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: keywordQueryKey,
+      });
+
+      dispatch(showSuccess('Keyword berhasil diperbarui.'));
+      onKeywordChange?.();
+    },
+
+    onError: () => {
+      dispatch(showError('Gagal memperbarui keyword.'));
+    },
+  });
+
+  const deleteKeywordMutation = useMutation({
+    mutationFn: (keywordId: number) => deleteKeyword(researchPlanId, keywordId),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: keywordQueryKey,
+      });
+
+      dispatch(showSuccess('Keyword berhasil dihapus.'));
+      onKeywordChange?.();
+    },
+
+    onError: () => {
+      dispatch(showError('Gagal menghapus keyword.'));
+    },
+  });
+
+  const previewMetadataMutation = useMutation({
+    mutationFn: ({
+      keywordId,
+      params,
+    }: {
+      keywordId: number;
+      params: FetchParams;
+    }) => previewMetadata(researchPlanId, keywordId, params),
+
+    onError: (error: any) => {
+      dispatch(
+        showError(error?.message ?? 'Gagal mengambil preview metadata.'),
+      );
+    },
+  });
+
+  const executeMetadataMutation = useMutation({
+    mutationFn: ({
+      keywordId,
+      params,
+    }: {
+      keywordId: number;
+      params: FetchParams;
+    }) => executeMetadata(researchPlanId, keywordId, params),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: filteredArticleQueryKey,
+      });
+
+      dispatch(showSuccess('Metadata berhasil dijalankan.'));
+      onMetadataExecute?.();
+    },
+
+    onError: (error: any) => {
+      dispatch(
+        showError(error?.message ?? 'Gagal menjalankan metadata search.'),
+      );
+    },
+  });
+
+  return {
+    keywordsQuery,
+    filteredArticlesQuery,
+    batchProgressQuery,
+
+    createKeyword: createKeywordMutation,
+    updateKeyword: updateKeywordMutation,
+    deleteKeyword: deleteKeywordMutation,
+
+    previewMetadata: previewMetadataMutation,
+    executeMetadata: executeMetadataMutation,
+  };
 };

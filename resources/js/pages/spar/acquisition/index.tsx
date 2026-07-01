@@ -6,16 +6,6 @@ import { useEffect, useMemo, useState } from 'react';
 import KeywordDetail from './components/KeywordDetail';
 import KeywordList from './components/KeywordList';
 
-import {
-  createKeyword,
-  deleteKeyword,
-  executeMetadata,
-  getBatchProgress,
-  getKeywords,
-  previewMetadata,
-  updateKeyword as updateKeywordApi,
-} from './hooks/useAcquisition';
-
 import { useAppSelector } from '@/lib/store/hooks';
 import {
   hideProgressSnackbar,
@@ -28,31 +18,30 @@ import { useBreadcrumb } from '../components/BreadcrumbContext';
 import { useGuide } from '../components/spar-layout';
 import AcquisitionGuide from '../guides/IdentificationGuide';
 import { FetchParams } from './components/dialog/FetchParameterDialog';
+import { useAcquisition } from './hooks/useAcquisition';
 import { FetchHistory, Keyword } from './types';
-
-type ApiKeyword = {
-  id: number;
-  name: string;
-  article_count: number;
-};
 
 type Props = {
   researchPlanId: number;
   sourceDatabase: string;
 };
 
-export default function ({ researchPlanId, sourceDatabase }: Props) {
+export default function AcquisitionPage({
+  researchPlanId,
+  sourceDatabase,
+}: Props) {
   const dispatch = useDispatch();
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [keywords, setKeywords] = useState<Keyword[]>([]);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [histories] = useState<FetchHistory[]>([]);
-  const [loadingKeywords, setLoadingKeywords] = useState(false);
+  const { setTitle } = useBreadcrumb();
+
   const progress = useAppSelector((state) => state.snackbar.progress);
+
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [batchId, setBatchId] = useState<string>();
   const [articleRefreshKey, setArticleRefreshKey] = useState(0);
 
+  const histories = useMemo<FetchHistory[]>(() => [], []);
+
   const guideContent = useMemo(() => <AcquisitionGuide />, []);
-  const { setTitle } = useBreadcrumb();
 
   useGuide({
     title: '',
@@ -63,6 +52,30 @@ export default function ({ researchPlanId, sourceDatabase }: Props) {
     setTitle('Acquisition');
   }, [setTitle]);
 
+  const {
+    keywordsQuery,
+    previewMetadata,
+    executeMetadata,
+    createKeyword,
+    updateKeyword,
+    deleteKeyword,
+    batchProgressQuery,
+  } = useAcquisition({
+    researchPlanId,
+    keywordId: selectedId ?? undefined,
+    batchId,
+  });
+
+  const keywords: Keyword[] = useMemo(() => {
+    if (!keywordsQuery.data) return [];
+
+    return keywordsQuery.data.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      retrievedCount: item.article_count,
+    }));
+  }, [keywordsQuery.data]);
+
   const selectedKeyword = useMemo(
     () => keywords.find((k) => k.id === selectedId) ?? null,
     [keywords, selectedId],
@@ -72,72 +85,45 @@ export default function ({ researchPlanId, sourceDatabase }: Props) {
     setArticleRefreshKey((prev) => prev + 1);
   };
 
-  const loadKeywords = async () => {
-    if (!researchPlanId) return;
-
-    setLoadingKeywords(true);
-
-    try {
-      const data: ApiKeyword[] = await getKeywords(researchPlanId);
-
-      setKeywords(
-        data.map((item) => ({
-          id: item.id,
-          name: item.name,
-          retrievedCount: item.article_count ?? 0,
-        })),
-      );
-    } finally {
-      setLoadingKeywords(false);
-    }
+  const handleAddKeyword = (name: string) => {
+    createKeyword.mutate(name);
   };
 
-  useEffect(() => {
-    loadKeywords();
-  }, [researchPlanId]);
-
-  const handleAddKeyword = async (name: string) => {
-    await createKeyword(researchPlanId, name);
-    dispatch(showSuccess('Keyword berhasil ditambahkan.'));
-    await loadKeywords();
+  const handleUpdateKeyword = (id: number, name: string) => {
+    updateKeyword.mutate({
+      id,
+      name,
+    });
   };
 
-  const handleDeleteKeyword = async (id: number) => {
-    await deleteKeyword(researchPlanId, id);
-
-    dispatch(showSuccess('Keyword berhasil dihapus.'));
-    await loadKeywords();
+  const handleDeleteKeyword = (id: number) => {
+    deleteKeyword.mutate(id);
   };
 
-  const handleUpdateKeyword = async (id: number, name: string) => {
-    await updateKeywordApi(researchPlanId, id, name);
-    dispatch(showSuccess('Keyword berhasil diubah.'));
-    await loadKeywords();
-  };
-
-  const handlePreviewMetadata = async (
-    keywordId: number,
-    params: FetchParams,
-  ) => {
-    return previewMetadata(researchPlanId, keywordId, params);
+  const handlePreviewMetadata = (keywordId: number, params: FetchParams) => {
+    return previewMetadata.mutateAsync({
+      keywordId,
+      params,
+    });
   };
 
   const handleFetchMetadata = async (
     keywordId: number,
     params: FetchParams,
   ) => {
-    const response = await executeMetadata(researchPlanId, keywordId, params);
+    const response = await executeMetadata.mutateAsync({
+      keywordId,
+      params,
+    });
 
     if (response.message === 'All sources found in cache.') {
-      dispatch(showSuccess('Metadata berhasil dimuat dari cache'));
-
-      await loadKeywords();
       refreshArticles();
-
       return;
     }
 
     if (response.batch_id) {
+      setBatchId(response.batch_id);
+
       dispatch(
         showProgressSnackbar({
           batchId: response.batch_id,
@@ -148,60 +134,47 @@ export default function ({ researchPlanId, sourceDatabase }: Props) {
       return;
     }
 
-    await loadKeywords();
     refreshArticles();
   };
 
   useEffect(() => {
-    if (!progress.open || !progress.batchId || progress.status !== 'running') {
-      return;
-    }
+    const data = batchProgressQuery.data;
 
-    const interval = window.setInterval(async () => {
-      try {
-        const data = await getBatchProgress(progress.batchId as string);
+    if (!progress.open || !data) return;
+
+    dispatch(
+      updateProgressSnackbar({
+        percentage: data.percentage,
+        status: data.status,
+        processedJobs: data.processed_jobs,
+        totalJobs: data.total_jobs,
+        message: 'Mengambil metadata...',
+      }),
+    );
+
+    if (
+      data.status === 'completed' ||
+      data.status === 'failed' ||
+      data.status === 'cancelled' ||
+      data.status === 'completed_with_errors'
+    ) {
+      refreshArticles();
+
+      window.setTimeout(() => {
+        dispatch(hideProgressSnackbar());
 
         dispatch(
-          updateProgressSnackbar({
-            percentage: data.percentage,
-            status: data.status,
-            processedJobs: data.processed_jobs,
-            totalJobs: data.total_jobs,
-            message: 'Mengambil metadata...',
-          }),
+          showSuccess(
+            data.status === 'completed'
+              ? 'Fetch metadata selesai'
+              : 'Fetch metadata selesai dengan catatan',
+          ),
         );
 
-        if (
-          data.status === 'completed' ||
-          data.status === 'failed' ||
-          data.status === 'cancelled' ||
-          data.status === 'completed_with_errors'
-        ) {
-          window.clearInterval(interval);
-
-          await loadKeywords();
-          refreshArticles();
-
-          window.setTimeout(() => {
-            dispatch(hideProgressSnackbar());
-
-            dispatch(
-              showSuccess(
-                data.status === 'completed'
-                  ? 'Fetch metadata selesai'
-                  : 'Fetch metadata selesai dengan catatan',
-              ),
-            );
-          }, 1500);
-        }
-      } catch {
-        window.clearInterval(interval);
-        dispatch(hideProgressSnackbar());
-      }
-    }, 1500);
-
-    return () => window.clearInterval(interval);
-  }, [progress.open, progress.batchId, progress.status]);
+        setBatchId(undefined);
+      }, 1500);
+    }
+  }, [batchProgressQuery.data, progress.open, dispatch]);
 
   return (
     <Box
@@ -216,8 +189,8 @@ export default function ({ researchPlanId, sourceDatabase }: Props) {
         keywords={keywords}
         onAdd={handleAddKeyword}
         onDelete={handleDeleteKeyword}
-        onSelect={setSelectedId}
         onUpdate={handleUpdateKeyword}
+        onSelect={setSelectedId}
       />
 
       <KeywordDetail
@@ -225,8 +198,8 @@ export default function ({ researchPlanId, sourceDatabase }: Props) {
         keyword={selectedKeyword}
         histories={histories}
         sourceDatabase={sourceDatabase}
-        onFetchMetadata={handleFetchMetadata}
         onPreviewMetadata={handlePreviewMetadata}
+        onFetchMetadata={handleFetchMetadata}
         onDeleteKeyword={handleDeleteKeyword}
         refreshTrigger={articleRefreshKey}
       />

@@ -1,7 +1,6 @@
 import { Box, Button } from '@mui/material';
-import { BarChart3, Globe } from 'lucide-react';
 
-type TabValue = 'analysis' | 'globalOverview';
+type TabValue = 'per-keyword' | 'all-keywords';
 
 type Props = {
   value: TabValue;
@@ -10,14 +9,12 @@ type Props = {
 
 const tabs = [
   {
-    label: 'Analisis',
-    value: 'analysis',
-    icon: BarChart3,
+    label: 'Artikel per Kata Kunci / Judul',
+    value: 'per-keyword',
   },
   {
-    label: 'Global Overview',
-    value: 'globalOverview',
-    icon: Globe,
+    label: 'Artikel seluruh Kata Kunci / Judul',
+    value: 'all-keywords',
   },
 ] as const;
 
@@ -33,7 +30,6 @@ export default function KeywordTabs({ value, onChange }: Props) {
       }}
     >
       {tabs.map((tab) => {
-        const Icon = tab.icon;
         const active = value === tab.value;
 
         return (
@@ -41,7 +37,6 @@ export default function KeywordTabs({ value, onChange }: Props) {
             key={tab.value}
             size="small"
             onClick={() => onChange(tab.value)}
-            startIcon={<Icon size={14} />}
             sx={{
               borderRadius: 0,
               px: 2,

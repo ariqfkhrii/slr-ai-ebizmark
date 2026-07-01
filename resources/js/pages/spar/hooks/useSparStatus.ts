@@ -1,6 +1,6 @@
+import { getFilteredArticles } from '@/clients/acquisition';
 import { getAllPurificationArticles } from '@/clients/screening';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getFilteredArticles } from '../acquisition/hooks/useAcquisition';
 import {
   FilteredArticle,
   PaginationResponse,

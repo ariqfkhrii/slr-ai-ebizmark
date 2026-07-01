@@ -1,7 +1,7 @@
 import {
   FilteredArticle,
   PaginationResponse,
-} from '@/pages/prisma/screening/types';
+} from '@/pages/spar/purification/screening/types';
 
 const getCsrfToken = () =>
   document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ??
@@ -114,6 +114,35 @@ export const updateAllPurificationStatus = async ({
 
   if (!res.ok) {
     throw new Error(data?.message ?? 'Gagal mengubah status');
+  }
+
+  return data;
+};
+
+export const bulkUpdatePurificationStatus = async ({
+  filteredArticleIds,
+  included,
+}: {
+  filteredArticleIds: number[];
+  included: boolean;
+}) => {
+  const res = await fetch('/purification/bulk-update', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      'X-CSRF-TOKEN': getCsrfToken(),
+    },
+    body: JSON.stringify({
+      article_ids: filteredArticleIds,
+      included,
+    }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message);
   }
 
   return data;

@@ -94,4 +94,23 @@ class FilteredArticleService
 
         return $articles->count();
     }
+
+    public function bulkUpdateIncludedStatus(array $articleIds, bool $included)
+    {
+        FilteredArticle::query()
+            ->whereIn('id', $articleIds)
+            ->update([
+                'included' => $included,
+            ]);
+
+        if ($included) {
+            FilteredArticle::query()
+                ->whereIn('id', $articleIds)
+                ->whereNull('pdf_path')
+                ->select('id')
+                ->each(function (FilteredArticle $article) {
+                    dispatch(new FetchOpenAlexPdfJob($article->id));
+                });
+        }
+    }
 }

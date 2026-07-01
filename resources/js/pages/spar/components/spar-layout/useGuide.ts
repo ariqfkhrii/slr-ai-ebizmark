@@ -9,7 +9,7 @@ type Props = {
 };
 
 export function useGuide({ title, content }: Props) {
-  const { setGuide } = useGuideContext();
+  const { setGuide, open } = useGuideContext();
 
   const isMounted = useRef(false);
   const prevTitleRef = useRef(title);
@@ -28,4 +28,8 @@ export function useGuide({ title, content }: Props) {
       setGuide(title, content);
     }
   }, [title, content, setGuide]);
+
+  return {
+    guideOpen: open,
+  };
 }

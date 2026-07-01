@@ -2,13 +2,12 @@ import { Box, Button, Typography } from '@mui/material';
 import { ArrowDownFromLine, RotateCcw, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { FetchHistory, Keyword } from '../types';
+import ArticleTable from './ArticleTable';
 import DeleteKeywordConfirmationDialog from './dialog/DeleteKeywordConfirmationDialog';
 import FetchParameterDialog, {
   FetchParams,
 } from './dialog/FetchParameterDialog';
-import GlobalRawArticleTable from './GlobalRawArticleTable';
 import KeywordTabs, { TabValue } from './KeywordTabs';
-import RawArticleTable from './RawArticleTable';
 
 export type MetadataPreviewResult = {
   message: string;
@@ -157,14 +156,15 @@ export default function KeywordDetail({
 
       {/* CONTENT */}
       {tab === 'per-keyword' && (
-        <RawArticleTable
+        <ArticleTable
           keywordId={keyword.id}
           researchPlanId={researchPlanId}
+          tabType="per-keyword"
         />
       )}
 
       {tab === 'all-keywords' && (
-        <GlobalRawArticleTable researchPlanId={researchPlanId} />
+        <ArticleTable researchPlanId={researchPlanId} tabType="all-keywords" />
       )}
 
       {/* DELETE DIALOG */}

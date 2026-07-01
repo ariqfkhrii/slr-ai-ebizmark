@@ -169,32 +169,42 @@ export const getFilteredArticles = async ({
   researchPlanId,
   page = 1,
   size = 10,
+  search,
+  included,
+  yearFrom,
+  yearTo,
+  tiers,
 }: {
   keywordId?: number;
   researchPlanId: number;
   page?: number;
   size?: number;
+  search?: string;
+  included?: boolean;
+  yearFrom?: number;
+  yearTo?: number;
+  tiers?: string[];
 }) => {
   const params = new URLSearchParams();
 
-  if (keywordId) {
-    params.append('keyword_id', String(keywordId));
-  }
   params.append('research_plan_id', String(researchPlanId));
   params.append('page', String(page));
   params.append('size', String(size));
 
-  const res = await fetch(`/filtered-articles?${params.toString()}`, {
-    headers: {
-      Accept: 'application/json',
-    },
-  });
+  if (keywordId) params.append('keyword_id', String(keywordId));
+  if (search) params.append('search', search);
+  if (included !== undefined) params.append('included', String(included));
+  if (yearFrom) params.append('year_from', String(yearFrom));
+  if (yearTo) params.append('year_to', String(yearTo));
+  if (tiers && tiers.length > 0) {
+    tiers.forEach((tier) => params.append('tiers[]', tier));
+  }
+
+  const res = await fetch(`/filtered-articles?${params.toString()}`);
 
   const data = await res.json();
 
-  if (!res.ok) {
-    throw new Error(data?.message ?? 'Gagal mengambil filtered articles');
-  }
+  if (!res.ok) throw new Error(data?.message ?? 'Error');
 
   return data;
 };

@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
-import { hideSnackbar } from '@/lib/store/snackbarSlice';
+import { hideSnackbar } from '@/store/slices/snackbarSlice';
 
 import {
   Alert,

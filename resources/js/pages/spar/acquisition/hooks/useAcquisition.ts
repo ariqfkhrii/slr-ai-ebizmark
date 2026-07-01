@@ -8,7 +8,7 @@ import {
   previewMetadata,
   updateKeyword,
 } from '@/clients/acquisition';
-import { showError, showSuccess } from '@/lib/store/snackbarSlice';
+import { showError, showSuccess } from '@/store/slices/snackbarSlice';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { FetchParams } from '../components/dialog/FetchParameterDialog';

@@ -20,10 +20,54 @@ class FilteredArticleService
             ->get();
     }
 
+    public function getPaginatedArticles(
+        int $planId,
+        ?int $keywordId,
+        int $size,
+        ?string $search = null,
+        ?bool $included = null,
+        ?int $yearFrom = null,
+        ?int $yearTo = null,
+        ?array $tiers = null,
+    ) {
     public function getPaginatedArticles(int $planId, ?int $keywordId, int $size, ?string $sort = null)
     {
         return FilteredArticle::query()
             ->where('research_plan_id', $planId)
+
+            ->when($keywordId, fn ($q) =>
+                $q->where('keyword_id', $keywordId)
+            )
+
+            ->when($included !== null, fn ($q) =>
+                $q->where('included', $included)
+            )
+
+            ->when($search, fn ($q) =>
+                $q->whereHas('rawArticle', function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('doi', 'like', "%{$search}%");
+                })
+            )
+
+            ->when($yearFrom, fn ($q) =>
+                $q->whereHas('rawArticle', fn ($q2) =>
+                    $q2->where('publish_year', '>=', $yearFrom)
+                )
+            )
+
+            ->when($yearTo, fn ($q) =>
+                $q->whereHas('rawArticle', fn ($q2) =>
+                    $q2->where('publish_year', '<=', $yearTo)
+                )
+            )
+
+            ->when($tiers && count($tiers) > 0, fn ($q) =>
+                $q->whereHas('rawArticle', function ($q) use ($tiers) {
+                    $q->whereIn('tier', $tiers);
+                })
+            )
+
             ->when($keywordId, function ($query, $keywordId) {
                 return $query->where('keyword_id', $keywordId);
             })

@@ -1,5 +1,5 @@
 import { useAppDispatch } from '@/lib/store/hooks';
-import { showSuccess } from '@/lib/store/snackbarSlice';
+import { showSuccess } from '@/store/slices/snackbarSlice';
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 import type { FilteredArticleSummary } from '../../purification/retrieval/types';

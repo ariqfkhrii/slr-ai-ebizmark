@@ -1,5 +1,4 @@
 import { initializeTheme } from '@/hooks/use-appearance';
-import { store } from '@/lib/store';
 import '@fontsource/poppins/300.css';
 import '@fontsource/poppins/400.css';
 import '@fontsource/poppins/500.css';
@@ -7,8 +6,11 @@ import '@fontsource/poppins/600.css';
 import '@fontsource/poppins/700.css';
 import { createInertiaApp } from '@inertiajs/react';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Provider } from 'react-redux';
+import { store } from './store/store';
 
 import '../css/app.css';
 import './bootstrap';
@@ -62,8 +64,10 @@ createInertiaApp({
         <Provider store={store}>
           <ThemeProvider theme={muiTheme}>
             <CssBaseline />
-            <App {...props} />
-            <SnackbarProvider />
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <App {...props} />
+              <SnackbarProvider />
+            </LocalizationProvider>
           </ThemeProvider>
         </Provider>
       </QueryClientProvider>

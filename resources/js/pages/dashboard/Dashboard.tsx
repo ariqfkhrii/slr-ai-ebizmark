@@ -1,4 +1,4 @@
-import { showSuccess } from '@/lib/store/snackbarSlice';
+import { showSuccess } from '@/store/slices/snackbarSlice';
 import { router, useForm } from '@inertiajs/react';
 import {
   Avatar,

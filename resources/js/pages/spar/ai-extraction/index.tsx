@@ -42,6 +42,7 @@ export default function Extraction({
         article={extraction.selectedArticle}
         onClose={extraction.closeDialog}
         onSave={extraction.updateExtraction}
+        saving={extraction.isSavingManualEdit}
       />
     </Box>
   );

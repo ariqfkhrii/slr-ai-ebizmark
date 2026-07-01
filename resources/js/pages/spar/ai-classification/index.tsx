@@ -58,8 +58,8 @@ export default function AiClassification({
         article={classification.selectedArticle}
         activeCategories={classification.activeCategories}
         onClose={classification.closeDetail}
-        onUpdateClassification={classification.updateClassification}
-        onUpdateResearchMethod={classification.updateResearchMethod}
+        onSave={classification.saveClassification}
+        saving={classification.isSavingManualEdit}
       />
 
       <AiClassificationSyncDialog

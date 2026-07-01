@@ -218,7 +218,7 @@ export default function Spar(props: any) {
                   researchPlan={props.researchPlan}
                   items={props.items ?? []}
                   filteredArticles={(props.filteredArticles ?? []).filter(
-                    (a: any) => a.article_status === 'included',
+                    (a: any) => a.included === true,
                   )}
                 />
               )}

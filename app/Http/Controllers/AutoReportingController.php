@@ -18,7 +18,7 @@ class AutoReportingController extends Controller
     {
         $items = $this->service->listItems($researchPlanId);
         $researchPlan = \App\Models\ResearchPlan::find($researchPlanId);
-        $filteredArticles = $researchPlan?->filteredArticles()->where('article_status', 'included')->get() ?? [];
+        $filteredArticles = $researchPlan?->filteredArticles()->where('included', true)->get() ?? [];
 
         return Inertia::render('prisma/auto-reporting/index', [
             'researchPlanId' => $researchPlanId,

@@ -30,7 +30,6 @@ export type FilteredArticleSummary = {
   raw_article_id: number;
   research_plan_id: number;
   novelty_status: string | null;
-  article_status: string;
   included: boolean;
   retrieved: boolean | number;
   pdf_path: string | null;

@@ -59,7 +59,7 @@ class FilteredArticleDoiService
                     'research_plan_id' => $researchPlanId,
                 ],
                 [
-                    'article_status' => 'included',
+                    'included' => true,
                     'retrieved' => 1,
                     'ai_usage_status' => 0,
                     'pdf_path' => $storedPath,

@@ -1,4 +1,5 @@
 import { useAppDispatch } from '@/lib/store/hooks';
+import { showError } from '@/store/slices/snackbarSlice';
 import { showSuccess } from '@/store/slices/snackbarSlice';
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -112,6 +113,7 @@ export function useAiClassification(
   const [selectedArticleId, setSelectedArticleId] = useState<number | null>(
     null,
   );
+  const [isSavingManualEdit, setIsSavingManualEdit] = useState(false);
 
   useEffect(() => {
     setArticles(mappedArticles);
@@ -141,37 +143,55 @@ export function useAiClassification(
     );
   };
 
-  const updateClassification = (
+  const saveClassification = async (
     articleId: number,
-    categoryId: number,
-    value: string,
-  ) => {
-    setArticles((prev) =>
-      prev.map((article) =>
-        article.id === articleId
-          ? {
-              ...article,
-              classifications: {
-                ...article.classifications,
-                [categoryId]: value,
-              },
-            }
-          : article,
-      ),
-    );
-  };
+    researchMethod: string,
+    classifications: Record<number, string>,
+  ): Promise<boolean> => {
+    setIsSavingManualEdit(true);
 
-  const updateResearchMethod = (articleId: number, value: string) => {
-    setArticles((prev) =>
-      prev.map((article) =>
-        article.id === articleId
-          ? {
-              ...article,
-              researchMethod: value,
-            }
-          : article,
-      ),
-    );
+    return await new Promise<boolean>((resolve) => {
+      router.put(
+        `/classification/${articleId}`,
+        {
+          research_method: researchMethod || null,
+          category_1: classifications[1] || null,
+          category_2: classifications[2] || null,
+          category_3: classifications[3] || null,
+          category_4: classifications[4] || null,
+          category_5: classifications[5] || null,
+          category_6: classifications[6] || null,
+        },
+        {
+          preserveScroll: true,
+          onSuccess: () => {
+            setArticles((prev) =>
+              prev.map((article) =>
+                article.id === articleId
+                  ? {
+                      ...article,
+                      researchMethod,
+                      classifications: {
+                        ...article.classifications,
+                        ...classifications,
+                      },
+                    }
+                  : article,
+              ),
+            );
+            dispatch(showSuccess('Manual classification berhasil disimpan.'));
+            resolve(true);
+          },
+          onError: () => {
+            dispatch(showError('Gagal menyimpan manual classification.'));
+            resolve(false);
+          },
+          onFinish: () => {
+            setIsSavingManualEdit(false);
+          },
+        },
+      );
+    });
   };
 
   const openDetail = (articleId: number) => {
@@ -330,8 +350,7 @@ export function useAiClassification(
     theory,
     updateCategory,
     setTheory,
-    updateClassification,
-    updateResearchMethod,
+    saveClassification,
     openDetail,
     closeDetail,
     checkIdeaClassificationFromAi,
@@ -344,5 +363,6 @@ export function useAiClassification(
     syncTotal,
     syncError,
     closeSync,
+    isSavingManualEdit,
   };
 }

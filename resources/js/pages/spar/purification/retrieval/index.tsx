@@ -65,7 +65,7 @@ export default function Retrieval({
         source: item.raw_article?.tier ?? 'Unknown',
         year: item.raw_article?.publish_year ?? null,
         retrieved: Boolean(item.retrieved),
-        note: `Status: ${item.article_status}`,
+        note: item.included ? 'Included' : 'Not Included',
       })),
     [filteredArticles],
   );

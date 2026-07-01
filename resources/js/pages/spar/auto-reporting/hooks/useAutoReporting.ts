@@ -35,16 +35,21 @@ function getCsrfToken(): string {
   return (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
 }
 
-/** POST ke route Laravel (non-Inertia JSON) */
-async function apiPost(url: string): Promise<{ success: boolean; error?: string }> {
+/** Request JSON ke route Laravel (non-Inertia JSON) */
+async function apiRequest(
+  url: string,
+  method: 'POST' | 'PUT',
+  body?: Record<string, unknown>,
+): Promise<{ success: boolean; error?: string }> {
   try {
     const res = await fetch(url, {
-      method: 'POST',
+      method,
       headers: {
         'X-CSRF-TOKEN': getCsrfToken(),
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
+      body: body ? JSON.stringify(body) : undefined,
     });
     const json = await res.json();
     if (!res.ok) {
@@ -91,21 +96,26 @@ export function useAutoReporting(props: any) {
     setOpenDialog(true);
   };
 
-  const saveDetail = () => {
+  const saveDetail = async () => {
     if (!selectedItem) return;
-    router.put(
-      `/auto-reportings/${selectedItem.id}`,
-      { generated_content: draftContent },
-      {
-        preserveScroll: true,
-        onSuccess: () => {
-          setOpenDialog(false);
-          setDraftContent('');
-          setSelectedItem(null);
-        },
-        onError: () => alert('Gagal menyimpan. Silakan coba lagi.'),
-      },
-    );
+
+    const result = await apiRequest(`/auto-reportings/${selectedItem.id}`, 'PUT', {
+      generated_content: draftContent,
+    });
+
+    if (!result.success) {
+      alert(`Gagal menyimpan: ${result.error}`);
+      return;
+    }
+
+    setOpenDialog(false);
+    setDraftContent('');
+    setSelectedItem(null);
+
+    router.reload({
+      only: ['items'],
+      preserveScroll: true,
+    });
   };
 
   // ──────────────────────────────────────────
@@ -123,7 +133,7 @@ export function useAutoReporting(props: any) {
     const id = Number(item.id);
     setProcessing(id, true);
     try {
-      const result = await apiPost(`/auto-reportings/${id}/generate`);
+      const result = await apiRequest(`/auto-reportings/${id}/generate`, 'POST');
       if (result.success) {
         router.reload();
       } else {
@@ -138,7 +148,7 @@ export function useAutoReporting(props: any) {
     const id = Number(item.id);
     setProcessing(id, true);
     try {
-      const result = await apiPost(`/auto-reportings/${id}/regenerate`);
+      const result = await apiRequest(`/auto-reportings/${id}/regenerate`, 'POST');
       if (result.success) {
         router.reload();
       } else {

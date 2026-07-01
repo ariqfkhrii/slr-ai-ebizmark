@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\GetPurificationRequest;
-use App\Http\Requests\UpdatePurificationRequest;
-use App\Http\Requests\UpdateAllPurificationRequest;
 use App\Http\Requests\BulkUpdatePurificationRequest;
+use App\Http\Requests\GetPurificationRequest;
+use App\Http\Requests\UpdateAllPurificationRequest;
+use App\Http\Requests\UpdatePurificationRequest;
 use App\Services\FilteredArticleService;
 
 class PurificationController extends Controller
@@ -24,17 +24,30 @@ class PurificationController extends Controller
     {
         $size = $request->validated('size', 10);
 
-        $paginatedData = $this->filteredArticleService->getPaginatedArticles($planId, null, $size);
+        $sort = $request->validated('sort');
+
+        $paginatedData = $this->filteredArticleService->getPaginatedArticles($planId, null, $size, $sort);
 
         $paginatedData->through(function ($filteredArticle) {
             return [
                 'filtered_article_id' => $filteredArticle->id, 
                 'included'            => $filteredArticle->included,
+                'similarity_score'    => $filteredArticle->similarity_score,
                 'raw_article'         => $filteredArticle->rawArticle, 
             ];
         });
 
         return response()->json($paginatedData);
+    }
+
+    public function calculateRelevance(int $planId)
+    {
+        $batchId = $this->filteredArticleService->dispatchRelevanceCalculation($planId);
+
+        return response()->json([
+            'message' => 'Proses perhitungan dimulai',
+            'batch_id' => $batchId
+        ]);
     }
 
     public function getAll(int $planId)

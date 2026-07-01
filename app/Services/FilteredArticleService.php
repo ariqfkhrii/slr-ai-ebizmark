@@ -2,8 +2,11 @@
 
 namespace App\Services;
 
+use App\Jobs\CalculateArticleSimilarityJob;
 use App\Jobs\FetchOpenAlexPdfJob;
 use App\Models\FilteredArticle;
+use App\Models\ResearchPlan;
+use Illuminate\Support\Facades\Bus;
 
 class FilteredArticleService
 {
@@ -26,6 +29,7 @@ class FilteredArticleService
         ?int $yearFrom = null,
         ?int $yearTo = null,
         ?array $tiers = null,
+        ?string $sort = null,
     ) {
         return FilteredArticle::query()
             ->where('research_plan_id', $planId)
@@ -61,6 +65,10 @@ class FilteredArticleService
                 $q->whereHas('rawArticle', function ($q) use ($tiers) {
                     $q->whereIn('tier', $tiers);
                 })
+            )
+
+            ->when($sort === 'relevance', fn ($q) =>
+                $q->orderByDesc('similarity_score')
             )
 
             ->with('rawArticle:id,doi,title,authors,keyword,abstract,tier,citation_count,publish_year')
@@ -150,6 +158,62 @@ class FilteredArticleService
                 ->each(function (FilteredArticle $article) {
                     dispatch(new FetchOpenAlexPdfJob($article->id));
                 });
+        }
+    }
+
+    /**
+     * Dispatch a batch job to calculate similarity scores for all articles in a research plan.
+     *
+     * @param int $planId
+     * @return string The batch ID for tracking the job.
+     */
+    public function dispatchRelevanceCalculation(int $planId): string
+    {
+        $this->ensureEmbeddingsAreReady($planId);
+
+        $researchPlan = ResearchPlan::with('keywords')->findOrFail($planId);
+        $jobs = [];
+
+        FilteredArticle::with('rawArticle')
+            ->where('research_plan_id', $planId)
+            ->chunkById(500, function ($chunk) use ($researchPlan, &$jobs) {
+                $jobs[] = new CalculateArticleSimilarityJob($chunk, $researchPlan);
+            });
+
+        $batch = Bus::batch($jobs)
+            ->name('Ranking Plan: ' . $planId)
+            ->onQueue('similarity-calculation')
+            ->dispatch();
+
+        return $batch->id;
+    }
+
+    /**
+     * Ensure that all necessary embeddings are present before calculating similarity.
+     *
+     * @param int $planId
+     * @throws \Illuminate\Http\Exceptions\HttpResponseException
+     */
+    private function ensureEmbeddingsAreReady(int $planId): void
+    {
+        $researchPlan = ResearchPlan::findOrFail($planId);
+
+        if ($researchPlan->keywords()->count() === 0) {
+            abort(400, 'Research plan ini belum memiliki keyword.');
+        }
+
+        $missingKeywordEmbeddings = $researchPlan->keywords()->whereNull('embedding')->exists();
+        if ($missingKeywordEmbeddings) {
+            abort(400, 'Terdapat keyword yang belum memiliki data embedding.');
+        }
+
+        $missingArticleEmbeddings = FilteredArticle::where('research_plan_id', $planId)
+            ->whereHas('rawArticle', function ($query) {
+                $query->whereNull('embedding');
+            })->exists();
+
+        if ($missingArticleEmbeddings) {
+            abort(400, 'Terdapat artikel yang belum memiliki data embedding.');
         }
     }
 }

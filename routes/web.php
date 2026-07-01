@@ -51,6 +51,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/research-plans/{planId}/purification', [PurificationController::class, 'index'])
         ->name('purification.index');
+    
+    Route::post('/purification/{planId}/calculate-relevance', [PurificationController::class, 'calculateRelevance']);
 
     Route::get('/research-plans/{planId}/purification/all', [PurificationController::class, 'getAll'])
         ->name('purification.all');

@@ -24,6 +24,23 @@ class GetPurificationRequest extends FormRequest
     {
         return [
             'size' => 'nullable|integer|min:1|max:100',
+            'sort' => 'nullable|string|in:relevance',
+        ];
+    }
+
+    /**
+     * Get the error messages for the defined validation rules.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'size.integer' => 'The size must be an integer.',
+            'size.min' => 'The size must be at least 1.',
+            'size.max' => 'The size may not be greater than 100.',
+            'sort.string' => 'The sort must be a string.',
+            'sort.in' => 'The sort must be one of the following: relevance.',
         ];
     }
 }

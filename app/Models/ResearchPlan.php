@@ -15,6 +15,7 @@ class ResearchPlan extends Model
     protected $fillable = [
         'title',
         'source_database',
+        'keyword_count',
         'scopus_quantity',
         'pubmed_quantity',
         'extraction_count',

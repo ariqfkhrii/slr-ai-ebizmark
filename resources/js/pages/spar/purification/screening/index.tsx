@@ -29,6 +29,12 @@ export default function Screening({
   const guideContent = useMemo(() => <ScreeningGuide />, []);
   const { setTitle } = useBreadcrumb();
 
+  const { data, isLoading, bulkUpdateStatus, calculateRelevances } =
+    useScreening({
+      researchPlanId,
+      onStatusChange: onScreeningComplete,
+    });
+
   const { guideOpen } = useGuide({
     title: 'Screening',
     content: guideContent,
@@ -40,48 +46,63 @@ export default function Screening({
 
   useEffect(() => {
     setToolbar(
-      selectedCount > 0 ? (
-        <Paper
-          elevation={3}
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Button
+          size="small"
+          variant="contained"
+          onClick={handleCalculateRelevances}
+          disabled={calculateRelevances.isPending}
           sx={{
             px: 2,
             py: 1,
             display: 'flex',
             alignItems: 'center',
             gap: 2,
-            borderRadius: 2,
-            mt: 1,
-            mr: guideOpen ? 2 : 15,
-            transition: 'margin-right 250ms ease',
+            borderRadius: 3,
+            mt: 1.5,
+            mr: !guideOpen && selectedCount === 0 ? 17 : 2,
           }}
         >
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-            {selectedCount} artikel dipilih
-          </Typography>
-
-          <Button size="small" onClick={handleCancelSelection}>
-            Batal
-          </Button>
-
-          <Button
-            size="small"
-            variant="contained"
-            onClick={handleConfirmSelection}
-            disabled={bulkUpdateStatus.isPending}
+          Hitung Relevansi
+        </Button>
+        {selectedCount > 0 ? (
+          <Paper
+            elevation={3}
+            sx={{
+              px: 2,
+              py: 1,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              borderRadius: 2,
+              mt: 1,
+              mr: guideOpen ? 2 : 17,
+              transition: 'margin-right 250ms ease',
+            }}
           >
-            Konfirmasi
-          </Button>
-        </Paper>
-      ) : null,
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              {selectedCount} artikel dipilih
+            </Typography>
+
+            <Button size="small" onClick={handleCancelSelection}>
+              Batal
+            </Button>
+
+            <Button
+              size="small"
+              variant="contained"
+              onClick={handleConfirmSelection}
+              disabled={bulkUpdateStatus.isPending}
+            >
+              Konfirmasi
+            </Button>
+          </Paper>
+        ) : null}
+      </Box>,
     );
 
     return () => setToolbar(null);
   }, [selectedCount, guideOpen]);
-
-  const { data, isLoading, bulkUpdateStatus } = useScreening({
-    researchPlanId,
-    onStatusChange: onScreeningComplete,
-  });
 
   const filteredArticles = data ?? [];
   const excludedArticles = useMemo(
@@ -118,6 +139,14 @@ export default function Screening({
       }
 
       handleCancelSelection();
+    } catch {}
+  };
+
+  const handleCalculateRelevances = async () => {
+    try {
+      await calculateRelevances.mutateAsync({
+        researchPlanId: researchPlanId,
+      });
     } catch {}
   };
 

@@ -147,3 +147,29 @@ export const bulkUpdatePurificationStatus = async ({
 
   return data;
 };
+
+export const calcualateArticleRelevances = async ({
+  researchPlanId,
+}: {
+  researchPlanId: number;
+}) => {
+  const res = await fetch(
+    `/purification/${researchPlanId}/calculate-relevance`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-CSRF-TOKEN': getCsrfToken(),
+      },
+    },
+  );
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message);
+  }
+
+  return data;
+};

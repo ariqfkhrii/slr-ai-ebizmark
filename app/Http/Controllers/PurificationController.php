@@ -58,6 +58,7 @@ class PurificationController extends Controller
             return [
                 'filtered_article_id' => $filteredArticle->id,
                 'included' => $filteredArticle->included,
+                'similarity_score' => $filteredArticle->similarity_score,
                 'raw_article' => $filteredArticle->rawArticle,
             ];
         });

@@ -1,31 +1,12 @@
-import {
-  AlertCircle,
-  CheckCircle2,
-  ExternalLink,
-  Sparkles,
-} from 'lucide-react';
+import { AlertCircle, CheckCircle2, ExternalLink } from 'lucide-react';
 
-import {
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  IconButton,
-  Paper,
-  Stack,
-  Tooltip,
-  Typography,
-} from '@mui/material';
-import { useState } from 'react';
 import { router } from '@inertiajs/react';
+import { Box, Button, Chip, Paper, Stack, Typography } from '@mui/material';
+import { useState } from 'react';
 
 import type { ArticlePanelProps } from '../types';
 
-function buildArticleLink(
-  preLink: string,
-  doi: string,
-  postLink: string,
-) {
+function buildArticleLink(preLink: string, doi: string, postLink: string) {
   return `${preLink}${encodeURIComponent(doi)}${postLink}`;
 }
 
@@ -62,8 +43,7 @@ export default function ArticlePanel({
         borderRadius: 4,
         overflow: 'hidden',
         border: '1px solid rgba(15, 23, 42, 0.08)',
-        background:
-          'linear-gradient(180deg, #ffffff 0%, #fbfcff 100%)',
+        background: 'linear-gradient(180deg, #ffffff 0%, #fbfcff 100%)',
       }}
     >
       {/* HEADER */}
@@ -74,8 +54,7 @@ export default function ArticlePanel({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderBottom:
-            '1px solid rgba(15, 23, 42, 0.08)',
+          borderBottom: '1px solid rgba(15, 23, 42, 0.08)',
         }}
       >
         <Typography
@@ -88,12 +67,13 @@ export default function ArticlePanel({
         </Typography>
 
         <Chip
-          label={`${count} Record`}
+          label={`${count} Artikel`}
           size="small"
           sx={{
             bgcolor: accent,
             color: '#fff',
-            fontWeight: 700,
+            fontWeight: 500,
+            p: 1,
           }}
         />
       </Box>
@@ -115,15 +95,12 @@ export default function ArticlePanel({
               display: 'grid',
               placeItems: 'center',
               color: 'text.secondary',
-              border:
-                '1px dashed rgba(15, 23, 42, 0.18)',
+              border: '1px dashed rgba(15, 23, 42, 0.18)',
               borderRadius: 3,
               bgcolor: '#fff',
             }}
           >
-            <Typography sx={{ fontSize: 14 }}>
-              {emptyText}
-            </Typography>
+            <Typography sx={{ fontSize: 14 }}>{emptyText}</Typography>
           </Box>
         ) : (
           articles.map((article) => (
@@ -133,10 +110,8 @@ export default function ArticlePanel({
               sx={{
                 borderRadius: 3,
                 p: 2,
-                border:
-                  '1px solid rgba(15, 23, 42, 0.08)',
-                boxShadow:
-                  '0 8px 18px rgba(15, 23, 42, 0.08)',
+                border: '1px solid rgba(15, 23, 42, 0.08)',
+                boxShadow: '0 8px 18px rgba(15, 23, 42, 0.08)',
               }}
             >
               <Stack spacing={1.25}>
@@ -145,8 +120,7 @@ export default function ArticlePanel({
                   sx={{
                     display: 'flex',
                     alignItems: 'flex-start',
-                    justifyContent:
-                      'space-between',
+                    justifyContent: 'space-between',
                     gap: 2,
                   }}
                 >
@@ -174,12 +148,8 @@ export default function ArticlePanel({
 
                   {article.retrieved ? (
                     <Chip
-                      icon={
-                        <CheckCircle2
-                          size={14}
-                        />
-                      }
-                      label="Retrieved"
+                      icon={<CheckCircle2 size={14} />}
+                      label="Diperoleh"
                       size="small"
                       sx={{
                         bgcolor: '#dcfce7',
@@ -189,12 +159,8 @@ export default function ArticlePanel({
                     />
                   ) : (
                     <Chip
-                      icon={
-                        <AlertCircle
-                          size={14}
-                        />
-                      }
-                      label="Not Retrieved"
+                      icon={<AlertCircle size={14} />}
+                      label="Belum Diperoleh"
                       size="small"
                       sx={{
                         bgcolor: '#fee2e2',
@@ -221,8 +187,7 @@ export default function ArticlePanel({
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent:
-                      'space-between',
+                    justifyContent: 'space-between',
                     gap: 2,
                   }}
                 >
@@ -244,8 +209,7 @@ export default function ArticlePanel({
                     <Typography
                       sx={{
                         fontSize: 12,
-                        color:
-                          'text.secondary',
+                        color: 'text.secondary',
                       }}
                     >
                       {article.year ?? '-'}
@@ -253,56 +217,15 @@ export default function ArticlePanel({
                   </Box>
 
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                    {/* Auto-Fetch button — only for NOT RETRIEVED articles */}
-                    {!article.retrieved && onAutoFetch && (
-                      <Tooltip title="Cari & Unduh PDF otomatis (OpenAlex)">
-                        <span>
-                          <IconButton
-                            size="small"
-                            disabled={fetchingId === article.id}
-                            onClick={() => handleAutoFetch(article.id)}
-                            sx={{
-                              color: 'primary.main',
-                              border: '1px solid',
-                              borderColor: 'primary.light',
-                              borderRadius: 1.5,
-                              p: 0.6,
-                              '&:hover': {
-                                bgcolor: 'primary.50',
-                              },
-                            }}
-                          >
-                            {fetchingId === article.id ? (
-                              <CircularProgress size={14} />
-                            ) : (
-                              <Sparkles size={14} />
-                            )}
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                    )}
-
                     <Button
                       size="small"
-                      variant={
-                        article.retrieved
-                          ? 'contained'
-                          : 'outlined'
-                      }
-                      endIcon={
-                        <ExternalLink
-                          size={14}
-                        />
-                      }
-                      href={buildArticleLink(
-                        preLink,
-                        article.doi,
-                        postLink,
-                      )}
+                      variant={article.retrieved ? 'contained' : 'outlined'}
+                      endIcon={<ExternalLink size={14} />}
+                      href={buildArticleLink(preLink, article.doi, postLink)}
                       target="_blank"
                       rel="noreferrer"
                     >
-                      View
+                      Lihat
                     </Button>
                   </Box>
                 </Box>

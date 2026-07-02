@@ -1,4 +1,5 @@
 import {
+  cancelBatchProgress,
   createKeyword,
   deleteKeyword,
   executeMetadata,
@@ -8,6 +9,7 @@ import {
   previewMetadata,
   updateKeyword,
 } from '@/clients/acquisition';
+import { useAppSelector } from '@/lib/store/hooks';
 import { showError, showSuccess } from '@/store/slices/snackbarSlice';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
@@ -34,6 +36,7 @@ export const useAcquisition = ({
 }: UseAcquisitionProps) => {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
+  const progress = useAppSelector((state) => state.snackbar.progress);
 
   const keywordQueryKey = ['keywords', researchPlanId];
   const filteredArticleQueryKey = [
@@ -83,6 +86,18 @@ export const useAcquisition = ({
     },
   });
 
+  const cancelBatchProgressMutation = useMutation({
+    mutationFn: () => cancelBatchProgress(batchId!),
+
+    onSuccess: () => {
+      dispatch(showSuccess('Pengambilan metadata dibatalkan.'));
+    },
+
+    onError: () => {
+      dispatch(showError('Gagal membatalkan pengambilan metadata.'));
+    },
+  });
+
   const createKeywordMutation = useMutation({
     mutationFn: (keyword: string) => createKeyword(researchPlanId, keyword),
 
@@ -91,12 +106,12 @@ export const useAcquisition = ({
         queryKey: keywordQueryKey,
       });
 
-      dispatch(showSuccess('Keyword berhasil ditambahkan.'));
+      dispatch(showSuccess('Kata kunci / judul berhasil ditambahkan.'));
       onKeywordChange?.();
     },
 
     onError: () => {
-      dispatch(showError('Gagal menambahkan keyword.'));
+      dispatch(showError('Gagal menambahkan Kata kunci / judul.'));
     },
   });
 
@@ -109,12 +124,12 @@ export const useAcquisition = ({
         queryKey: keywordQueryKey,
       });
 
-      dispatch(showSuccess('Keyword berhasil diperbarui.'));
+      dispatch(showSuccess('Kata kunci / judul berhasil diperbarui.'));
       onKeywordChange?.();
     },
 
     onError: () => {
-      dispatch(showError('Gagal memperbarui keyword.'));
+      dispatch(showError('Gagal memperbarui Kata kunci / judul.'));
     },
   });
 
@@ -126,12 +141,12 @@ export const useAcquisition = ({
         queryKey: keywordQueryKey,
       });
 
-      dispatch(showSuccess('Keyword berhasil dihapus.'));
+      dispatch(showSuccess('Kata kunci / judul berhasil dihapus.'));
       onKeywordChange?.();
     },
 
     onError: () => {
-      dispatch(showError('Gagal menghapus keyword.'));
+      dispatch(showError('Gagal menghapus Kata kunci / judul.'));
     },
   });
 
@@ -165,7 +180,7 @@ export const useAcquisition = ({
         queryKey: filteredArticleQueryKey,
       });
 
-      dispatch(showSuccess('Metadata berhasil dijalankan.'));
+      dispatch(showSuccess('Pengambilan metadata berhasil dijalankan.'));
       onMetadataExecute?.();
     },
 
@@ -180,6 +195,7 @@ export const useAcquisition = ({
     keywordsQuery,
     filteredArticlesQuery,
     batchProgressQuery,
+    cancelBatchProgressMutation,
 
     createKeyword: createKeywordMutation,
     updateKeyword: updateKeywordMutation,

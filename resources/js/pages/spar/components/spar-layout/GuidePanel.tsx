@@ -56,7 +56,7 @@ export default function GuidePanel() {
               textTransform: 'uppercase',
             }}
           >
-            Guide
+            Panduan
           </Typography>
 
           <Typography

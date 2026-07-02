@@ -164,6 +164,21 @@ export const getBatchProgress = async (batchId: string) => {
   return await res.json();
 };
 
+export const cancelBatchProgress = async (batchId: string) => {
+  const res = await fetch(`/search/cancel/${batchId}`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Gagal membatalkan progress batch');
+  }
+
+  return await res.json();
+};
+
 export const getFilteredArticles = async ({
   keywordId,
   researchPlanId,

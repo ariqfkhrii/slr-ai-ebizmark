@@ -45,7 +45,7 @@ export default function AcquisitionPage({
   const guideContent = useMemo(() => <AcquisitionGuide />, []);
 
   useGuide({
-    title: '',
+    title: 'Acquisition',
     content: guideContent,
   });
 

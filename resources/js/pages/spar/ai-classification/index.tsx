@@ -1,4 +1,8 @@
 import { Box } from '@mui/material';
+import { useEffect, useMemo } from 'react';
+import { useBreadcrumb } from '../components/BreadcrumbContext';
+import { useGuide } from '../components/spar-layout';
+import AiClassificationGuide from '../guides/AiClassificationGuide';
 import type { FilteredArticleSummary } from '../purification/retrieval/types';
 import AiClassificationDetailDialog from './components/AiClassificationDetailDialog';
 import AiClassificationResultTable from './components/AiClassificationResultTable';
@@ -23,6 +27,17 @@ export default function AiClassification({
     researchPlanId,
     classificationSetup,
   );
+
+  const guideContent = useMemo(() => <AiClassificationGuide />, []);
+  const { setTitle } = useBreadcrumb();
+  const { guideOpen } = useGuide({
+    title: 'AI Classification',
+    content: guideContent,
+  });
+
+  useEffect(() => {
+    setTitle('AI Classification');
+  }, [setTitle]);
 
   return (
     <Box

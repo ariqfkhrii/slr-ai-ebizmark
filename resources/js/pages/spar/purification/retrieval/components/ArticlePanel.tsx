@@ -44,6 +44,7 @@ export default function ArticlePanel({
         overflow: 'hidden',
         border: '1px solid rgba(15, 23, 42, 0.08)',
         background: 'linear-gradient(180deg, #ffffff 0%, #fbfcff 100%)',
+        height: '65vh',
       }}
     >
       {/* HEADER */}

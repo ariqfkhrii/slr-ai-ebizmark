@@ -72,7 +72,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
       preserveScroll: true,
 
       onSuccess: () => {
-        dispatch(showSuccess('Topik penelitian berhasil dibuat'));
+        dispatch(showSuccess('Topik berhasil dibuat'));
 
         reset();
         setShowCreateModal(false);
@@ -106,7 +106,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
       preserveScroll: true,
 
       onSuccess: () => {
-        dispatch(showSuccess('Topik Penelitian berhasil diperbarui'));
+        dispatch(showSuccess('Topik berhasil diperbarui'));
 
         reset();
         setShowEditModal(false);
@@ -132,7 +132,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
       preserveScroll: true,
 
       onSuccess: () => {
-        dispatch(showSuccess('Topik penelitian berhasil dihapus'));
+        dispatch(showSuccess('Topik berhasil dihapus'));
 
         setShowDeleteModal(false);
         setSelectedPlan(null);
@@ -148,14 +148,14 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
     if (sourceDatabase === 'pubmed') {
       return {
         source: 'pubmed',
-        label: 'PubMed Articles',
+        label: 'Artikel',
         value: plan.pubmed_quantity ?? 0,
       };
     }
 
     return {
       source: 'scopus',
-      label: 'Scopus Articles',
+      label: 'Artikel',
       value: plan.scopus_quantity ?? 0,
     };
   };
@@ -199,7 +199,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                 }}
               >
                 <Typography variant="h5" sx={{ fontWeight: 800 }}>
-                  Topik Penelitian
+                  Topik Systematic Literature Review
                 </Typography>
               </Stack>
 
@@ -343,7 +343,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                 const sourceLabel = articleInfo.source.toUpperCase();
 
                 return (
-                  <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                  <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
                     <Card
                       elevation={0}
                       sx={{
@@ -399,7 +399,25 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                           </Stack>
 
                           <Grid container={true} spacing={1.5}>
-                            <Grid size={{ xs: 6 }}>
+                            <Grid size={{ xs: 4 }}>
+                              <Box
+                                sx={{
+                                  bgcolor: "grey.100",
+                                  borderRadius: 3,
+                                  p: 1.5,
+                                  height: "100%",
+                                }}
+                              >
+                                <Typography sx={{ fontWeight: 900, fontSize: 24 }}>
+                                  {plan.keyword_count ?? 0}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  Kata Kunci
+                                </Typography>
+                              </Box>
+                            </Grid>
+
+                            <Grid size={{ xs: 4 }}>
                               <Box
                                 sx={{
                                   bgcolor: 'grey.100',
@@ -422,7 +440,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                               </Box>
                             </Grid>
 
-                            <Grid size={{ xs: 6 }}>
+                            <Grid size={{ xs: 4 }}>
                               <Box
                                 sx={{
                                   bgcolor: 'grey.100',
@@ -439,9 +457,9 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                                 <Typography
                                   variant="caption"
                                   color="text.secondary"
-                                  sx={{ fontWeight: 700 }}
+                                  sx={{ fontSize: "0.60rem" }}
                                 >
-                                  Extraction
+                                  Artikel Terekstraksi
                                 </Typography>
                               </Box>
                             </Grid>
@@ -459,8 +477,11 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                             }
                             variant="contained"
                             fullWidth
+                            sx={{
+                              textTransform: 'none',
+                            }}
                           >
-                            Lihat Detail
+                            Mulai SLR
                           </Button>
 
                           <Stack
@@ -517,7 +538,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
               }}
             >
               <Typography sx={{ fontWeight: 700, color: 'text.secondary' }}>
-                Belum ada topik penelitian.
+                Belum ada topik SLR.
               </Typography>
 
               <Typography
@@ -525,7 +546,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                 color="text.secondary"
                 sx={{ mt: 0.5 }}
               >
-                Buat topik penelitian pertama untuk mulai proses PRISMA.
+                Buat topik SLR pertama untuk mulai proses PRISMA.
               </Typography>
             </Box>
           )}
@@ -544,15 +565,15 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
         }}
       >
         <DialogTitle sx={{ fontWeight: 800 }}>
-          Buat Topik Penelitian
+          Buat Topik SLR
         </DialogTitle>
 
         <form onSubmit={submit}>
           <DialogContent>
             <Stack spacing={3} sx={{ mt: 1 }}>
               <TextField
-                label="Topik Penelitian"
-                placeholder="Masukkan topik penelitian"
+                label="Topik SLR"
+                placeholder="Masukkan topik SLR"
                 value={data.title}
                 onChange={(e) => setData('title', e.target.value)}
                 error={Boolean(errors.title)}
@@ -601,7 +622,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
               disabled={processing}
               sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 700 }}
             >
-              Buat Topik Penelitian
+              Buat Topik SLR
             </Button>
           </DialogActions>
         </form>
@@ -619,14 +640,14 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
         }}
       >
         <DialogTitle sx={{ fontWeight: 800 }}>
-          Edit Topik Penelitian
+          Edit Topik
         </DialogTitle>
 
         <form onSubmit={updatePlan}>
           <DialogContent>
             <Stack spacing={3} sx={{ mt: 1 }}>
               <TextField
-                label="Judul Topik Penelitian"
+                label="Topik SLR"
                 value={data.title}
                 onChange={(e) => setData('title', e.target.value)}
                 error={Boolean(errors.title)}
@@ -693,12 +714,12 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
         }}
       >
         <DialogTitle sx={{ fontWeight: 800 }}>
-          Hapus Topik Penelitian
+          Hapus Topik
         </DialogTitle>
 
         <DialogContent>
           <Typography color="text.secondary">
-            Apakah Anda yakin ingin menghapus topik penelitian{' '}
+            Apakah Anda yakin ingin menghapus topik SLR{' '}
             <strong>{selectedPlan?.title}</strong>?
           </Typography>
         </DialogContent>

@@ -13,6 +13,7 @@ import {
   showSuccess,
   updateProgressSnackbar,
 } from '@/store/slices/snackbarSlice';
+import { useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { useBreadcrumb } from '../components/BreadcrumbContext';
 import { useGuide } from '../components/spar-layout';
@@ -31,12 +32,12 @@ export default function AcquisitionPage({
   sourceDatabase,
 }: Props) {
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const { setTitle } = useBreadcrumb();
 
   const progress = useAppSelector((state) => state.snackbar.progress);
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [batchId, setBatchId] = useState<string>();
   const [articleRefreshKey, setArticleRefreshKey] = useState(0);
 
   const histories = useMemo<FetchHistory[]>(() => [], []);
@@ -44,7 +45,7 @@ export default function AcquisitionPage({
   const guideContent = useMemo(() => <AcquisitionGuide />, []);
 
   useGuide({
-    title: '',
+    title: 'Acquisition',
     content: guideContent,
   });
 
@@ -63,7 +64,7 @@ export default function AcquisitionPage({
   } = useAcquisition({
     researchPlanId,
     keywordId: selectedId ?? undefined,
-    batchId,
+    batchId: progress.batchId ?? undefined,
   });
 
   const keywords: Keyword[] = useMemo(() => {
@@ -122,8 +123,6 @@ export default function AcquisitionPage({
     }
 
     if (response.batch_id) {
-      setBatchId(response.batch_id);
-
       dispatch(
         showProgressSnackbar({
           batchId: response.batch_id,
@@ -158,6 +157,13 @@ export default function AcquisitionPage({
       data.status === 'cancelled' ||
       data.status === 'completed_with_errors'
     ) {
+      queryClient.invalidateQueries({
+        queryKey: ['keywords', researchPlanId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ['filtered-articles', researchPlanId],
+      });
       refreshArticles();
 
       window.setTimeout(() => {
@@ -170,8 +176,6 @@ export default function AcquisitionPage({
               : 'Fetch metadata selesai dengan catatan',
           ),
         );
-
-        setBatchId(undefined);
       }, 1500);
     }
   }, [batchProgressQuery.data, progress.open, dispatch]);

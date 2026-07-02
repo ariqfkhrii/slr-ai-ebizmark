@@ -1,17 +1,37 @@
+import { cancelBatchProgress } from '@/clients/acquisition';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
-import { hideSnackbar } from '@/store/slices/snackbarSlice';
+import {
+  hideProgressSnackbar,
+  hideSnackbar,
+  showError,
+  showSuccess,
+} from '@/store/slices/snackbarSlice';
 
 import {
   Alert,
   Box,
+  Button,
   CircularProgress,
   LinearProgress,
   Snackbar,
   Typography,
 } from '@mui/material';
+import { useMutation } from '@tanstack/react-query';
 
 export default function SnackbarProvider() {
   const dispatch = useAppDispatch();
+  const cancelMutation = useMutation({
+    mutationFn: () => cancelBatchProgress(progress.batchId!),
+
+    onSuccess: () => {
+      dispatch(hideProgressSnackbar());
+      dispatch(showSuccess('Pengambilan metadata berhasil dibatalkan.'));
+    },
+
+    onError: () => {
+      dispatch(showError('Gagal membatalkan pengambilan metadata.'));
+    },
+  });
 
   const { open, message, severity, progress } = useAppSelector(
     (state) => state.snackbar,
@@ -90,6 +110,15 @@ export default function SnackbarProvider() {
                 {progress.percentage}%
               </Typography>
             </Box>
+
+            <Button
+              size="small"
+              color="error"
+              disabled={cancelMutation.isPending}
+              onClick={() => cancelMutation.mutate()}
+            >
+              {cancelMutation.isPending ? '...' : 'Batalkan'}
+            </Button>
           </Box>
 
           <LinearProgress

@@ -1,4 +1,8 @@
 import { Box } from '@mui/material';
+import { useEffect, useMemo } from 'react';
+import { useBreadcrumb } from '../components/BreadcrumbContext';
+import { useGuide } from '../components/spar-layout';
+import ManualExtractionGuide from '../guides/ManualExtractionGuide';
 import type { FilteredArticleSummary } from '../purification/retrieval/types';
 import ExtractionArticleTable from './components/ExtractionArticleTable';
 import ExtractionWorkspace from './components/ExtractionWorkspace';
@@ -14,6 +18,16 @@ export default function Extraction({
   researchPlanId = 0,
 }: Props) {
   const extraction = useExtraction({ filteredArticles, researchPlanId });
+  const guideContent = useMemo(() => <ManualExtractionGuide />, []);
+  const { setTitle } = useBreadcrumb();
+  const { guideOpen } = useGuide({
+    title: 'Manual Extraction',
+    content: guideContent,
+  });
+
+  useEffect(() => {
+    setTitle('Manual Extraction');
+  }, [setTitle]);
 
   return (
     <Box
@@ -30,6 +44,7 @@ export default function Extraction({
         onOpenExtraction={extraction.openExtraction}
         onSynchronizeArticle={extraction.synchronizeArticle}
         onSynchronizePdf={extraction.synchronizePdf}
+        guideOpen={guideOpen}
       />
 
       <ExtractionWorkspace

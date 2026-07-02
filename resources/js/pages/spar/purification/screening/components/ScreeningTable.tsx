@@ -11,6 +11,7 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  TableSortLabel,
   Typography,
 } from '@mui/material';
 import { ExternalLink } from 'lucide-react';
@@ -34,11 +35,26 @@ export default function ScreeningTable({
 }: Props) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
+  const sortedArticles = useMemo(() => {
+    return [...articles].sort((a, b) => {
+      const scoreA = a.similarity_score ?? Number.NEGATIVE_INFINITY;
+      const scoreB = b.similarity_score ?? Number.NEGATIVE_INFINITY;
+
+      return sortDirection === 'asc' ? scoreA - scoreB : scoreB - scoreA;
+    });
+  }, [articles, sortDirection]);
 
   const paginatedArticles = useMemo(() => {
     const start = page * rowsPerPage;
-    return articles.slice(start, start + rowsPerPage);
-  }, [articles, page, rowsPerPage]);
+    return sortedArticles.slice(start, start + rowsPerPage);
+  }, [sortedArticles, page, rowsPerPage]);
+
+  const hasSimilarity = useMemo(
+    () => articles.some((a) => a.similarity_score !== null),
+    [articles],
+  );
 
   useEffect(() => {
     setPage(0);
@@ -75,9 +91,10 @@ export default function ScreeningTable({
         </Typography>
 
         <Chip
-          label={`${articles.length} Articles`}
+          label={`${articles.length} Artikel`}
           color={actionLabel === 'Include' ? 'error' : 'success'}
           size="small"
+          sx={{ p: 1 }}
         />
       </Box>
 
@@ -115,6 +132,21 @@ export default function ScreeningTable({
               <TableCell width={70}>Tier</TableCell>
               <TableCell width={90}>Sitasi</TableCell>
               <TableCell width={70}>DOI</TableCell>
+              {hasSimilarity && (
+                <TableCell width={100}>
+                  <TableSortLabel
+                    active
+                    direction={sortDirection}
+                    onClick={() =>
+                      setSortDirection((prev) =>
+                        prev === 'asc' ? 'desc' : 'asc',
+                      )
+                    }
+                  >
+                    Similarity
+                  </TableSortLabel>
+                </TableCell>
+              )}
 
               <TableCell width={90} align="center">
                 <Box
@@ -200,6 +232,12 @@ export default function ScreeningTable({
                       <ExternalLink size={16} />
                     </Button>
                   </TableCell>
+
+                  {hasSimilarity && (
+                    <TableCell align="center">
+                      {item.similarity_score?.toFixed(2)}
+                    </TableCell>
+                  )}
 
                   <TableCell align="center">
                     <Checkbox

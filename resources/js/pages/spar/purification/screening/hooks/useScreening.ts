@@ -1,5 +1,6 @@
 import {
   bulkUpdatePurificationStatus,
+  calcualateArticleRelevances,
   getAllPurificationArticles,
   updateAllPurificationStatus,
   updatePurificationStatus,
@@ -93,10 +94,28 @@ export const useScreening = ({
     },
   });
 
+  const calculateRelevances = useMutation({
+    mutationFn: calcualateArticleRelevances,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+      dispatch(
+        showSuccess(
+          'Berhasil menghitung dan mengurutkan tingkat relevansi artikel.',
+        ),
+      );
+    },
+
+    onError: (error) => {
+      dispatch(showError(error.message));
+    },
+  });
+
   return {
     ...query,
     updateStatus,
     updateAllStatus,
     bulkUpdateStatus,
+    calculateRelevances,
   };
 };

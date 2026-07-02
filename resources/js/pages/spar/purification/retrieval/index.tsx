@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react';
 import {
   BookOpen,
   Download,
-  ExternalLink,
   InfoIcon,
   Link2,
   Search,
@@ -25,6 +24,8 @@ import {
 import ArticlePanel from './components/ArticlePanel';
 import MetricCard from './components/MetricCard';
 
+import { useGuide } from '../../components/spar-layout';
+import RetrievalGuide from '../../guides/RetrievalGuide';
 import type { ArticleItem, PrismaPageProps } from './types';
 
 const shortcutPresets = [
@@ -54,6 +55,11 @@ export default function Retrieval({
 
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const guideContent = useMemo(() => <RetrievalGuide />, []);
+  const { guideOpen } = useGuide({
+    title: 'Retrieval',
+    content: guideContent,
+  });
 
   const articles = useMemo<ArticleItem[]>(
     () =>
@@ -159,21 +165,21 @@ export default function Retrieval({
             }}
           >
             <MetricCard
-              title="Record Retrieved"
+              title="Artikel Diperoleh"
               value={retrievedArticles.length}
               tone="green"
               icon={<Download size={18} />}
             />
 
             <MetricCard
-              title="Record not Retrieved"
+              title="Artikel Belum Diperoleh"
               value={notRetrievedArticles.length}
               tone="red"
               icon={<ShieldCheck size={18} />}
             />
 
             <MetricCard
-              title="Total Record"
+              title="Total Artikel"
               value={articles.length}
               tone="indigo"
               icon={<BookOpen size={18} />}
@@ -190,11 +196,11 @@ export default function Retrieval({
             }}
           >
             <ArticlePanel
-              title="NOT RETRIEVED"
+              title="BELUM DIPEROLEH"
               count={notRetrievedArticles.length}
               articles={notRetrievedArticles}
               accent="#ef4444"
-              emptyText="Semua retrieved"
+              emptyText="Tidak ada data"
               preLink={preLink}
               postLink={postLink}
               onToggleRetrieved={updateRetrievalStatus}
@@ -202,11 +208,11 @@ export default function Retrieval({
             />
 
             <ArticlePanel
-              title="RETRIEVED"
+              title="DIPEROLEH"
               count={retrievedArticles.length}
               articles={retrievedArticles}
               accent="#22c55e"
-              emptyText="Belum ada"
+              emptyText="Tidak ada data"
               preLink={preLink}
               postLink={postLink}
               onToggleRetrieved={updateRetrievalStatus}
@@ -270,7 +276,7 @@ export default function Retrieval({
                 background: '#e0e0e0',
                 color: '#a6a6a6',
                 boxShadow: 'none',
-              }
+              },
             }}
           >
             Unduh PDF Otomatis
@@ -352,7 +358,7 @@ export default function Retrieval({
               textAlign: 'center',
             }}
           >
-            CONFIGURE LINK
+            ATUR TAUTAN
           </Typography>
 
           <Box

@@ -5,6 +5,7 @@ export type ScreeningDecision = 'included' | 'excluded' | 'pending';
 export type FilteredArticle = {
   filtered_article_id: number;
   included: boolean | null;
+  similarity_score: number;
   raw_article: RawArticle;
 };
 

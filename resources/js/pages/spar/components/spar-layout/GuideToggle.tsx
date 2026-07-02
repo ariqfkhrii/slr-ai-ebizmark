@@ -36,7 +36,7 @@ export default function GuideToggle() {
       >
         <Lightbulb size={18} />
         <Typography variant="body2" sx={{ fontWeight: 500 }}>
-          Guide
+          Panduan
         </Typography>
       </IconButton>
     </Tooltip>

@@ -23,7 +23,12 @@ class ResearchPlanKeywordUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'new_keyword' => 'required|string|max:255',
+            'new_keyword' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^[a-zA-Z\s]+$/'
+            ],
             'old_keyword_id' => 'required|exists:keywords,id',
         ];
     }
@@ -36,11 +41,12 @@ class ResearchPlanKeywordUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'new_keyword.required' => 'The new keyword field is required.',
-            'new_keyword.string' => 'The new keyword must be a string.',
-            'new_keyword.max' => 'The new keyword may not be greater than 255 characters.',
+            'new_keyword.required'    => 'The new keyword field is required.',
+            'new_keyword.string'      => 'The new keyword must be a string.',
+            'new_keyword.max'         => 'The new keyword may not be greater than 255 characters.',
+            'new_keyword.regex'       => 'The new keyword may only contain letters and spaces. Symbols and numbers are not allowed.',
             'old_keyword_id.required' => 'The old keyword ID field is required.',
-            'old_keyword_id.exists' => 'The old keyword ID does not exist.',
+            'old_keyword_id.exists'   => 'The old keyword ID does not exist.',
         ];
     }
 }

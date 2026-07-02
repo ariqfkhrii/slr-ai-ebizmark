@@ -23,7 +23,12 @@ class ResearchPlanKeywordStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'keyword' => 'required|string|max:255',
+            'keyword' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^[a-zA-Z\s]+$/'
+            ],
         ];
     }
 
@@ -38,6 +43,7 @@ class ResearchPlanKeywordStoreRequest extends FormRequest
             'keyword.required' => 'The keyword field is required.',
             'keyword.string' => 'The keyword must be a string.',
             'keyword.max' => 'The keyword may not be greater than 255 characters.',
+            'keyword.regex' => 'The keyword may only contain letters and spaces. Symbols and numbers are not allowed.',
         ];
     }
 }

@@ -24,6 +24,8 @@ import {
 import ArticlePanel from './components/ArticlePanel';
 import MetricCard from './components/MetricCard';
 
+import { useGuide } from '../../components/spar-layout';
+import RetrievalGuide from '../../guides/RetrievalGuide';
 import type { ArticleItem, PrismaPageProps } from './types';
 
 const shortcutPresets = [
@@ -53,6 +55,11 @@ export default function Retrieval({
 
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const guideContent = useMemo(() => <RetrievalGuide />, []);
+  const { guideOpen } = useGuide({
+    title: 'Retrieval',
+    content: guideContent,
+  });
 
   const articles = useMemo<ArticleItem[]>(
     () =>

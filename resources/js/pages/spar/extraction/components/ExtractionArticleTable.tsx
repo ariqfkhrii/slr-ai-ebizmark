@@ -21,6 +21,7 @@ type Props = {
   onOpenExtraction: (articleId: number) => void;
   onSynchronizePdf: () => void;
   onSynchronizeArticle: () => void;
+  guideOpen?: boolean;
 };
 
 export default function ExtractionArticleTable({
@@ -28,6 +29,7 @@ export default function ExtractionArticleTable({
   onOpenExtraction,
   onSynchronizePdf,
   onSynchronizeArticle,
+  guideOpen = false,
 }: Props) {
   const [search, setSearch] = useState('');
 
@@ -83,9 +85,9 @@ export default function ExtractionArticleTable({
             variant="contained"
             startIcon={<SyncIcon fontSize="small" />}
             onClick={onSynchronizeArticle}
-            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 800 }}
+            sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 600 }}
           >
-            Synchronize Article
+            Sinkronisasi Artikel
           </Button>
 
           <Button
@@ -94,9 +96,15 @@ export default function ExtractionArticleTable({
             variant="contained"
             startIcon={<SyncIcon fontSize="small" />}
             onClick={onSynchronizePdf}
-            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 800 }}
+            sx={{
+              borderRadius: 3,
+              textTransform: 'none',
+              fontWeight: 600,
+              mr: guideOpen ? 2 : 13,
+              transition: 'margin-right 250ms ease',
+            }}
           >
-            Synchronize PDF
+            Sinkronisasi PDF
           </Button>
         </Box>
       </Box>

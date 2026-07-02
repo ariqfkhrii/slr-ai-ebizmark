@@ -1,4 +1,8 @@
 import { Box } from '@mui/material';
+import { useEffect, useMemo } from 'react';
+import { useBreadcrumb } from '../components/BreadcrumbContext';
+import { useGuide } from '../components/spar-layout';
+import ManualClassificationGuide from '../guides/ManualClassificationGuide';
 import type { FilteredArticleSummary } from '../purification/retrieval/types';
 import ClassificationDetailDialog from './components/ClassificationDetailDialog';
 import ClassificationResultTable from './components/ClassificationResultTable';
@@ -22,6 +26,17 @@ export default function Classification({
     researchPlanId,
     classificationSetup,
   );
+
+  const guideContent = useMemo(() => <ManualClassificationGuide />, []);
+  const { setTitle } = useBreadcrumb();
+  const { guideOpen } = useGuide({
+    title: 'Manual Classification',
+    content: guideContent,
+  });
+
+  useEffect(() => {
+    setTitle('Manual Classification');
+  }, [setTitle]);
 
   return (
     <Box

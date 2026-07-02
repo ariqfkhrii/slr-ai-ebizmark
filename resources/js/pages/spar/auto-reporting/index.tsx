@@ -9,8 +9,12 @@ import {
   Tabs,
   Typography,
 } from '@mui/material';
-import AutoReportingDetailDialog from './components/AutoReportingDetailDialog';
+import { useEffect, useMemo } from 'react';
+import { useBreadcrumb } from '../components/BreadcrumbContext';
+import { useGuide } from '../components/spar-layout';
+import AutoReportingGuide from '../guides/AutoReportingGuide';
 import AutoReportingChapterPanel from './components/AutoReportingChapterPanel';
+import AutoReportingDetailDialog from './components/AutoReportingDetailDialog';
 import AutoReportingItemCard from './components/AutoReportingItemCard';
 import AutoReportingSummaryCards from './components/AutoReportingSummaryCards';
 import { chapterOrder, useAutoReporting } from './hooks/useAutoReporting';
@@ -18,6 +22,17 @@ import { chapterOrder, useAutoReporting } from './hooks/useAutoReporting';
 export default function AutoReportingPage(props: any) {
   const filteredArticles = props.filteredArticles ?? [];
   const ar = useAutoReporting(props);
+
+  const guideContent = useMemo(() => <AutoReportingGuide />, []);
+  const { setTitle } = useBreadcrumb();
+  const { guideOpen } = useGuide({
+    title: 'Auto Reporting',
+    content: guideContent,
+  });
+
+  useEffect(() => {
+    setTitle('Auto Reporting');
+  }, [setTitle]);
 
   return (
     <>
@@ -27,7 +42,8 @@ export default function AutoReportingPage(props: any) {
           Auto Reporting
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Generate narasi laporan SLR berbasis PRISMA secara otomatis menggunakan Gemini 2.5 Flash.
+          Generate narasi laporan SLR berbasis PRISMA secara otomatis
+          menggunakan Gemini 2.5 Flash.
         </Typography>
 
         <AutoReportingSummaryCards
@@ -48,19 +64,33 @@ export default function AutoReportingPage(props: any) {
               scrollButtons="auto"
             >
               {chapterOrder.map((chapter) => {
-                const group = ar.groupedItems.find((g) => g.chapter === chapter);
+                const group = ar.groupedItems.find(
+                  (g) => g.chapter === chapter,
+                );
                 const count = group?.items?.length ?? 0;
-                const generated = group?.items?.filter((i: any) => i.status === 'generated').length ?? 0;
+                const generated =
+                  group?.items?.filter((i: any) => i.status === 'generated')
+                    .length ?? 0;
                 return (
                   <Tab
                     key={chapter}
                     label={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.75,
+                        }}
+                      >
                         {chapter}
                         <Chip
                           size="small"
                           label={`${generated}/${count}`}
-                          sx={{ height: 18, fontSize: 10, '& .MuiChip-label': { px: 0.75 } }}
+                          sx={{
+                            height: 18,
+                            fontSize: 10,
+                            '& .MuiChip-label': { px: 0.75 },
+                          }}
                         />
                       </Box>
                     }

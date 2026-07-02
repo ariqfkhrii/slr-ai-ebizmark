@@ -6,6 +6,8 @@ import {
   DialogContent,
   DialogTitle,
   LinearProgress,
+  Paper,
+  Stack,
   Typography,
 } from '@mui/material';
 
@@ -33,30 +35,127 @@ export default function ExtractionSyncDialog({
   const isError = status === 'error';
 
   return (
-    <Dialog open={open} onClose={isRunning ? undefined : onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Synchronize AI Extraction</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={isRunning ? undefined : onClose}
+      fullWidth
+      maxWidth="sm"
+    >
+      <DialogTitle>
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 600,
+          }}
+        >
+          AI Extraction Synchronization
+        </Typography>
+      </DialogTitle>
+
       <DialogContent dividers>
         {isSuccess ? (
-          <Typography>Auto extraction berhasil.</Typography>
-        ) : (
-          <Box>
-            <Typography>Sinkronisasi data extraction berjalan...</Typography>
-            <Typography variant="body2">
-              {processed} dari {total || '-'} record data berhasil di sinkronisasi
+          <Paper
+            variant="outlined"
+            sx={{
+              p: 3,
+              borderRadius: 2,
+              textAlign: 'center',
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{
+                mb: 1,
+              }}
+            >
+              🎉 Synchronization Completed
             </Typography>
-            <LinearProgress variant="determinate" value={progress} />
-            <br />
-            {isError && (
-              <Typography variant="body2" color="error">
-                {errorMessage || 'Gagal menjalankan AI extraction'}
+
+            <Typography color="text.secondary">
+              Semua artikel berhasil diproses oleh AI.
+            </Typography>
+          </Paper>
+        ) : (
+          <Stack spacing={3}>
+            <Box>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontWeight: 600,
+                }}
+              >
+                Processing AI Extraction
               </Typography>
+
+              <Typography variant="body2" color="text.secondary">
+                Mohon tunggu selama proses ekstraksi berjalan.
+              </Typography>
+            </Box>
+
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 2,
+                borderRadius: 2,
+              }}
+            >
+              <Stack spacing={2}>
+                <Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Progress
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      fontWeight: 600,
+                    }}
+                  >
+                    {processed} / {total || '-'} Articles
+                  </Typography>
+                </Box>
+
+                <LinearProgress
+                  variant="determinate"
+                  value={progress}
+                  sx={{
+                    height: 8,
+                    borderRadius: 5,
+                  }}
+                />
+
+                <Typography variant="body2" color="text.secondary">
+                  {progress.toFixed(0)}%
+                </Typography>
+              </Stack>
+            </Paper>
+
+            {isError && (
+              <Paper
+                variant="outlined"
+                sx={{
+                  p: 2,
+                  borderColor: 'error.main',
+                  bgcolor: 'error.lighter',
+                }}
+              >
+                <Typography color="error">
+                  {errorMessage ||
+                    'Terjadi kesalahan saat menjalankan AI extraction.'}
+                </Typography>
+              </Paper>
             )}
-          </Box>
+          </Stack>
         )}
       </DialogContent>
-      <DialogActions>
+
+      <DialogActions
+        sx={{
+          px: 3,
+          py: 2,
+        }}
+      >
         <Button variant="contained" onClick={onClose} disabled={isRunning}>
-          Kembali
+          {isSuccess ? 'Close' : 'Back'}
         </Button>
       </DialogActions>
     </Dialog>

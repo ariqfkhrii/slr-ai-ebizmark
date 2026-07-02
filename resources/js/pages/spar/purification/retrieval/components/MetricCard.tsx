@@ -1,11 +1,7 @@
 import { Box, Paper, Stack, Typography } from '@mui/material';
 import type { MetricCardProps } from '../types';
 
-export default function MetricCard({
-  title,
-  value,
-  icon,
-}: MetricCardProps) {
+export default function MetricCard({ title, value, icon }: MetricCardProps) {
   return (
     <Paper
       elevation={0}
@@ -21,7 +17,14 @@ export default function MetricCard({
       }}
     >
       <Stack spacing={1}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            color: 'text.secondary',
+          }}
+        >
           {icon}
           <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
             {title}
@@ -37,10 +40,6 @@ export default function MetricCard({
           }}
         >
           {value}
-        </Typography>
-
-        <Typography sx={{ fontSize: 14, fontWeight: 500, color: 'text.secondary' }}>
-          Record
         </Typography>
       </Stack>
     </Paper>

@@ -343,9 +343,24 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                           },
                         }}
                       >
-                        <Typography variant="body2" sx={{ fontWeight: 700, mb: 1, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', fontSize: '11px' }}>
-                          {plan.title}
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1, mb: 1 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', fontSize: '11px', flex: 1 }}>
+                            {plan.title}
+                          </Typography>
+                          <Chip
+                            label={articleInfo.source.toUpperCase()}
+                            size="small"
+                            sx={{
+                              height: 22,
+                              fontSize: '9px',
+                              fontWeight: 700,
+                              borderRadius: 1.5,
+                              bgcolor: articleInfo.source === 'pubmed' ? '#e0f2fe' : '#eef2ff',
+                              color: articleInfo.source === 'pubmed' ? '#0369a1' : '#3730a3',
+                              textTransform: 'uppercase',
+                            }}
+                          />
+                        </Box>
                         <Grid container spacing={0.5} sx={{ mb: 1, flex: 1 }}>
                           <Grid size={4}>
                             <Box sx={{ bgcolor: '#f3f4f6', borderRadius: 1.5, p: 0.75, textAlign: 'center' }}>
@@ -595,10 +610,10 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                     </Typography>
                     <Stack spacing={0.75} sx={{ mt: 1 }}>
                       <Typography variant="caption" sx={{ fontSize: '9px', color: '#1a1d23' }}>
-                        <strong>Scopus</strong> = artikel dari Scopus
+                        <strong>SCOPUS</strong> = badge di card menunjukkan topik ini menggunakan data dari Scopus.
                       </Typography>
                       <Typography variant="caption" sx={{ fontSize: '9px', color: '#1a1d23' }}>
-                        <strong>PubMed</strong> = artikel dari PubMed
+                        <strong>PUBMED</strong> = badge di card menunjukkan topik ini menggunakan data dari PubMed.
                       </Typography>
                     </Stack>
                   </Box>

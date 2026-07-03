@@ -1,4 +1,5 @@
 import { AlertCircle, CheckCircle2, ExternalLink } from 'lucide-react';
+import { FileText } from 'lucide-react';
 
 import { router } from '@inertiajs/react';
 import { Box, Button, Chip, Paper, Stack, Typography } from '@mui/material';
@@ -40,11 +41,13 @@ export default function ArticlePanel({
       sx={{
         flex: 1,
         minHeight: 0,
+        height: '75vh',
+        display: 'flex',
+        flexDirection: 'column',
         borderRadius: 4,
         overflow: 'hidden',
         border: '1px solid rgba(15, 23, 42, 0.08)',
         background: 'linear-gradient(180deg, #ffffff 0%, #fbfcff 100%)',
-        height: '65vh',
       }}
     >
       {/* HEADER */}
@@ -83,9 +86,12 @@ export default function ArticlePanel({
       <Box
         sx={{
           p: 1.5,
-          display: 'grid',
+          flex: 1,
+          minHeight: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-start',
           gap: 1.5,
-          maxHeight: '100%',
           overflowY: 'auto',
         }}
       >
@@ -149,8 +155,7 @@ export default function ArticlePanel({
 
                   {article.retrieved ? (
                     <Chip
-                      icon={<CheckCircle2 size={14} />}
-                      label="Diperoleh"
+                      label={<FileText size={14} />}
                       size="small"
                       sx={{
                         bgcolor: '#dcfce7',
@@ -160,8 +165,7 @@ export default function ArticlePanel({
                     />
                   ) : (
                     <Chip
-                      icon={<AlertCircle size={14} />}
-                      label="Belum Diperoleh"
+                      label={<FileText size={14} />}
                       size="small"
                       sx={{
                         bgcolor: '#fee2e2',

@@ -32,9 +32,9 @@ export default function Spar(props: any) {
   const researchPlanId = Number(props?.researchPlanId ?? 0);
   const [activeStep, setActiveStep] = useState(0);
   const [classificationMode, setClassificationMode] = useState<'manual' | 'ai'>(
-    'ai',
+    'manual',
   );
-  const [extractionMode, setExtractionMode] = useState<'manual' | 'ai'>('ai');
+  const [extractionMode, setExtractionMode] = useState<'manual' | 'ai'>('manual');
 
   const {
     loading,

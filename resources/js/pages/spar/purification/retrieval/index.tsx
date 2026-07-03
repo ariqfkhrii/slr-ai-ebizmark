@@ -145,6 +145,7 @@ export default function Retrieval({
           gridTemplateColumns: '1.1fr 1.1fr 0.75fr',
           gap: 2.25,
           minHeight: 'calc(100vh - 170px)',
+          alignItems: 'stretch',
         }}
       >
         {/* LEFT */}
@@ -154,6 +155,8 @@ export default function Retrieval({
             display: 'flex',
             flexDirection: 'column',
             gap: 2.25,
+            minHeight: 0,
+            height: '100%',
           }}
         >
           {/* METRICS */}
@@ -193,8 +196,20 @@ export default function Retrieval({
               gap: 2,
               flex: 1,
               minHeight: 0,
+              alignItems: 'stretch',
             }}
           >
+            <ArticlePanel
+              title="DIPEROLEH"
+              count={retrievedArticles.length}
+              articles={retrievedArticles}
+              accent="#22c55e"
+              emptyText="Tidak ada data"
+              preLink={preLink}
+              postLink={postLink}
+              onToggleRetrieved={updateRetrievalStatus}
+            />
+
             <ArticlePanel
               title="BELUM DIPEROLEH"
               count={notRetrievedArticles.length}
@@ -207,16 +222,6 @@ export default function Retrieval({
               onAutoFetch={(id) => id}
             />
 
-            <ArticlePanel
-              title="DIPEROLEH"
-              count={retrievedArticles.length}
-              articles={retrievedArticles}
-              accent="#22c55e"
-              emptyText="Tidak ada data"
-              preLink={preLink}
-              postLink={postLink}
-              onToggleRetrieved={updateRetrievalStatus}
-            />
           </Box>
         </Box>
 
@@ -291,7 +296,7 @@ export default function Retrieval({
               textAlign: 'center',
             }}
           >
-            UPLOAD PDF
+            UPLOAD PDF MANUAL
           </Typography>
 
           <Paper

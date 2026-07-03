@@ -74,6 +74,10 @@ export default function AcquisitionPage({
       id: item.id,
       name: item.name,
       retrievedCount: item.article_count,
+      duplicateCount: item.duplicate_count,
+      unmatchedTierCount: item.unmatched_tier_count,
+      missingDoiCount: item.missing_doi_count,
+      outOfYearRangeCount: item.out_of_year_range_count,
     }));
   }, [keywordsQuery.data]);
 

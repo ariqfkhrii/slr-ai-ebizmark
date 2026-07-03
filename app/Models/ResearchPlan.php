@@ -64,7 +64,13 @@ class ResearchPlan extends Model
             'keyword_id'
         )
         ->using(ResearchPlanKeyword::class)
-        ->withPivot('article_count')
+        ->withPivot(
+            'article_count',
+            'duplicate_count',
+            'unmatched_tier_count',
+            'missing_doi_count',
+            'out_of_year_range_count'
+        )
         ->withTimestamps();
     }
 

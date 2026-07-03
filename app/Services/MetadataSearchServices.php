@@ -619,12 +619,17 @@ class MetadataSearchServices
         $rawArticleIds = $acceptedData->pluck('raw_article_id')->toArray();
         
         $uniqueIds = array_unique($rawArticleIds);
-        $duplicateCountInBatch = count($rawArticleIds) - count($uniqueIds);
-
+        
         $existingIds = FilteredArticle::where('research_plan_id', $planId)
             ->whereIn('raw_article_id', $uniqueIds)
             ->pluck('raw_article_id')
             ->toArray();
+        
+        $duplicateCountFromFilteredArticle = count($existingIds);
+        
+        $duplicateCountInBatch = count($rawArticleIds) - count($uniqueIds);
+        
+        $totalDuplicateCount = $duplicateCountFromFilteredArticle + $duplicateCountInBatch;
 
         $newIds = array_diff($uniqueIds, $existingIds);
         $finalCount = count($newIds); 
@@ -650,7 +655,7 @@ class MetadataSearchServices
             ->where('keyword_id', $keywordId)
             ->incrementEach([
                 'article_count'        => $finalCount,
-                'duplicate_count'      => $duplicateCountInBatch,
+                'duplicate_count'      => $totalDuplicateCount,
                 'unmatched_tier_count' => $unmatchedTierCount,
                 'missing_doi_count'    => $missingDoiCount,
             ]);
@@ -672,7 +677,7 @@ class MetadataSearchServices
 
             $cachePayload = [
                 'raw_article_ids'         => $records,
-                'duplicate_count'         => $duplicateCountInBatch,
+                'duplicate_count'         => $totalDuplicateCount,
                 'unmatched_tier_count'    => $unmatchedTierCount,
                 'missing_doi_count'       => $missingDoiCount,
                 'out_of_year_range_count' => $outOfYearRangeCount,

@@ -1,6 +1,6 @@
 import { Box, Button } from '@mui/material';
 
-type TabValue = 'per-keyword' | 'all-keywords';
+type TabValue = 'per-keyword' | 'all-keywords' | 'summary';
 
 type Props = {
   value: TabValue;
@@ -15,6 +15,10 @@ const tabs = [
   {
     label: 'Artikel seluruh Kata Kunci / Judul',
     value: 'all-keywords',
+  },
+  {
+    label: 'Ringkasan Hasil Pengambilan Metadata',
+    value: 'summary',
   },
 ] as const;
 

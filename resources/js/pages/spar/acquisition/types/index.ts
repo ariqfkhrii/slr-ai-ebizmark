@@ -15,6 +15,10 @@ export type Keyword = {
   id: number;
   name: string;
   retrievedCount?: number;
+  duplicateCount?: number;
+  unmatchedTierCount?: number;
+  missingDoiCount?: number;
+  outOfYearRangeCount?: number;
   articles?: RawArticle[];
 };
 

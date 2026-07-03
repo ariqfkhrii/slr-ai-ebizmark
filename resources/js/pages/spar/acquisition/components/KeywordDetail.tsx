@@ -8,6 +8,7 @@ import FetchParameterDialog, {
   FetchParams,
 } from './dialog/FetchParameterDialog';
 import KeywordTabs, { TabValue } from './KeywordTabs';
+import KeywordResearchSummary from './KeywordResearchSummary';
 
 export type MetadataPreviewResult = {
   message: string;
@@ -166,6 +167,8 @@ export default function KeywordDetail({
       {tab === 'all-keywords' && (
         <ArticleTable researchPlanId={researchPlanId} tabType="all-keywords" />
       )}
+
+      {tab === 'summary' && <KeywordResearchSummary keyword={keyword} />}
 
       {/* DELETE DIALOG */}
       <DeleteKeywordConfirmationDialog

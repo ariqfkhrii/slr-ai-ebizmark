@@ -28,7 +28,9 @@ export default function AutoReportingChapterPanel({
   renderItem,
 }: Props) {
   const [processingChapter, setProcessingChapter] = useState(false);
-  const generatedCount = items.filter((item) => item.status === 'generated').length;
+  const generatedCount = items.filter(
+    (item) => item.status === 'generated',
+  ).length;
   const progress = items.length > 0 ? (generatedCount / items.length) * 100 : 0;
 
   const handleProcessChapter = async () => {
@@ -40,20 +42,32 @@ export default function AutoReportingChapterPanel({
     }
   };
 
-  const anyItemProcessing = items.some((item) => processingIds.has(Number(item.id)));
+  const anyItemProcessing = items.some((item) =>
+    processingIds.has(Number(item.id)),
+  );
   const isDisabled = processingChapter || anyItemProcessing;
 
   return (
     <Card variant="outlined">
       <CardContent>
         <Stack
-          direction={{ xs: 'column', md: 'row' }}
-          justifyContent="space-between"
           spacing={1.5}
-          alignItems={{ xs: 'flex-start', md: 'center' }}
+          sx={{
+            flexDirection: {
+              xs: 'column',
+              md: 'row',
+            },
+            justifyContent: 'space-between',
+            alignItems: {
+              xs: 'flex-start',
+              md: 'center',
+            },
+          }}
         >
           <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.25 }}>
+            <Box
+              sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.25 }}
+            >
               <Typography variant="h6" sx={{ fontWeight: 700 }}>
                 {chapter}
               </Typography>
@@ -75,7 +89,9 @@ export default function AutoReportingChapterPanel({
             disabled={isDisabled}
             startIcon={isDisabled ? <CircularProgress size={16} /> : undefined}
           >
-            {processingChapter ? 'Processing...' : `Generate All (${items.length} items)`}
+            {processingChapter
+              ? 'Processing...'
+              : `Generate Semua Item (${items.length})`}
           </Button>
         </Stack>
 

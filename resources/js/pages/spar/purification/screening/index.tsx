@@ -47,24 +47,6 @@ export default function Screening({
   useEffect(() => {
     setToolbar(
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <Button
-          size="small"
-          variant="contained"
-          onClick={handleCalculateRelevances}
-          disabled={calculateRelevances.isPending}
-          sx={{
-            px: 2,
-            py: 1,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            borderRadius: 3,
-            mt: 1.5,
-            mr: !guideOpen && selectedCount === 0 ? 17 : 2,
-          }}
-        >
-          Hitung Relevansi
-        </Button>
         {selectedCount > 0 ? (
           <Paper
             elevation={3}
@@ -191,6 +173,9 @@ export default function Screening({
           actionLabel="Exclude"
           selectedIds={selectedIncluded}
           onSelectionChange={setSelectedIncluded}
+          onCalculateRelevances={handleCalculateRelevances}
+          calculateRelevancesPending={calculateRelevances.isPending}
+          articleStatus="included"
         />
 
         <ScreeningTable
@@ -199,6 +184,7 @@ export default function Screening({
           actionLabel="Include"
           selectedIds={selectedExcluded}
           onSelectionChange={setSelectedExcluded}
+          articleStatus="excluded"
         />
       </Box>
     </Box>

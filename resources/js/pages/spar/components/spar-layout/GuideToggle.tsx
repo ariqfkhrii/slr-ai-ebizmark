@@ -15,7 +15,7 @@ export default function GuideToggle() {
         sx={{
           position: 'absolute',
           top: 12,
-          right: open ? 5 : 5,
+          right: 5,
           transition: 'right .25s ease',
           display: 'flex',
           alignItems: 'center',
@@ -23,14 +23,14 @@ export default function GuideToggle() {
           px: 2,
           py: 1,
           zIndex: 1000,
-          bgcolor: open ? 'primary.main' : 'background.paper',
-          color: open ? 'primary.contrastText' : 'text.primary',
+          bgcolor: open ? 'background.paper' : 'primary.main',
+          color: open ? 'text.primary' : 'primary.contrastText',
           border: '1px solid',
-          borderColor: open ? 'primary.main' : 'divider',
+          borderColor: open ? 'divider' : 'primary.main',
           boxShadow: 2,
           borderRadius: 3,
           '&:hover': {
-            bgcolor: open ? 'primary.dark' : 'action.hover',
+            bgcolor: open ? 'action.hover' : 'primary.dark',
           },
         }}
       >

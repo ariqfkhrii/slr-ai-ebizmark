@@ -38,6 +38,7 @@ export default function GuidePanel() {
         transition: 'width .25s ease',
         borderLeft: open ? '1px solid #E5E7EB' : 'none',
         bgcolor: '#fff',
+        height: '100%',
       }}
     >
       <Box

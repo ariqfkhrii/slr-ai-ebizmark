@@ -1,14 +1,5 @@
 import { Head } from '@inertiajs/react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Chip,
-  Stack,
-  Tab,
-  Tabs,
-  Typography,
-} from '@mui/material';
+import { Box, Card, CardContent, Chip, Stack, Tab, Tabs } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 import { useBreadcrumb } from '../components/BreadcrumbContext';
 import { useGuide } from '../components/spar-layout';
@@ -38,17 +29,7 @@ export default function AutoReportingPage(props: any) {
     <>
       <Head title="Auto Reporting" />
       <Box sx={{ p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-          Auto Reporting
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Generate narasi laporan SLR berbasis PRISMA secara otomatis
-          menggunakan Gemini 2.5 Flash.
-        </Typography>
-
         <AutoReportingSummaryCards
-          researchPlanTitle={props.researchPlan?.title ?? 'Research Plan'}
-          researchPlanId={props.researchPlanId ?? '-'}
           includedArticles={filteredArticles.length}
           reportItems={ar.items.length}
           generatedCount={ar.generatedCount}

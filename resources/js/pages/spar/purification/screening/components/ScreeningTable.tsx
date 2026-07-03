@@ -3,6 +3,8 @@ import {
   Button,
   Checkbox,
   Chip,
+  Collapse,
+  IconButton,
   Paper,
   Table,
   TableBody,
@@ -14,7 +16,7 @@ import {
   TableSortLabel,
   Typography,
 } from '@mui/material';
-import { ExternalLink } from 'lucide-react';
+import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { FilteredArticle } from '../types';
 
@@ -24,6 +26,9 @@ type Props = {
   actionLabel: 'Include' | 'Exclude';
   selectedIds: number[];
   onSelectionChange: (ids: number[]) => void;
+  onCalculateRelevances?: () => void;
+  calculateRelevancesPending?: boolean;
+  articleStatus?: 'included' | 'excluded';
 };
 
 export default function ScreeningTable({
@@ -32,10 +37,20 @@ export default function ScreeningTable({
   actionLabel,
   selectedIds,
   onSelectionChange,
+  onCalculateRelevances,
+  calculateRelevancesPending,
+  articleStatus,
 }: Props) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [expandedRows, setExpandedRows] = useState<number[]>([]);
+
+  const toggleRow = (id: number) => {
+    setExpandedRows((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
 
   const sortedArticles = useMemo(() => {
     return [...articles].sort((a, b) => {
@@ -45,6 +60,22 @@ export default function ScreeningTable({
       return sortDirection === 'asc' ? scoreA - scoreB : scoreB - scoreA;
     });
   }, [articles, sortDirection]);
+
+  const rankedArticles = useMemo(() => {
+    return [...articles]
+      .filter((article) => article.similarity_score != null)
+      .sort((a, b) => (b.similarity_score ?? 0) - (a.similarity_score ?? 0))
+      .map((article, index) => ({
+        id: article.filtered_article_id,
+        rank: index + 1,
+      }));
+  }, [articles]);
+
+  const rankMap = useMemo(() => {
+    return Object.fromEntries(
+      rankedArticles.map((item) => [item.id, item.rank]),
+    );
+  }, [rankedArticles]);
 
   const paginatedArticles = useMemo(() => {
     const start = page * rowsPerPage;
@@ -90,12 +121,33 @@ export default function ScreeningTable({
           {title}
         </Typography>
 
-        <Chip
-          label={`${articles.length} Artikel`}
-          color={actionLabel === 'Include' ? 'error' : 'success'}
-          size="small"
-          sx={{ p: 1 }}
-        />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {articleStatus === 'included' && (
+            <Button
+              size="small"
+              variant="contained"
+              onClick={onCalculateRelevances}
+              disabled={calculateRelevancesPending}
+              sx={{
+                px: 2,
+                py: 1,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                borderRadius: 3,
+              }}
+            >
+              Urutkan Relevansi
+            </Button>
+          )}
+
+          <Chip
+            label={`${articles.length} Artikel`}
+            color={actionLabel === 'Include' ? 'error' : 'success'}
+            size="small"
+            sx={{ p: 1 }}
+          />
+        </Box>
       </Box>
 
       <TableContainer
@@ -127,6 +179,12 @@ export default function ScreeningTable({
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>
+              <TableCell width={48} />
+              {hasSimilarity && (
+                <TableCell width={70} align="center">
+                  Rank
+                </TableCell>
+              )}
               <TableCell width={70}>Tahun</TableCell>
               <TableCell>Judul</TableCell>
               <TableCell width={70}>Tier</TableCell>
@@ -193,72 +251,160 @@ export default function ScreeningTable({
           <TableBody>
             {paginatedArticles.map((item) => {
               const article = item.raw_article;
+              const rank = rankMap[item.filtered_article_id];
 
               return (
-                <TableRow hover key={item.filtered_article_id}>
-                  <TableCell>{article.publish_year}</TableCell>
-
-                  <TableCell>
-                    <Typography
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: 13,
-                        mb: 0.25,
-                      }}
-                    >
-                      {article.title}
-                    </Typography>
-
-                    <Typography variant="caption" color="text.secondary">
-                      {article.authors}
-                    </Typography>
-                  </TableCell>
-
-                  <TableCell>
-                    <Chip size="small" label={article.tier.toUpperCase()} />
-                  </TableCell>
-
-                  <TableCell>{article.citation_count}</TableCell>
-
-                  <TableCell>
-                    <Button
-                      size="small"
-                      href={`https://doi.org/${article.doi}`}
-                      target="_blank"
-                      sx={{
-                        minWidth: 36,
-                      }}
-                    >
-                      <ExternalLink size={16} />
-                    </Button>
-                  </TableCell>
-
-                  {hasSimilarity && (
-                    <TableCell align="center">
-                      {item.similarity_score?.toFixed(2)}
+                <>
+                  <TableRow hover key={item.filtered_article_id}>
+                    <TableCell padding="checkbox">
+                      <IconButton
+                        size="small"
+                        onClick={() => toggleRow(item.filtered_article_id)}
+                      >
+                        {expandedRows.includes(item.filtered_article_id) ? (
+                          <ChevronUp size={20} />
+                        ) : (
+                          <ChevronDown size={20} />
+                        )}
+                      </IconButton>
                     </TableCell>
-                  )}
+                    {hasSimilarity && (
+                      <TableCell align="center">
+                        <Typography
+                          sx={{
+                            fontWeight: 400,
+                          }}
+                        >
+                          {rank ?? '-'}
+                        </Typography>
+                      </TableCell>
+                    )}
+                    <TableCell>{article.publish_year}</TableCell>
 
-                  <TableCell align="center">
-                    <Checkbox
-                      checked={selectedIds.includes(item.filtered_article_id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          onSelectionChange([
-                            ...selectedIds,
-                            item.filtered_article_id,
-                          ]);
-                        } else {
-                          onSelectionChange(
-                            selectedIds.filter(
-                              (id) => id !== item.filtered_article_id,
-                            ),
-                          );
-                        }
+                    <TableCell>
+                      <Typography
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: 13,
+                          mb: 0.25,
+                        }}
+                      >
+                        {article.title}
+                      </Typography>
+
+                      <Typography variant="caption" color="text.secondary">
+                        {article.authors}
+                      </Typography>
+                    </TableCell>
+
+                    <TableCell>
+                      <Chip size="small" label={article.tier.toUpperCase()} />
+                    </TableCell>
+
+                    <TableCell>{article.citation_count}</TableCell>
+
+                    <TableCell>
+                      <Button
+                        size="small"
+                        href={`https://doi.org/${article.doi}`}
+                        target="_blank"
+                        sx={{
+                          minWidth: 36,
+                        }}
+                      >
+                        <ExternalLink size={16} />
+                      </Button>
+                    </TableCell>
+
+                    {hasSimilarity && (
+                      <TableCell align="center">
+                        {item.similarity_score?.toFixed(2)}
+                      </TableCell>
+                    )}
+
+                    <TableCell align="center">
+                      <Checkbox
+                        checked={selectedIds.includes(item.filtered_article_id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            onSelectionChange([
+                              ...selectedIds,
+                              item.filtered_article_id,
+                            ]);
+                          } else {
+                            onSelectionChange(
+                              selectedIds.filter(
+                                (id) => id !== item.filtered_article_id,
+                              ),
+                            );
+                          }
+                        }}
+                      />
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell
+                      colSpan={hasSimilarity ? 8 : 7}
+                      sx={{
+                        py: 0,
+                        borderBottom: 0,
                       }}
-                    />
-                  </TableCell>
-                </TableRow>
+                    >
+                      <Collapse
+                        in={expandedRows.includes(item.filtered_article_id)}
+                        timeout="auto"
+                        unmountOnExit
+                      >
+                        <Box
+                          sx={{
+                            px: 2,
+                            py: 2,
+                            bgcolor: 'grey.50',
+                          }}
+                        >
+                          <Typography
+                            variant="subtitle2"
+                            sx={{
+                              fontWeight: 700,
+                              mb: 0.5,
+                            }}
+                          >
+                            Abstrak
+                          </Typography>
+
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{
+                              whiteSpace: 'pre-wrap',
+                              mb: 2,
+                            }}
+                          >
+                            {article.abstract?.trim()
+                              ? article.abstract
+                              : 'Abstrak artikel tidak tersedia'}
+                          </Typography>
+
+                          <Typography
+                            variant="subtitle2"
+                            sx={{
+                              fontWeight: 700,
+                              mb: 0.5,
+                            }}
+                          >
+                            Kata Kunci
+                          </Typography>
+
+                          <Typography variant="body2" color="text.secondary">
+                            {article.keyword?.trim()
+                              ? article.keyword
+                              : 'Kata kunci artikel tidak tersedia'}
+                          </Typography>
+                        </Box>
+                      </Collapse>
+                    </TableCell>
+                  </TableRow>
+                </>
               );
             })}
           </TableBody>

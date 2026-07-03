@@ -1,6 +1,6 @@
 import { getResearchPlanById } from '@/clients/researchPlan';
 import { Head } from '@inertiajs/react';
-import { Box, Paper, Typography } from '@mui/material';
+import { Box, Paper, Tooltip, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import Acquisition from './acquisition';
@@ -72,7 +72,15 @@ export default function Spar(props: any) {
 
   if (loading) {
     return (
-      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center' }}>
+      <Box
+        sx={{
+          width: '100%',
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <Typography>Memuat...</Typography>
       </Box>
     );
@@ -129,9 +137,32 @@ export default function Spar(props: any) {
               borderColor: 'divider',
             }}
           >
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>
-              {topic?.title ? topic?.title : '-'}
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{
+                display: 'block',
+                mb: 0.25,
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              }}
+            >
+              Topik Penelitian
             </Typography>
+
+            <Tooltip title={topic?.title ?? '-'} arrow>
+              <Typography
+                variant="h6"
+                noWrap
+                sx={{
+                  fontWeight: 700,
+                  cursor: 'default',
+                }}
+              >
+                {topic?.title ?? '-'}
+              </Typography>
+            </Tooltip>
           </Box>
 
           {/* STEPPER AREA */}

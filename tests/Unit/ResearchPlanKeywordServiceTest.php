@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\ResearchPlanKeyword\ResearchPlanKeywordService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Tests\TestCase;
 
@@ -21,6 +22,7 @@ class ResearchPlanKeywordServiceTest extends TestCase
     {
         parent::setUp();
         $this->service = new ResearchPlanKeywordService(); 
+        Queue::fake();
     }
 
     public function test_it_passes_when_user_owns_the_research_plan()

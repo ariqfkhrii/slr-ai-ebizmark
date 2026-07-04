@@ -61,7 +61,7 @@ class MetadataSearchServicesTest extends TestCase
                 'entries' => []
             ]);
 
-        $result = $this->service->getPreviewResults($plan->research_plan_id, $validatedData);
+        $result = $this->service->getPreviewResults($validatedData, $plan->research_plan_id);
 
         $this->assertEquals(500, $result['total_count']);
         $this->assertTrue($result['is_recommended']);
@@ -93,7 +93,7 @@ class MetadataSearchServicesTest extends TestCase
                 'ids' => []
             ]);
 
-        $result = $this->service->getPreviewResults($plan->research_plan_id, $validatedData);
+        $result = $this->service->getPreviewResults($validatedData, $plan->research_plan_id);
 
         $this->assertEquals(50, $result['total_count']);
         $this->assertFalse($result['is_recommended']);
@@ -122,7 +122,7 @@ class MetadataSearchServicesTest extends TestCase
                 'entries' => []
             ]);
 
-        $result = $this->service->getPreviewResults($plan->research_plan_id, $validatedData);
+        $result = $this->service->getPreviewResults($validatedData, $plan->research_plan_id);
 
         $this->assertEquals(6000, $result['total_count']);
         $this->assertFalse($result['is_recommended']);

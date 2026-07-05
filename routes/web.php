@@ -13,7 +13,7 @@ use App\Http\Controllers\ResearchPlanKeywordController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
-Route::inertia('/', 'welcome', [
+Route::inertia('/', 'landing/Landing', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 

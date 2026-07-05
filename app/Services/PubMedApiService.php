@@ -49,6 +49,17 @@ class PubMedApiService
     }
     
     /**
+     * Build a PubMed API query string for a given keyword.
+     *
+     * @param string $keyword The keyword to search for.
+     * @return string The formatted PubMed API query.
+     */
+    public function buildPubMedQuery(string $keyword): string
+    {
+        return '(' . $keyword . ')';
+    }
+
+    /**
      * Search PubMed for a keyword and year range, returning both the total count and the IDs.
      * This combines the count request and the ID retrieval into a single API call for efficiency.
      *
@@ -62,7 +73,7 @@ class PubMedApiService
     {
         $this->enforceRateLimit();
         
-        $searchQuery = '("' . $keyword . '"[Title/Abstract] OR "' . $keyword . '"[Other Term] OR "' . $keyword . '"[MeSH Terms])';
+        $searchQuery = $this->buildPubMedQuery($keyword);
         $qualityFilter = '("Journal Article"[pt] AND "medline"[sb] NOT "preprint"[pt])';
         $term = $searchQuery . ' AND ' . $qualityFilter . ' AND ' . $startYear . ':' . $endYear . '[dp]';
 
@@ -166,7 +177,7 @@ class PubMedApiService
     {
         $this->enforceRateLimit();
 
-        $searchQuery = '("' . $keyword . '"[Title/Abstract] OR "' . $keyword . '"[Other Term] OR "' . $keyword . '"[MeSH Terms])';
+        $searchQuery = $this->buildPubMedQuery($keyword);
         $qualityFilter = '("Journal Article"[pt] AND "medline"[sb] NOT "preprint"[pt])';
         
         $term = $searchQuery . ' AND ' . $qualityFilter;

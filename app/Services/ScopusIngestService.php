@@ -29,12 +29,12 @@ class ScopusIngestService
      */
     public function ingest(array $validatedRequest, int $startPage, int $endPage, ?string $batchId, string $cacheKey): void
     {
-        $keyword = Keyword::findOrFail($validatedRequest['keyword_id'])->keyword;
+        $keywordText = Keyword::findOrFail($validatedRequest['keyword_id'])->keyword;
         $startYear = (int) $validatedRequest['start_year'];
         $endYear = (int) $validatedRequest['end_year'];
 
         $itemsPerPage = 25;
-        $query = 'TITLE-ABS-KEY("' . $keyword . '") AND PUBYEAR > ' . ($startYear - 1) . ' AND PUBYEAR < ' . ($endYear + 1);
+        $query = $this->scopusApi->buildScopusQuery($keywordText) . ' AND PUBYEAR > ' . ($startYear - 1) . ' AND PUBYEAR < ' . ($endYear + 1);
 
         for ($page = $startPage; $page <= $endPage; $page++) {
             $startIndex = ($page - 1) * $itemsPerPage;

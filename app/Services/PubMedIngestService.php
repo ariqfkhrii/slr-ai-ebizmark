@@ -166,7 +166,8 @@ class PubMedIngestService
      */
     protected function buildTerm(string $keyword, int $startYear, int $endYear): string
     {
-        $searchQuery = '("' . $keyword . '"[Title/Abstract] OR "' . $keyword . '"[Other Term] OR "' . $keyword . '"[MeSH Terms])';
+        $searchQuery = '(' . $keyword . ')';
+        
         $qualityFilter = '("Journal Article"[pt] AND "medline"[sb] NOT "preprint"[pt])';
 
         return $searchQuery . ' AND ' . $qualityFilter . ' AND ' . $startYear . ':' . $endYear . '[dp]';

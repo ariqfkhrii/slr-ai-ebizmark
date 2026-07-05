@@ -27,6 +27,22 @@ class ScopusApiService
     }
 
     /**
+     * Build a Scopus API query string from the given keyword.
+     *
+     * This method formats the keyword to ensure that any "NOT" operators are correctly interpreted by the Scopus API.
+     * It constructs a query string that searches for the keyword in the title, abstract, and keywords of publications.
+     *
+     * @param string $keyword The keyword to be included in the search query.
+     * @return string The formatted Scopus API query string.
+     */
+    public function buildScopusQuery(string $keyword): string
+    {
+        $formattedKeyword = preg_replace('/\bNOT\b/i', 'AND NOT', $keyword);
+
+        return 'TITLE-ABS-KEY(' . $formattedKeyword . ')';
+    }
+
+    /**
      * Search the Scopus API for a given keyword and publication year range, returning both the total count and the entries.
      *
      * @param string $keyword The keyword to search for in the Scopus database.
@@ -40,7 +56,7 @@ class ScopusApiService
     {
         $this->enforceRateLimit();
 
-        $query = 'TITLE-ABS-KEY("' . $keyword . '") AND PUBYEAR > ' . ($startYear - 1) . ' AND PUBYEAR < ' . ($endYear + 1);
+        $query = $this->buildScopusQuery($keyword) . ' AND PUBYEAR > ' . ($startYear - 1) . ' AND PUBYEAR < ' . ($endYear + 1);
 
         $response = Http::withHeaders([
             'X-ELS-APIKey' => config('services.scopus.key'),
@@ -81,7 +97,7 @@ class ScopusApiService
     {
         $this->enforceRateLimit();
 
-        $query = 'TITLE-ABS-KEY("' . $keyword . '")';
+        $query = $this->buildScopusQuery($keyword);
 
         if ($startYear !== null && $endYear !== null) {
             $query .= ' AND PUBYEAR > ' . ($startYear - 1) . ' AND PUBYEAR < ' . ($endYear + 1);

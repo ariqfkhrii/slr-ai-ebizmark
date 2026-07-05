@@ -44,7 +44,7 @@ class ResearchPlanKeywordController extends Controller
     public function store(ResearchPlanKeywordStoreRequest $request, int $researchPlanId)
     {
         $userId = auth()->id();
-        $keywordName = $request->validated()['keyword'];
+        $keywordName = trim($request->validated()['keyword']);
 
         $keyword = $this->service->attachKeywordToResearchPlan($userId, $researchPlanId, $keywordName);
 

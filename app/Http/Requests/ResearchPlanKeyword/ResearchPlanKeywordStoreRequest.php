@@ -16,6 +16,20 @@ class ResearchPlanKeywordStoreRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('keyword')) {
+            $normalizedKeyword = preg_replace('/\bAND NOT\b/i', 'NOT', $this->keyword);
+            
+            $this->merge([
+                'keyword' => trim($normalizedKeyword),
+            ]);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
@@ -27,7 +41,13 @@ class ResearchPlanKeywordStoreRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                'regex:/^[a-zA-Z\s]+$/'
+                'regex:/^[\p{L}0-9\s\*\?\"\'\{\}\-\/\(\)\\\\\.,:\[\]\~]+$/u',
+                
+                function ($attribute, $value, $fail) {
+                    if (preg_match('/\bOR\b/i', $value) || str_contains($value, '|')) {
+                        $fail('Operator OR (maupun simbol |) tidak didukung dalam satu pencarian demi keamanan limit data. Harap pecah menjadi beberapa kata kunci.');
+                    }
+                },
             ],
         ];
     }
@@ -40,10 +60,10 @@ class ResearchPlanKeywordStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'keyword.required' => 'The keyword field is required.',
-            'keyword.string' => 'The keyword must be a string.',
-            'keyword.max' => 'The keyword may not be greater than 255 characters.',
-            'keyword.regex' => 'The keyword may only contain letters and spaces. Symbols and numbers are not allowed.',
+            'keyword.required' => 'Kata kunci wajib diisi.',
+            'keyword.string'   => 'Kata kunci harus berupa format teks.',
+            'keyword.max'      => 'Kata kunci maksimal 255 karakter.',
+            'keyword.regex'    => 'Karakter tidak valid. Hanya huruf, angka, dan operator (* ? " \' { } [ ] - / ( ) ~) yang diizinkan.',
         ];
     }
 }

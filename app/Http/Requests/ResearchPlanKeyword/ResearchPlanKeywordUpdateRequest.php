@@ -16,6 +16,21 @@ class ResearchPlanKeywordUpdateRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('new_keyword')) {
+            // Ubah variasi 'AND NOT' menjadi 'NOT' di field new_keyword
+            $normalizedKeyword = preg_replace('/\bAND NOT\b/i', 'NOT', $this->new_keyword);
+            
+            $this->merge([
+                'new_keyword' => trim($normalizedKeyword),
+            ]);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
@@ -27,7 +42,13 @@ class ResearchPlanKeywordUpdateRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                'regex:/^[a-zA-Z\s]+$/'
+                'regex:/^[\p{L}0-9\s\*\?\"\'\{\}\-\/\(\)\\\\\.,:\[\]\~]+$/u',
+                
+                function ($attribute, $value, $fail) {
+                    if (preg_match('/\bOR\b/i', $value) || str_contains($value, '|')) {
+                        $fail('Operator OR (maupun simbol |) tidak didukung dalam satu pencarian demi keamanan limit data. Harap pecah menjadi beberapa kata kunci.');
+                    }
+                },
             ],
             'old_keyword_id' => 'required|exists:keywords,id',
         ];
@@ -41,12 +62,12 @@ class ResearchPlanKeywordUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'new_keyword.required'    => 'The new keyword field is required.',
-            'new_keyword.string'      => 'The new keyword must be a string.',
-            'new_keyword.max'         => 'The new keyword may not be greater than 255 characters.',
-            'new_keyword.regex'       => 'The new keyword may only contain letters and spaces. Symbols and numbers are not allowed.',
-            'old_keyword_id.required' => 'The old keyword ID field is required.',
-            'old_keyword_id.exists'   => 'The old keyword ID does not exist.',
+            'new_keyword.required'    => 'Kata kunci baru wajib diisi.',
+            'new_keyword.string'      => 'Kata kunci baru harus berupa format teks.',
+            'new_keyword.max'         => 'Kata kunci baru maksimal 255 karakter.',
+            'new_keyword.regex'       => 'Karakter tidak valid. Hanya huruf, angka, dan operator (* ? " \' { } [ ] - / ( ) ~) yang diizinkan.',
+            'old_keyword_id.required' => 'Sistem tidak dapat mengenali kata kunci mana yang ingin diubah. Silakan muat ulang halaman dan coba lagi.',
+            'old_keyword_id.exists'   => 'Kata kunci yang ingin diubah sudah tidak ada atau mungkin telah dihapus. Silakan muat ulang halaman.',
         ];
     }
 }

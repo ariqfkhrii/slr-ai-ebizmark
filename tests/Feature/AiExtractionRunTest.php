@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Extraction;
 use App\Models\FilteredArticle;
+use App\Models\Keyword;
 use App\Models\RawArticle;
 use App\Models\ResearchPlan;
 use App\Models\Review;
@@ -30,6 +31,9 @@ class AiExtractionRunTest extends TestCase
 
         $user = User::factory()->create();
         $plan = ResearchPlan::factory()->create(['user_id' => $user->id]);
+        $keyword = Keyword::factory()->create([
+            'keyword' => 'ai extraction',
+        ]);
 
         $raw = RawArticle::query()->create([
             'doi' => '10.1234/test.2',
@@ -42,6 +46,7 @@ class AiExtractionRunTest extends TestCase
         $filtered = FilteredArticle::query()->create([
             'raw_article_id' => $raw->id,
             'research_plan_id' => $plan->research_plan_id,
+            'keyword_id' => $keyword->id,
             'article_status' => 'included',
             'retrieved' => true,
             'included' => true,

@@ -9,6 +9,7 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
+  Upload,
 } from 'lucide-react';
 
 import {
@@ -221,7 +222,6 @@ export default function Retrieval({
               onToggleRetrieved={updateRetrievalStatus}
               onAutoFetch={(id) => id}
             />
-
           </Box>
         </Box>
 
@@ -415,6 +415,36 @@ export default function Retrieval({
 
           <Button variant="contained" fullWidth endIcon={<Link2 size={14} />}>
             Simpan
+          </Button>
+
+          <Divider sx={{ my: 3 }} />
+
+          <Typography
+            sx={{
+              fontWeight: 900,
+              textAlign: 'center',
+            }}
+          >
+            UPLOAD SUMBER LAIN
+          </Typography>
+
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              mt: 1,
+              mb: 2,
+              textAlign: 'center',
+            }}
+          >
+            Unggah artikel dalam format PDF dari sumber lain yang tidak tersedia
+            pada database pencarian. Setelah file diunggah, metadata artikel
+            akan diisi secara manual, kemudian artikel akan ditambahkan ke
+            daftar <b>DIPEROLEH</b>.
+          </Typography>
+
+          <Button variant="outlined" fullWidth startIcon={<Upload size={16} />}>
+            Upload Sumber Lain
           </Button>
         </Paper>
       </Box>

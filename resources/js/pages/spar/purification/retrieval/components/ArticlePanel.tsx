@@ -1,5 +1,4 @@
-import { AlertCircle, CheckCircle2, ExternalLink } from 'lucide-react';
-import { FileText } from 'lucide-react';
+import { ExternalLink, FileText } from 'lucide-react';
 
 import { router } from '@inertiajs/react';
 import { Box, Button, Chip, Paper, Stack, Typography } from '@mui/material';

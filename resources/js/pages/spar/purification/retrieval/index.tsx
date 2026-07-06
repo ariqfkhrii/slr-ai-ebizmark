@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   BookOpen,
@@ -15,6 +15,7 @@ import {
   Alert,
   Box,
   Button,
+  CircularProgress,
   Divider,
   Paper,
   TextField,
@@ -55,6 +56,8 @@ export default function Retrieval({
 
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isAutoFetching, setIsAutoFetching] = useState(false);
+  const autoFetchPollRef = useRef<number | null>(null);
   const guideContent = useMemo(() => <RetrievalGuide />, []);
   const { guideOpen } = useGuide({
     title: 'Retrieval',
@@ -92,12 +95,65 @@ export default function Retrieval({
     );
   };
 
+  useEffect(() => {
+    return () => {
+      if (autoFetchPollRef.current) {
+        window.clearInterval(autoFetchPollRef.current);
+      }
+    };
+  }, []);
+
+  const stopAutoFetchPolling = () => {
+    if (autoFetchPollRef.current) {
+      window.clearInterval(autoFetchPollRef.current);
+      autoFetchPollRef.current = null;
+    }
+
+    setIsAutoFetching(false);
+  };
+
   const handleAutoFetchAll = () => {
+    setIsAutoFetching(true);
+
+    let attempts = 0;
+    let lastPendingCount: number | null = null;
+
     router.post(
       `/research-plans/${researchPlan.research_plan_id}/auto-fetch-all`,
       {},
-      { preserveScroll: true },
+      {
+        preserveScroll: true,
+      },
     );
+
+    autoFetchPollRef.current = window.setInterval(() => {
+      attempts += 1;
+
+      router.reload({
+        only: ['filteredArticles'],
+        onSuccess: (page) => {
+          const props = page.props as unknown as PrismaPageProps;
+          const nextFiltered = props.filteredArticles ?? [];
+          const pendingCount = nextFiltered.filter(
+            (item) => item.included && !Boolean(item.retrieved),
+          ).length;
+
+          if (pendingCount === 0) {
+            stopAutoFetchPolling();
+            return;
+          }
+
+          if (lastPendingCount !== null && pendingCount === lastPendingCount) {
+            if (attempts >= 8) {
+              stopAutoFetchPolling();
+              return;
+            }
+          }
+
+          lastPendingCount = pendingCount;
+        },
+      });
+    }, 2500);
   };
 
   const handleShortcut = (value: { preLink: string; postLink: string }) => {
@@ -264,8 +320,14 @@ export default function Retrieval({
           <Button
             variant="contained"
             fullWidth
-            startIcon={<Sparkles size={14} />}
-            disabled={notRetrievedArticles.length === 0}
+            startIcon={
+              isAutoFetching ? (
+                <CircularProgress size={14} color="inherit" />
+              ) : (
+                <Sparkles size={14} />
+              )
+            }
+            disabled={notRetrievedArticles.length === 0 || isAutoFetching}
             onClick={handleAutoFetchAll}
             sx={{
               background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
@@ -284,8 +346,28 @@ export default function Retrieval({
               },
             }}
           >
-            Unduh PDF Otomatis
+            {isAutoFetching ? 'Mengunduh...' : 'Unduh PDF Otomatis'}
           </Button>
+
+          {isAutoFetching && (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1,
+                py: 1,
+                borderRadius: 2,
+                bgcolor: '#eef2ff',
+                color: '#4338ca',
+                fontSize: 12,
+                fontWeight: 700,
+              }}
+            >
+              <CircularProgress size={14} thickness={5} color="inherit" />
+              <span>Sedang mengambil PDF...</span>
+            </Box>
+          )}
 
           <Divider />
 

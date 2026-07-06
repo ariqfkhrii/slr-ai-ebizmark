@@ -13,6 +13,7 @@ export const dummyExtractionArticles: ExtractionArticle[] = [
     quartile: 'Q1',
     text: 27,
     novelty: true,
+    noveltyGap: 'Penelitian ini menyoroti kebutuhan evaluasi jangka panjang.',
     status: 'pending',
     pdfUrl:
       'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf',
@@ -29,6 +30,7 @@ export const dummyExtractionArticles: ExtractionArticle[] = [
     quartile: 'Q3',
     text: 9,
     novelty: false,
+    noveltyGap: '',
     status: 'pending',
     pdfUrl:
       'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf',

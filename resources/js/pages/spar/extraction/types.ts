@@ -9,6 +9,7 @@ export type ExtractionArticle = {
   quartile: string;
   text: number;
   novelty: boolean;
+  noveltyGap: string;
   status: 'pending' | 'extracted';
   pdfUrl?: string;
 };

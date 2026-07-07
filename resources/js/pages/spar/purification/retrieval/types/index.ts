@@ -90,6 +90,7 @@ export type ArticlePanelProps = {
   emptyText: string;
   preLink: string;
   postLink: string;
+  researchPlanId: number;
   onToggleRetrieved?: (articleId: number, nextRetrieved: boolean) => void;
   onAutoFetch?: (articleId: number) => void;
 };

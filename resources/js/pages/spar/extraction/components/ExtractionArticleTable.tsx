@@ -13,7 +13,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useMemo, useState } from 'react';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { ExtractionArticle } from '../types';
 
 type Props = {
@@ -33,7 +33,7 @@ const headers = [
   'Penggunaan AI',
   'Citation',
   'Journal Rank',
-  'Text',
+  'Jumlah Kata',
   'Novelty/Gap',
   'Status',
 ];
@@ -84,7 +84,7 @@ export default function ExtractionArticleTable({
       article.status,
     ]);
 
-  const downloadBlob = (content: string, filename: string, mimeType: string) => {
+  const downloadBlob = (content: BlobPart | string, filename: string, mimeType: string) => {
     const blob = new Blob([content], { type: mimeType });
     const url = window.URL.createObjectURL(blob);
     const anchor = document.createElement('a');
@@ -118,12 +118,15 @@ export default function ExtractionArticleTable({
     document.body.removeChild(textarea);
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     const rows = buildRows();
-    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Extraction');
-    XLSX.writeFile(workbook, 'extraction-articles.xlsx');
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Extraction');
+
+    worksheet.addRows([headers, ...rows]);
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    downloadBlob(buffer, 'extraction-articles.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   };
 
   const handleExportCsv = () => {
@@ -310,7 +313,7 @@ export default function ExtractionArticleTable({
               <TableCell>Penggunaan AI</TableCell>
               <TableCell>Citation</TableCell>
               <TableCell>Journal Rank</TableCell>
-              <TableCell>Text</TableCell>
+              {/* <TableCell>Text</TableCell> */}
               <TableCell>Novelty/Gap</TableCell>
               <TableCell>Status</TableCell>
               <TableCell align="center">Act</TableCell>
@@ -341,7 +344,7 @@ export default function ExtractionArticleTable({
                   <Chip size="small" label={article.quartile} color="success" />
                 </TableCell>
 
-                <TableCell>{formatTextValue(article.text)}</TableCell>
+                {/* <TableCell>{formatTextValue(article.text)}</TableCell> */}
 
                 <TableCell sx={{ maxWidth: 180, width: 180 }}>
                   <Box

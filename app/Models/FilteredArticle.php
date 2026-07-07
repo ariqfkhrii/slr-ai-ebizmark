@@ -39,7 +39,7 @@ class FilteredArticle extends Model
 
     public function researchPlan()
     {
-        return $this->belongsTo(ResearchPlan::class);
+        return $this->belongsTo(ResearchPlan::class, 'research_plan_id', 'research_plan_id');
     }
 
     public function review()

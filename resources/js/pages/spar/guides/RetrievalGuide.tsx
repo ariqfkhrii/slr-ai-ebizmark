@@ -17,28 +17,28 @@ export default function RetrievalGuide() {
       <GuideSection title="Status Artikel">
         <GuideStep
           number={1}
-          title="Artikel Diperoleh"
+          title="Artikel Tersedia"
           description="Artikel yang sudah memiliki file PDF lengkap dan siap untuk proses ekstraksi."
         />
 
         <GuideStep
           number={2}
-          title="Artikel Belum Diperoleh"
-          description="Artikel yang masih memerlukan upload file PDF untuk dapat diproses lebih lanjut."
+          title="Artikel Tidak Tersedia"
+          description="Artikel yang masih memerlukan upload file PDF untuk dapat diproses lebih lanjut. Anda dapat mencoba untuk mengunduh PDF dengan menekan tombol COBA UNDUH PDF atau mengunggah file PDF secara manual dengan menekan tombol UPLOAD PDF."
         />
       </GuideSection>
 
-      <GuideSection title="Cara Upload PDF">
+      <GuideSection title="Cara Mengunggah PDF">
         <GuideStep
           number={1}
-          title="Upload Manual"
-          description="Drag & drop file PDF atau klik untuk memilih file dari perangkat Anda."
+          title="Pilih Artikel"
+          description="Klik tombol Upload PDF pada artikel yang ingin Anda unggah file PDF-nya."
         />
 
         <GuideStep
           number={2}
-          title="Upload & Scan DOI"
-          description="Masukkan DOI artikel dan sistem akan mencoba mengambil file PDF secara otomatis melalui Crossref."
+          title="Unggah File PDF"
+          description="Pilih file PDF dari perangkat Anda, lalu unggah ke sistem."
         />
       </GuideSection>
 

@@ -39,6 +39,7 @@ class FilteredArticleController extends Controller
                     'integer',
                     Rule::exists('research_plans', 'research_plan_id'),
                 ],
+                'filtered_article_id' => ['nullable', 'integer', Rule::exists('filtered_articles', 'id')],
             ]);
         } catch (ValidationException $exception) {
             Log::warning('DOI upload validation failed', [
@@ -67,11 +68,33 @@ class FilteredArticleController extends Controller
             'research_plan_id' => $validated['research_plan_id'],
         ]);
 
-        $storedPath = $validated['pdf']->store('uploads/doi-checks', 'public');
+        $storedPath = $validated['pdf']->store('uploads/manual-pdfs', 'public');
 
         Log::info('DOI upload stored file', [
             'stored_path' => $storedPath,
         ]);
+
+        if (! empty($validated['filtered_article_id'])) {
+            $filteredArticle = FilteredArticle::query()
+                ->where('id', $validated['filtered_article_id'])
+                ->where('research_plan_id', $validated['research_plan_id'])
+                ->firstOrFail();
+
+            $filteredArticle->update([
+                'retrieved' => true,
+                'pdf_path' => $storedPath,
+            ]);
+
+            Log::info('Manual PDF upload assigned to filtered article', [
+                'filtered_article_id' => $filteredArticle->id,
+                'research_plan_id' => $filteredArticle->research_plan_id,
+                'pdf_path' => $storedPath,
+            ]);
+
+            return redirect()->back()->with([
+                'success' => 'PDF berhasil diunggah untuk artikel ini.',
+            ]);
+        }
 
         $result = $this->service->extractAndMatch(
             $validated['pdf'],
@@ -109,6 +132,12 @@ class FilteredArticleController extends Controller
         $filteredArticle->loadMissing('researchPlan');
 
         if ($filteredArticle->researchPlan?->user_id !== $request->user()->id) {
+            Log::warning('Unauthorized retrieval update attempt', [
+                'user_id' => $request->user()?->id,
+                'filtered_article_id' => $filteredArticle->id,
+                'owner_id' => $filteredArticle->researchPlan?->user_id,
+            ]);
+
             abort(403);
         }
 
@@ -158,6 +187,12 @@ class FilteredArticleController extends Controller
         $filteredArticle->loadMissing('researchPlan');
 
         if ($filteredArticle->researchPlan?->user_id !== $request->user()->id) {
+            Log::warning('Unauthorized autoFetch attempt', [
+                'user_id' => $request->user()?->id,
+                'filtered_article_id' => $filteredArticle->id,
+                'owner_id' => $filteredArticle->researchPlan?->user_id,
+            ]);
+
             abort(403);
         }
 
@@ -174,6 +209,31 @@ class FilteredArticleController extends Controller
             'success',
             'Proses pencarian PDF publik (OpenAlex) telah dijadwalkan untuk artikel ini.'
         );
+    }
+
+    /**
+     * Return minimal status for a filtered article (used by client polling).
+     * GET /filtered-articles/{filteredArticle}/status
+     */
+    public function status(Request $request, FilteredArticle $filteredArticle)
+    {
+        $filteredArticle->loadMissing('researchPlan');
+
+        if ($filteredArticle->researchPlan?->user_id !== $request->user()->id) {
+            Log::warning('Unauthorized status access attempt', [
+                'user_id' => $request->user()?->id,
+                'filtered_article_id' => $filteredArticle->id,
+                'owner_id' => $filteredArticle->researchPlan?->user_id,
+            ]);
+
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
+        return response()->json([
+            'id' => $filteredArticle->id,
+            'retrieved' => (bool) $filteredArticle->retrieved,
+            'pdf_path' => $filteredArticle->pdf_path,
+        ]);
     }
 
     /**

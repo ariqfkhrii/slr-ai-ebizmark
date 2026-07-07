@@ -75,6 +75,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/filtered-articles/{filteredArticle}/auto-fetch', [FilteredArticleController::class, 'autoFetch'])
         ->name('filtered-articles.auto-fetch');
 
+    Route::get('/filtered-articles/{filteredArticle}/status', [FilteredArticleController::class, 'status'])
+        ->name('filtered-articles.status');
+
     Route::post('/research-plans/{researchPlanId}/auto-fetch-all', [FilteredArticleController::class, 'autoFetchAll'])
         ->name('research-plans.auto-fetch-all');
     Route::put('/classification-setup', [ClassificationController::class, 'upsertSetup'])

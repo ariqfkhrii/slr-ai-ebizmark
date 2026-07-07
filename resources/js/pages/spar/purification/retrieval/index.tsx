@@ -1,14 +1,11 @@
 import { router } from '@inertiajs/react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import {
-  BookOpen,
   Download,
   InfoIcon,
   Link2,
-  Search,
   ShieldCheck,
-  Sparkles,
 } from 'lucide-react';
 
 import {
@@ -53,11 +50,6 @@ export default function Retrieval({
   const [preLink, setPreLink] = useState('https://doi.org/');
 
   const [postLink, setPostLink] = useState('');
-
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isAutoFetching, setIsAutoFetching] = useState(false);
-  const autoFetchPollRef = useRef<number | null>(null);
   const guideContent = useMemo(() => <RetrievalGuide />, []);
   const { guideOpen } = useGuide({
     title: 'Retrieval',
@@ -95,103 +87,12 @@ export default function Retrieval({
     );
   };
 
-  useEffect(() => {
-    return () => {
-      if (autoFetchPollRef.current) {
-        window.clearInterval(autoFetchPollRef.current);
-      }
-    };
-  }, []);
-
-  const stopAutoFetchPolling = () => {
-    if (autoFetchPollRef.current) {
-      window.clearInterval(autoFetchPollRef.current);
-      autoFetchPollRef.current = null;
-    }
-
-    setIsAutoFetching(false);
-  };
-
-  const handleAutoFetchAll = () => {
-    setIsAutoFetching(true);
-
-    let attempts = 0;
-    let lastPendingCount: number | null = null;
-
-    router.post(
-      `/research-plans/${researchPlan.research_plan_id}/auto-fetch-all`,
-      {},
-      {
-        preserveScroll: true,
-      },
-    );
-
-    autoFetchPollRef.current = window.setInterval(() => {
-      attempts += 1;
-
-      router.reload({
-        only: ['filteredArticles'],
-        onSuccess: (page) => {
-          const props = page.props as unknown as PrismaPageProps;
-          const nextFiltered = props.filteredArticles ?? [];
-          const pendingCount = nextFiltered.filter(
-            (item) => item.included && !Boolean(item.retrieved),
-          ).length;
-
-          if (pendingCount === 0) {
-            stopAutoFetchPolling();
-            return;
-          }
-
-          if (lastPendingCount !== null && pendingCount === lastPendingCount) {
-            if (attempts >= 8) {
-              stopAutoFetchPolling();
-              return;
-            }
-          }
-
-          lastPendingCount = pendingCount;
-        },
-      });
-    }, 2500);
-  };
 
   const handleShortcut = (value: { preLink: string; postLink: string }) => {
     setPreLink(value.preLink);
     setPostLink(value.postLink);
   };
 
-  const handleUpload = () => {
-    if (!pdfFile) return;
-
-    const formData = new FormData();
-
-    formData.append('pdf', pdfFile);
-
-    formData.append('research_plan_id', String(researchPlan.research_plan_id));
-
-    router.post('/filtered-articles/check-doi', formData, {
-      forceFormData: true,
-      preserveScroll: true,
-      onSuccess: () => setPdfFile(null),
-    });
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-
-    const file = e.dataTransfer.files?.[0];
-
-    if (!file) return;
-
-    if (file.type !== 'application/pdf') {
-      alert('File harus PDF');
-      return;
-    }
-
-    setPdfFile(file);
-  };
 
   return (
     <Box sx={{ p: 2.25 }}>
@@ -224,25 +125,33 @@ export default function Retrieval({
             }}
           >
             <MetricCard
-              title="Artikel Diperoleh"
+              title="Artikel Tersedia"
               value={retrievedArticles.length}
               tone="green"
               icon={<Download size={18} />}
             />
 
             <MetricCard
-              title="Artikel Belum Diperoleh"
+              title="Artikel Tidak Tersedia"
               value={notRetrievedArticles.length}
               tone="red"
               icon={<ShieldCheck size={18} />}
             />
+            
+            <Alert
+              severity="info"
+              icon={<InfoIcon size={16} />}
+              sx={{
+                fontSize: 12.5,
+                lineHeight: 1.5,
+                '& .MuiAlert-message': { p: 0 },
+              }}
+            >
+              Untuk artikel yang belum tersedia, Anda bisa mencoba unduh PDF langsung
+              dari kartu artikel masing-masing. Untuk artikel non-publik, gunakan
+              opsi upload manual.
+            </Alert>
 
-            <MetricCard
-              title="Total Artikel"
-              value={articles.length}
-              tone="indigo"
-              icon={<BookOpen size={18} />}
-            />
           </Box>
 
           {/* PANELS */}
@@ -256,26 +165,27 @@ export default function Retrieval({
             }}
           >
             <ArticlePanel
-              title="DIPEROLEH"
+              title="ARTIKEL TERSEDIA"
               count={retrievedArticles.length}
               articles={retrievedArticles}
               accent="#22c55e"
               emptyText="Tidak ada data"
               preLink={preLink}
               postLink={postLink}
+              researchPlanId={researchPlan.research_plan_id}
               onToggleRetrieved={updateRetrievalStatus}
             />
 
             <ArticlePanel
-              title="BELUM DIPEROLEH"
+              title="ARTIKEL TIDAK TERSEDIA"
               count={notRetrievedArticles.length}
               articles={notRetrievedArticles}
               accent="#ef4444"
               emptyText="Tidak ada data"
               preLink={preLink}
               postLink={postLink}
+              researchPlanId={researchPlan.research_plan_id}
               onToggleRetrieved={updateRetrievalStatus}
-              onAutoFetch={(id) => id}
             />
 
           </Box>
@@ -292,152 +202,7 @@ export default function Retrieval({
             gap: 2,
           }}
         >
-          {/* AUTO-FETCH PDF */}
-          <Typography
-            sx={{
-              fontWeight: 900,
-              textAlign: 'center',
-            }}
-          >
-            UNDUH PDF OTOMATIS
-          </Typography>
-
-          {/* Disclaimer notice */}
-          <Alert
-            severity="info"
-            icon={<InfoIcon size={16} />}
-            sx={{
-              fontSize: 11.5,
-              lineHeight: 1.5,
-              '& .MuiAlert-message': { p: 0 },
-            }}
-          >
-            Fitur unduh otomatis hanya dapat memperoleh artikel yang bersifat
-            publik (Open Access). Untuk artikel non-publik, silakan gunakan
-            tombol upload manual.
-          </Alert>
-
-          <Button
-            variant="contained"
-            fullWidth
-            startIcon={
-              isAutoFetching ? (
-                <CircularProgress size={14} color="inherit" />
-              ) : (
-                <Sparkles size={14} />
-              )
-            }
-            disabled={notRetrievedArticles.length === 0 || isAutoFetching}
-            onClick={handleAutoFetchAll}
-            sx={{
-              background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-              color: 'white',
-              fontWeight: 700,
-              boxShadow: '0 4px 12px rgba(168, 85, 247, 0.25)',
-              transition: 'all 0.2s ease-in-out',
-              '&:hover': {
-                boxShadow: '0 6px 16px rgba(168, 85, 247, 0.4)',
-                transform: 'translateY(-1px)',
-              },
-              '&.Mui-disabled': {
-                background: '#e0e0e0',
-                color: '#a6a6a6',
-                boxShadow: 'none',
-              },
-            }}
-          >
-            {isAutoFetching ? 'Mengunduh...' : 'Unduh PDF Otomatis'}
-          </Button>
-
-          {isAutoFetching && (
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 1,
-                py: 1,
-                borderRadius: 2,
-                bgcolor: '#eef2ff',
-                color: '#4338ca',
-                fontSize: 12,
-                fontWeight: 700,
-              }}
-            >
-              <CircularProgress size={14} thickness={5} color="inherit" />
-              <span>Sedang mengambil PDF...</span>
-            </Box>
-          )}
-
-          <Divider />
-
-          {/* PDF */}
-          <Typography
-            sx={{
-              fontWeight: 900,
-              textAlign: 'center',
-            }}
-          >
-            UPLOAD PDF MANUAL
-          </Typography>
-
-          <Paper
-            variant="outlined"
-            onDragOver={(e) => {
-              e.preventDefault();
-              setIsDragging(true);
-            }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={handleDrop}
-            sx={{
-              p: 3,
-              borderRadius: 3,
-              textAlign: 'center',
-              borderStyle: 'dashed',
-              borderColor: isDragging ? 'primary.main' : 'divider',
-              bgcolor: isDragging ? 'action.hover' : 'transparent',
-              cursor: 'pointer',
-            }}
-          >
-            <Typography sx={{ mt: 1, fontWeight: 700 }}>
-              Drag & drop PDF di sini
-            </Typography>
-
-            <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.5 }}>
-              atau klik untuk pilih file
-            </Typography>
-
-            <Button component="label" size="small" sx={{ mt: 1 }}>
-              Pilih PDF
-              <input
-                hidden
-                type="file"
-                accept="application/pdf"
-                onChange={(e) => setPdfFile(e.target.files?.[0] ?? null)}
-              />
-            </Button>
-          </Paper>
-
-          <Typography
-            sx={{
-              fontSize: 12,
-              color: 'text.secondary',
-            }}
-          >
-            {pdfFile ? pdfFile.name : 'Belum ada file'}
-          </Typography>
-
-          <Button
-            variant="contained"
-            disabled={!pdfFile}
-            onClick={handleUpload}
-            startIcon={<Search size={14} />}
-          >
-            Upload & Scan DOI
-          </Button>
-
-          <Divider />
-
+          
           {/* LINK */}
           <Typography
             sx={{

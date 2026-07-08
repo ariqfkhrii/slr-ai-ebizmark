@@ -90,26 +90,28 @@ class AiExtractionService
         ];
     }
 
-    private function buildPrompt(FilteredArticle $article): string
-    {
-        $raw = $article->rawArticle;
-        $abstract = $raw?->abstract ?? '';
-        $title = $raw?->title ?? '';
-        $authors = $raw?->authors ?? '';
-        $year = $raw?->publish_year ?? '';
+private function buildPrompt(FilteredArticle $article): string
+{
+    $raw = $article->rawArticle;
+    $abstract = $raw?->abstract ?? '';
+    $title = $raw?->title ?? '';
+    $authors = $raw?->authors ?? '';
+    $year = $raw?->publish_year ?? '';
 
-        $pdfText = $this->extractPdfText($article->pdf_path);
-        $cleanText = $this->removeReferenceSection($pdfText);
-        $sections = $this->extractSections($cleanText);
-        if ($this->isDemoAbstract($abstract)) {
-            $abstract = '';
-        }
-        $abstractSnippet = $this->truncateText($abstract, 1200);
-        $abstractFromPdf = $sections['abstract'] ?? '';
-        $abstractPrompt = $abstractFromPdf !== '' ? $abstractFromPdf : $abstractSnippet;
-        $abstractLabel = $abstractFromPdf !== '' ? 'Abstract (full text)' : 'Abstract (metadata)';
+    $pdfText = $this->extractPdfText($article->pdf_path);
+    $cleanText = $this->removeReferenceSection($pdfText);
+    $sections = $this->extractSections($cleanText);
+    
+    if ($this->isDemoAbstract($abstract)) {
+        $abstract = '';
+    }
+    
+    $abstractSnippet = $this->truncateText($abstract, 1200);
+    $abstractFromPdf = $sections['abstract'] ?? '';
+    $abstractPrompt = $abstractFromPdf !== '' ? $abstractFromPdf : $abstractSnippet;
+    $abstractLabel = $abstractFromPdf !== '' ? 'Abstract (full text)' : 'Abstract (metadata)';
 
-        return "You are extracting sections from a research article.\n".
+    return "You are extracting sections from a research article.\n".
             "Return JSON that matches the provided schema.\n\n".
             "Article Metadata:\n".
             "Title: {$title}\n".
@@ -138,7 +140,14 @@ class AiExtractionService
             ."Rules:\n".
             "- Use the excerpts above when available (prefer full-text).\n".
             "- If a section is not found, return an empty string.\n".
-            "- Keep each section concise (1-3 paragraphs).";
+            "- Abstract: Extract the exact summary of the study covering background, objective, method, and conclusion without modification.\n".
+            "- Introduction: Identify background context, core problem, objectives, and motivation.\n".
+            "- Result: Extract explicit research findings and experimental outcomes without interpretation.\n".
+            "- Conclusion: Extract final deductions and how research questions are answered.\n".
+            "- Recommendation: Extract practical advice or policy implications proposed by authors.\n".
+            "- Novelty Gap: Extract statements highlighting unique contributions or missing knowledge from prior literature.\n".
+            "- Limitation: Extract explicit methodological constraints or flaws acknowledged by authors.\n".
+            "- Future Research: Extract explicit suggestions for subsequent studies or unanswered questions.";
     }
 
     private function buildRetryPrompt(FilteredArticle $article): string

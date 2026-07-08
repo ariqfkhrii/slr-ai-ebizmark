@@ -9,9 +9,7 @@ export default function AutoReportingGuide() {
   return (
     <Box sx={{ maxHeight: '74.5vh', overflowY: 'auto', pr: 1 }}>
       <GuideInfo>
-        Auto Reporting menggunakan Gemini 2.5 Flash untuk menghasilkan narasi
-        laporan SIR (Systematic Literature Review) berbasis PRISMA secara
-        otomatis dari artikel-artikel yang telah di-include.
+        Halaman ini digunakan untuk menyusun laporan secara manual berdasarkan panduan PRISMA.
       </GuideInfo>
 
       <GuideSection title="Metrik Laporan">
@@ -24,39 +22,39 @@ export default function AutoReportingGuide() {
         <GuideStep
           number={2}
           title="Included Articles"
-          description="Jumlah artikel yang telah lolos screening dan digunakan sebagai konteks AI untuk menghasilkan laporan."
+          description="Jumlah artikel yang telah lolos screening dan digunakan sebagai konteks laporan."
         />
 
         <GuideStep
           number={3}
           title="PRISMA Sections"
-          description="Total bagian laporan yang akan di-generate sesuai dengan panduan PRISMA (Introduction, Methods, Results, Discussion)."
+          description="Total bagian laporan yang harus diselesaikan sesuai panduan PRISMA."
         />
 
         <GuideStep
           number={4}
-          title="AI Generated"
-          description="Jumlah bagian yang telah berhasil di-generate oleh AI dan persentase progres penyelesaian."
+          title="Bagian Selesai"
+          description="Jumlah bagian yang telah selesai ditulis dan persentase progres penyelesaian."
         />
       </GuideSection>
 
-      <GuideSection title="Cara Generate Laporan">
+      <GuideSection title="Cara Menyusun Laporan">
         <GuideStep
           number={1}
-          title="Generate per Item"
-          description="Klik tombol 'GENERATE AI' pada setiap item untuk menghasilkan narasi secara individu."
+          title="Edit per Item"
+          description="Klik tombol 'Lihat / Edit' pada setiap item untuk menulis atau menyempurnakan narasi."
         />
 
         <GuideStep
           number={2}
-          title="Generate per Chapter"
-          description="Gunakan tombol 'GENERATE ALL' untuk menghasilkan seluruh item dalam satu chapter sekaligus."
+          title="Simpan Perubahan"
+          description="Setelah mengedit, simpan perubahan untuk memperbarui laporan."
         />
 
         <GuideStep
           number={3}
-          title="View / Edit"
-          description="Klik 'VIEW / EDIT' untuk melihat dan mengedit hasil generate AI sebelum disimpan."
+          title="Cek Section"
+          description="Pastikan setiap section PRISMA ditutup dengan lengkap sebelum melanjutkan."
         />
       </GuideSection>
 
@@ -92,29 +90,29 @@ export default function AutoReportingGuide() {
         />
       </GuideSection>
 
-      <GuideSection title="Tips Auto Reporting">
+      <GuideSection title="Tips Manual">
         <GuideStep
           number={1}
           title="Pastikan Artikel Lengkap"
-          description="Semua artikel yang di-include harus memiliki data lengkap untuk hasil generate yang akurat."
+          description="Semua artikel yang di-include harus memiliki data lengkap agar narasi akurat."
         />
 
         <GuideStep
           number={2}
-          title="Generate Bertahap"
-          description="Generate per bagian terlebih dahulu untuk memastikan kualitas, baru lanjut ke bagian berikutnya."
+          title="Tulis Bertahap"
+          description="Selesaikan setiap bagian secara berurutan untuk menjaga konsistensi."
         />
 
         <GuideStep
           number={3}
-          title="Review Hasil"
-          description="Selalu review dan edit hasil generate AI untuk memastikan akurasi dan kesesuaian dengan konteks penelitian."
+          title="Review Narasi"
+          description="Periksa ulang konten dan sesuaikan dengan konteks penelitian sebelum menyimpan."
         />
 
         <GuideStep
           number={4}
           title="Pantau Progres"
-          description="Perhatikan metrik 'AI Generated' untuk mengetahui progres penyelesaian laporan secara keseluruhan."
+          description="Perhatikan metrik bagian selesai untuk mengetahui status laporan."
         />
       </GuideSection>
     </Box>

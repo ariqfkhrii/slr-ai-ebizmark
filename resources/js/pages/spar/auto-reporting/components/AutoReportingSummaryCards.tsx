@@ -33,7 +33,7 @@ export default function AutoReportingSummaryCards({
               {includedArticles}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Digunakan sebagai konteks AI
+              Digunakan sebagai konteks laporan
             </Typography>
           </CardContent>
         </Card>
@@ -59,7 +59,7 @@ export default function AutoReportingSummaryCards({
         <Card variant="outlined" sx={{ width: '100%', display: 'flex' }}>
           <CardContent>
             <Typography variant="overline" color="text.secondary">
-              AI Generated
+              Bagian Selesai
             </Typography>
             <Typography variant="h3" sx={{ fontWeight: 800 }}>
               {generatedCount}

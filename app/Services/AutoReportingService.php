@@ -95,7 +95,7 @@ class AutoReportingService
         $item->forceFill([
             'generated_content' => $content,
             'word_count'        => $this->countWords((string) $content),
-            'status'            => 'draft',
+            'status'            => $content ? 'generated' : 'draft',
         ])->save();
 
         return $item;

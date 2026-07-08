@@ -4,12 +4,10 @@ import {
   Card,
   CardContent,
   Chip,
-  CircularProgress,
   Collapse,
   Divider,
   LinearProgress,
   Stack,
-  Tooltip,
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
@@ -76,7 +74,7 @@ export default function AutoReportingItemCard({
 
               <Chip
                 size="small"
-                label={item.status === 'generated' ? 'Generated' : 'Draft'}
+                label={item.status === 'generated' ? 'Selesai' : 'Draft'}
                 color={item.status === 'generated' ? 'success' : 'default'}
               />
 
@@ -108,23 +106,6 @@ export default function AutoReportingItemCard({
                 flexWrap: 'wrap',
               }}
             >
-              {!hasGeneratedContent && (
-                <Button
-                  variant="contained"
-                  color="warning"
-                  size="small"
-                  onClick={() => onProcess(item)}
-                  disabled={processing}
-                  startIcon={
-                    processing ? (
-                      <CircularProgress size={14} color="inherit" />
-                    ) : undefined
-                  }
-                >
-                  {processing ? 'Generating...' : 'Generate AI'}
-                </Button>
-              )}
-
               <Button
                 variant="outlined"
                 size="small"
@@ -133,26 +114,6 @@ export default function AutoReportingItemCard({
               >
                 Lihat / Edit
               </Button>
-
-              {hasGeneratedContent && (
-                <Tooltip title="Generate ulang dengan AI">
-                  <span>
-                    <Button
-                      variant="outlined"
-                      color="warning"
-                      size="small"
-                      onClick={() => onRegenerate(item)}
-                      disabled={processing}
-                    >
-                      {processing ? (
-                        <CircularProgress size={14} />
-                      ) : (
-                        'Regenerate'
-                      )}
-                    </Button>
-                  </span>
-                </Tooltip>
-              )}
             </Stack>
 
             {hasGeneratedContent && (
@@ -165,32 +126,11 @@ export default function AutoReportingItemCard({
                   fontSize: 11,
                 }}
               >
-                {expanded ? 'Sembunyikan ▲' : 'Lihat preview ▼'}
+                {expanded ? 'Sembunyikan ▲' : 'Lihat pratinjau ▼'}
               </Button>
             )}
           </Stack>
         </Stack>
-
-        {processing && (
-          <Box
-            sx={{
-              mt: 1.5,
-            }}
-          >
-            <LinearProgress color="warning" />
-
-            <Typography
-              variant="caption"
-              color="warning.main"
-              sx={{
-                mt: 0.5,
-                display: 'block',
-              }}
-            >
-              Gemini 2.5 Flash sedang menganalisis data...
-            </Typography>
-          </Box>
-        )}
 
         <Collapse in={expanded && hasGeneratedContent}>
           <Divider
@@ -217,7 +157,7 @@ export default function AutoReportingItemCard({
                 textTransform: 'uppercase',
               }}
             >
-              Preview hasil AI
+              Pratinjau
             </Typography>
 
             <Typography

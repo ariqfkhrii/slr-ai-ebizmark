@@ -17,17 +17,17 @@ export default function AutoReportingPage(props: any) {
   const guideContent = useMemo(() => <AutoReportingGuide />, []);
   const { setTitle } = useBreadcrumb();
   const { guideOpen } = useGuide({
-    title: 'Auto Reporting',
+    title: 'Reporting',
     content: guideContent,
   });
 
   useEffect(() => {
-    setTitle('Auto Reporting');
+    setTitle('Reporting');
   }, [setTitle]);
 
   return (
     <>
-      <Head title="Auto Reporting" />
+      <Head title="Reporting" />
       <Box sx={{ p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
         <AutoReportingSummaryCards
           includedArticles={filteredArticles.length}

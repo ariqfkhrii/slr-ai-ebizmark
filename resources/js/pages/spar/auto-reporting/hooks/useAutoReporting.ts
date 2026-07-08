@@ -119,7 +119,7 @@ export function useAutoReporting(props: any) {
   };
 
   // ──────────────────────────────────────────
-  // Generate / Regenerate (gunakan fetch, bukan Inertia router)
+  // Disabled auto-generation actions; manual report editing only.
   // ──────────────────────────────────────────
   const setProcessing = (id: number, value: boolean) => {
     setProcessingIds((prev) => {
@@ -129,44 +129,16 @@ export function useAutoReporting(props: any) {
     });
   };
 
-  const processItem = async (item: any): Promise<void> => {
-    const id = Number(item.id);
-    setProcessing(id, true);
-    try {
-      const result = await apiRequest(`/auto-reportings/${id}/generate`, 'POST');
-      if (result.success) {
-        router.reload();
-      } else {
-        alert(`Gagal generate: ${result.error}`);
-      }
-    } finally {
-      setProcessing(id, false);
-    }
+  const processItem = async (_item: any): Promise<void> => {
+    alert('Fitur otomatis dinonaktifkan. Silakan edit item secara manual.');
   };
 
-  const regenerateItem = async (item: any): Promise<void> => {
-    const id = Number(item.id);
-    setProcessing(id, true);
-    try {
-      const result = await apiRequest(`/auto-reportings/${id}/regenerate`, 'POST');
-      if (result.success) {
-        router.reload();
-      } else {
-        alert(`Gagal regenerate: ${result.error}`);
-      }
-    } finally {
-      setProcessing(id, false);
-    }
+  const regenerateItem = async (_item: any): Promise<void> => {
+    alert('Fitur otomatis dinonaktifkan. Silakan edit item secara manual.');
   };
 
-  const processChapter = async (chapter: string) => {
-    const chapterItems = rawItems.filter((item: any) => item.chapter === chapter);
-    if (chapterItems.length === 0) return;
-
-    // Jalankan satu per satu agar tidak rate-limit Gemini
-    for (const item of chapterItems) {
-      await processItem(item);
-    }
+  const processChapter = async (_chapter: string) => {
+    alert('Fitur otomatis dinonaktifkan. Silakan edit item secara manual.');
   };
 
   return {

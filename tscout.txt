@@ -1,0 +1,5 @@
+resources/js/pages/spar/acquisition/components/dialog/FetchPreviewDialog.tsx(10,10): error TS2305: Module '"../../hooks/useAcquisition"' has no exported member 'MetadataPreviewResult'.
+resources/js/pages/spar/ai-classification/hooks/useAiClassification.ts(321,9): error TS2561: Object literal may only specify known properties, but 'preserveScroll' does not exist in type 'ReloadOptions<RequestPayload>'. Did you mean to write 'preserveUrl'?
+resources/js/pages/spar/ai-extraction/hooks/useExtraction.ts(207,9): error TS2561: Object literal may only specify known properties, but 'preserveScroll' does not exist in type 'ReloadOptions<RequestPayload>'. Did you mean to write 'preserveUrl'?
+resources/js/pages/spar/auto-reporting/hooks/useAutoReporting.ts(117,7): error TS2561: Object literal may only specify known properties, but 'preserveScroll' does not exist in type 'ReloadOptions<RequestPayload>'. Did you mean to write 'preserveUrl'?
+resources/js/pages/spar/classification/hooks/useClassification.ts(58,37): error TS2339: Property 'abstract' does not exist on type 'RawArticleSummary'.

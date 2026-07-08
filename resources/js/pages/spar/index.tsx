@@ -248,9 +248,7 @@ export default function Spar(props: any) {
                   researchPlanId={researchPlanId}
                   researchPlan={props.researchPlan}
                   items={props.items ?? []}
-                  filteredArticles={(props.filteredArticles ?? []).filter(
-                    (a: any) => a.included === true,
-                  )}
+                  filteredArticles={props.filteredArticles ?? []}
                 />
               )}
             </SparLayout>

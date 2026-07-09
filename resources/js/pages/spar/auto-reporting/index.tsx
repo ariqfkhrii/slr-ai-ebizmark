@@ -5,17 +5,19 @@ import { useBreadcrumb } from '../components/BreadcrumbContext';
 import { useGuide } from '../components/spar-layout';
 import AutoReportingGuide from '../guides/AutoReportingGuide';
 import AutoReportingChapterPanel from './components/AutoReportingChapterPanel';
-import AutoReportingFlowDiagram from './components/AutoReportingFlowDiagram';
 import AutoReportingDetailDialog from './components/AutoReportingDetailDialog';
+import AutoReportingFlowDiagram from './components/AutoReportingFlowDiagram';
 import AutoReportingItemCard from './components/AutoReportingItemCard';
 import AutoReportingSummaryCards from './components/AutoReportingSummaryCards';
 import { chapterOrder, useAutoReporting } from './hooks/useAutoReporting';
 
 export default function AutoReportingPage(props: any) {
   const filteredArticles = props.filteredArticles ?? [];
-  const includedArticlesCount = filteredArticles.filter((article: any) => Boolean(article.included)).length;
+  const includedArticlesCount = filteredArticles.filter((article: any) =>
+    Boolean(article.included),
+  ).length;
   const ar = useAutoReporting(props);
-  const [activeView, setActiveView] = useState<'report' | 'diagram'>('report');
+  const [activeView, setActiveView] = useState<'report' | 'diagram'>('diagram');
 
   const guideContent = useMemo(() => <AutoReportingGuide />, []);
   const { setTitle } = useBreadcrumb();
@@ -39,11 +41,13 @@ export default function AutoReportingPage(props: any) {
         />
 
         {/* View Tabs */}
-        <Card variant="outlined" sx={{ mb: 3 }}>
+        {/* <Card variant="outlined" sx={{ mb: 3 }}>
           <CardContent sx={{ pb: '12px !important' }}>
             <Tabs
               value={activeView}
-              onChange={(_, value) => setActiveView(value as 'report' | 'diagram')}
+              onChange={(_, value) =>
+                setActiveView(value as 'report' | 'diagram')
+              }
               variant="fullWidth"
               scrollButtons="auto"
             >
@@ -51,7 +55,7 @@ export default function AutoReportingPage(props: any) {
               <Tab label="Flow Diagram" value="diagram" />
             </Tabs>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {activeView === 'diagram' ? (
           <AutoReportingFlowDiagram filteredArticles={filteredArticles} />

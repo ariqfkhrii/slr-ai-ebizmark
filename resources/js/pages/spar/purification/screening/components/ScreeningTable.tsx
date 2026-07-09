@@ -31,6 +31,16 @@ type Props = {
   articleStatus?: 'included' | 'excluded';
 };
 
+export function getSimilarityLabel(score: number | null | undefined): string {
+  if (score == null || Number.isNaN(score)) {
+    return '-';
+  }
+  if (score >= 0.8) return 'High Similarity';
+  if (score >= 0.3) return 'Moderate Similarity';
+
+  return 'Low Similarity';
+}
+
 export default function ScreeningTable({
   title,
   articles,
@@ -191,19 +201,22 @@ export default function ScreeningTable({
               <TableCell width={90}>Sitasi</TableCell>
               <TableCell width={70}>DOI</TableCell>
               {hasSimilarity && (
-                <TableCell width={100}>
-                  <TableSortLabel
-                    active
-                    direction={sortDirection}
-                    onClick={() =>
-                      setSortDirection((prev) =>
-                        prev === 'asc' ? 'desc' : 'asc',
-                      )
-                    }
-                  >
-                    Similarity
-                  </TableSortLabel>
-                </TableCell>
+                <>
+                  <TableCell width={100}>
+                    <TableSortLabel
+                      active
+                      direction={sortDirection}
+                      onClick={() =>
+                        setSortDirection((prev) =>
+                          prev === 'asc' ? 'desc' : 'asc',
+                        )
+                      }
+                    >
+                      Similarity
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell width={70}>Label</TableCell>
+                </>
               )}
 
               <TableCell width={90} align="center">
@@ -317,9 +330,16 @@ export default function ScreeningTable({
                     </TableCell>
 
                     {hasSimilarity && (
-                      <TableCell align="center">
-                        {item.similarity_score?.toFixed(2)}
-                      </TableCell>
+                      <>
+                        <TableCell align="center">
+                          {item.similarity_score?.toFixed(2)}
+                        </TableCell>
+                        <TableCell align="center">
+                          {getSimilarityLabel(
+                            Number(item.similarity_score?.toFixed(2)),
+                          )}
+                        </TableCell>
+                      </>
                     )}
 
                     <TableCell align="center">

@@ -157,32 +157,7 @@ export default function SparStepper({
                   : {},
               }}
             >
-              {isClassification ? (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 1,
-                    width: '100%',
-                  }}
-                >
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      fontWeight: 700,
-                      fontSize: 11,
-                      textTransform: 'uppercase',
-                      lineHeight: 1,
-                      letterSpacing: '.5px',
-                    }}
-                  >
-                    {stepLabel}
-                  </Typography>
-
-                  
-                </Box>
-              ) : isExtraction ? (
+              {isExtraction ? (
                 <Box
                   sx={{
                     display: 'flex',

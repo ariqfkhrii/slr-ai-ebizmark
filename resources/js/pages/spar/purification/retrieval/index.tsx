@@ -1,12 +1,7 @@
 import { router } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 
-import {
-  Download,
-  InfoIcon,
-  Link2,
-  ShieldCheck,
-} from 'lucide-react';
+import { Download, InfoIcon, Link2, ShieldCheck } from 'lucide-react';
 
 import {
   Alert,
@@ -55,20 +50,21 @@ export default function Retrieval({
     title: 'Retrieval',
     content: guideContent,
   });
-
   const articles = useMemo<ArticleItem[]>(
     () =>
-      filteredArticles.map((item) => ({
-        id: item.filtered_article_id,
-        title: item.raw_article?.title ?? 'Untitled',
-        authors: item.raw_article?.authors ?? 'Unknown',
-        doi: item.raw_article?.doi ?? '-',
-        source: item.raw_article?.tier ?? 'Unknown',
-        year: item.raw_article?.publish_year ?? null,
-        retrieved: Boolean(item.retrieved),
-        note: item.included ? 'Included' : 'Not Included',
-        article_status: item.article_status,
-      })),
+      filteredArticles
+        .filter((item) => Boolean(item.included))
+        .map((item) => ({
+          id: item.filtered_article_id,
+          title: item.raw_article?.title ?? 'Untitled',
+          authors: item.raw_article?.authors ?? 'Unknown',
+          doi: item.raw_article?.doi ?? '-',
+          source: item.raw_article?.tier ?? 'Unknown',
+          year: item.raw_article?.publish_year ?? null,
+          retrieved: Boolean(item.retrieved),
+          note: item.included ? 'Included' : 'Not Included',
+          article_status: item.article_status,
+        })),
     [filteredArticles],
   );
 
@@ -88,12 +84,10 @@ export default function Retrieval({
     );
   };
 
-
   const handleShortcut = (value: { preLink: string; postLink: string }) => {
     setPreLink(value.preLink);
     setPostLink(value.postLink);
   };
-
 
   return (
     <Box sx={{ p: 2.25 }}>
@@ -138,7 +132,7 @@ export default function Retrieval({
               tone="red"
               icon={<ShieldCheck size={18} />}
             />
-            
+
             <Alert
               severity="info"
               icon={<InfoIcon size={16} />}
@@ -148,11 +142,10 @@ export default function Retrieval({
                 '& .MuiAlert-message': { p: 0 },
               }}
             >
-              Untuk artikel yang belum tersedia, Anda bisa mencoba unduh PDF langsung
-              dari kartu artikel masing-masing. Untuk artikel non-publik, gunakan
-              opsi upload manual.
+              Untuk artikel yang belum tersedia, Anda bisa mencoba unduh PDF
+              langsung dari kartu artikel masing-masing. Untuk artikel
+              non-publik, gunakan opsi upload manual.
             </Alert>
-
           </Box>
 
           {/* PANELS */}
@@ -188,7 +181,6 @@ export default function Retrieval({
               researchPlanId={researchPlan.research_plan_id}
               onToggleRetrieved={updateRetrievalStatus}
             />
-
           </Box>
         </Box>
 
@@ -203,7 +195,6 @@ export default function Retrieval({
             gap: 2,
           }}
         >
-          
           {/* LINK */}
           <Typography
             sx={{

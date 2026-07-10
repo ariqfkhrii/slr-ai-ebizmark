@@ -59,7 +59,9 @@ export default function AiClassificationSyncDialog({
           justifyContent: 'space-between',
         }}
       >
-        <Typography sx={{ fontWeight: 900 }}>Synchronize AI Classification</Typography>
+        <Typography sx={{ fontWeight: 900 }}>
+          Synchronize AI Classification
+        </Typography>
         <IconButton onClick={isRunning ? undefined : onClose}>
           <CloseIcon />
         </IconButton>
@@ -156,7 +158,8 @@ export default function AiClassificationSyncDialog({
                 Sedang melakukan sinkronisasi data classification...
               </Typography>
               <Typography sx={{ mt: 0.5, fontSize: 13, color: '#475569' }}>
-                {processed} dari {total || '-'} record data berhasil di sinkronisasi
+                {processed} dari {total || '-'} record data berhasil di
+                sinkronisasi
               </Typography>
               <LinearProgress
                 variant="determinate"

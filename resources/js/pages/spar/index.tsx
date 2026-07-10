@@ -34,7 +34,9 @@ export default function Spar(props: any) {
   const [classificationMode, setClassificationMode] = useState<'manual' | 'ai'>(
     'manual',
   );
-  const [extractionMode, setExtractionMode] = useState<'manual' | 'ai'>('manual');
+  const [extractionMode, setExtractionMode] = useState<'manual' | 'ai'>(
+    'manual',
+  );
 
   const {
     loading,

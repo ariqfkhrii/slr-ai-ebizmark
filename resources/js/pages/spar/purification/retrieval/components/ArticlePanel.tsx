@@ -1,7 +1,15 @@
 import { Download, ExternalLink, FileText } from 'lucide-react';
 
 import { router } from '@inertiajs/react';
-import { Box, Button, Chip, CircularProgress, Paper, Stack, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Paper,
+  Stack,
+  Typography,
+} from '@mui/material';
 import { useState } from 'react';
 import { useAppDispatch } from '@/lib/store/hooks';
 import { showError, showSuccess } from '@/store/slices/snackbarSlice';
@@ -21,7 +29,11 @@ const getArticleStatusColor = (status?: string | null) => {
     return 'success.main';
   }
 
-  if (value.includes('gagal') || value.includes('manual') || value.includes('dilewati')) {
+  if (
+    value.includes('gagal') ||
+    value.includes('manual') ||
+    value.includes('dilewati')
+  ) {
     return 'error.main';
   }
 
@@ -58,7 +70,11 @@ export default function ArticlePanel({
       preserveScroll: true,
       onSuccess: () => {
         setUploadingId(null);
-        dispatch(showSuccess('PDF berhasil diunggah. Silakan periksa kembali status artikel.'));
+        dispatch(
+          showSuccess(
+            'PDF berhasil diunggah. Silakan periksa kembali status artikel.',
+          ),
+        );
         router.reload({ only: ['filteredArticles'] });
       },
       onError: () => {
@@ -85,10 +101,16 @@ export default function ArticlePanel({
           const poll = window.setInterval(async () => {
             attempts += 1;
             try {
-              const res = await fetch(`/filtered-articles/${articleId}/status`, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
-                credentials: 'same-origin',
-              });
+              const res = await fetch(
+                `/filtered-articles/${articleId}/status`,
+                {
+                  headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    Accept: 'application/json',
+                  },
+                  credentials: 'same-origin',
+                },
+              );
 
               if (res.status === 403) {
                 window.clearInterval(poll);
@@ -106,7 +128,11 @@ export default function ArticlePanel({
               if (data.retrieved || data.pdf_path) {
                 window.clearInterval(poll);
                 setFetchingId(null);
-                dispatch(showSuccess('PDF berhasil ditemukan/diunduh untuk artikel ini.'));
+                dispatch(
+                  showSuccess(
+                    'PDF berhasil ditemukan/diunduh untuk artikel ini.',
+                  ),
+                );
                 router.reload({ only: ['filteredArticles'] });
                 return;
               }
@@ -126,7 +152,11 @@ export default function ArticlePanel({
               if (attempts >= maxAttempts) {
                 window.clearInterval(poll);
                 setFetchingId(null);
-                dispatch(showError('Tidak ada PDF publik ditemukan. Silakan gunakan fitur Upload PDF manual.'));
+                dispatch(
+                  showError(
+                    'Tidak ada PDF publik ditemukan. Silakan gunakan fitur Upload PDF manual.',
+                  ),
+                );
               }
             } catch (e) {
               window.clearInterval(poll);
@@ -139,7 +169,11 @@ export default function ArticlePanel({
           setFetchingId(null);
           try {
             // Try to extract a useful message from server-provided errors
-            const message = (errors && typeof errors === 'object' && Object.values(errors).flat().join(' ')) || 'Akses ditolak atau terjadi kesalahan.';
+            const message =
+              (errors &&
+                typeof errors === 'object' &&
+                Object.values(errors).flat().join(' ')) ||
+              'Akses ditolak atau terjadi kesalahan.';
             dispatch(showError(`Gagal memulai fetch: ${message}`));
           } catch (e) {
             dispatch(showError('Gagal memulai fetch: terjadi kesalahan.'));
@@ -348,7 +382,14 @@ export default function ArticlePanel({
                     </Typography>
                   </Box>
 
-                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      gap: 1,
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                    }}
+                  >
                     {!article.retrieved && (
                       <>
                         <Button
@@ -363,9 +404,14 @@ export default function ArticlePanel({
                             )
                           }
                           onClick={() => handleAutoFetch(article.id)}
-                          disabled={fetchingId === article.id || uploadingId === article.id}
+                          disabled={
+                            fetchingId === article.id ||
+                            uploadingId === article.id
+                          }
                         >
-                          {fetchingId === article.id ? 'Memproses...' : 'Coba Unduh PDF'}
+                          {fetchingId === article.id
+                            ? 'Memproses...'
+                            : 'Coba Unduh PDF'}
                         </Button>
 
                         <Button
@@ -373,14 +419,24 @@ export default function ArticlePanel({
                           size="small"
                           variant="outlined"
                           color="secondary"
-                          disabled={uploadingId === article.id || fetchingId === article.id}
+                          disabled={
+                            uploadingId === article.id ||
+                            fetchingId === article.id
+                          }
                         >
-                          {uploadingId === article.id ? 'Mengunggah...' : 'Upload PDF'}
+                          {uploadingId === article.id
+                            ? 'Mengunggah...'
+                            : 'Upload PDF'}
                           <input
                             hidden
                             type="file"
                             accept="application/pdf"
-                            onChange={(e) => handleUpload(article.id, e.target.files?.[0] ?? null)}
+                            onChange={(e) =>
+                              handleUpload(
+                                article.id,
+                                e.target.files?.[0] ?? null,
+                              )
+                            }
                           />
                         </Button>
                       </>

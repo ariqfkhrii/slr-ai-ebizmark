@@ -311,7 +311,10 @@ export default function ScreeningTable({
                     </TableCell>
 
                     <TableCell>
-                      <Chip size="small" label={article.tier.toUpperCase()} />
+                      <Chip
+                        size="small"
+                        label={article.tier ? article.tier.toUpperCase() : '-'}
+                      />
                     </TableCell>
 
                     <TableCell>{article.citation_count}</TableCell>

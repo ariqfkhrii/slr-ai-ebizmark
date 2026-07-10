@@ -13,10 +13,7 @@ export default function KeywordResearchSummary({ keyword }: Props) {
   const outOfYearRangeCount = keyword.outOfYearRangeCount ?? 0;
 
   const totalPreviewCount =
-    articleCount +
-    duplicateCount +
-    unmatchedTierCount +
-    missingDoiCount;
+    articleCount + duplicateCount + unmatchedTierCount + missingDoiCount;
 
   const summaryItems = [
     {
@@ -32,7 +29,8 @@ export default function KeywordResearchSummary({ keyword }: Props) {
     {
       label: 'Duplikat',
       value: duplicateCount,
-      caption: 'Artikel dengan identitas sama saat ditarik, atau sudah didapatkan dari keyword lain.',
+      caption:
+        'Artikel dengan identitas sama saat ditarik, atau sudah didapatkan dari keyword lain.',
     },
     {
       label: 'Tier tidak cocok',

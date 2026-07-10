@@ -38,10 +38,14 @@ const headers = [
   'Status',
 ];
 
-const escapeCsvValue = (value: string | number | boolean | null | undefined) => {
+const escapeCsvValue = (
+  value: string | number | boolean | null | undefined,
+) => {
   const normalized = String(value ?? '').replace(/\r?\n/g, ' ');
 
-  return /[",\n]/.test(normalized) ? `"${normalized.replace(/"/g, '""')}"` : normalized;
+  return /[",\n]/.test(normalized)
+    ? `"${normalized.replace(/"/g, '""')}"`
+    : normalized;
 };
 
 export default function ExtractionArticleTable({
@@ -84,7 +88,11 @@ export default function ExtractionArticleTable({
       article.status,
     ]);
 
-  const downloadBlob = (content: BlobPart | string, filename: string, mimeType: string) => {
+  const downloadBlob = (
+    content: BlobPart | string,
+    filename: string,
+    mimeType: string,
+  ) => {
     const blob = new Blob([content], { type: mimeType });
     const url = window.URL.createObjectURL(blob);
     const anchor = document.createElement('a');
@@ -96,7 +104,10 @@ export default function ExtractionArticleTable({
 
   const handleCopy = async () => {
     const rows = buildRows();
-    const tableText = [headers.join('\t'), ...rows.map((row) => row.join('\t'))].join('\n');
+    const tableText = [
+      headers.join('\t'),
+      ...rows.map((row) => row.join('\t')),
+    ].join('\n');
 
     if (navigator.clipboard?.writeText) {
       try {
@@ -126,7 +137,11 @@ export default function ExtractionArticleTable({
     worksheet.addRows([headers, ...rows]);
 
     const buffer = await workbook.xlsx.writeBuffer();
-    downloadBlob(buffer, 'extraction-articles.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    downloadBlob(
+      buffer,
+      'extraction-articles.xlsx',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
   };
 
   const handleExportCsv = () => {
@@ -136,7 +151,11 @@ export default function ExtractionArticleTable({
       ...rows.map((row) => row.map(escapeCsvValue).join(',')),
     ].join('\n');
 
-    downloadBlob(csvContent, 'extraction-articles.csv', 'text/csv;charset=utf-8;');
+    downloadBlob(
+      csvContent,
+      'extraction-articles.csv',
+      'text/csv;charset=utf-8;',
+    );
   };
 
   const handleExportPdf = () => {
@@ -145,7 +164,12 @@ export default function ExtractionArticleTable({
       .map(
         (row) =>
           `<tr>${row
-            .map((value) => `<td>${String(value ?? '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>`)
+            .map(
+              (value) =>
+                `<td>${String(value ?? '')
+                  .replace(/</g, '&lt;')
+                  .replace(/>/g, '&gt;')}</td>`,
+            )
             .join('')}</tr>`,
       )
       .join('');
@@ -218,8 +242,7 @@ export default function ExtractionArticleTable({
           </Typography>
 
           <Typography sx={{ mt: 0.25, fontSize: 12, color: '#64748b' }}>
-            Ekstrak informasi artikel yang sudah lolos
-            proses retrieval.
+            Ekstrak informasi artikel yang sudah lolos proses retrieval.
           </Typography>
         </Box>
       </Box>
@@ -326,7 +349,9 @@ export default function ExtractionArticleTable({
                 <TableCell>{index + 1}</TableCell>
                 <TableCell sx={{ maxWidth: 180 }}>{article.authors}</TableCell>
                 <TableCell>{article.year}</TableCell>
-                <TableCell sx={{ minWidth: 240, maxWidth: 280 }}>{article.title}</TableCell>
+                <TableCell sx={{ minWidth: 240, maxWidth: 280 }}>
+                  {article.title}
+                </TableCell>
                 <TableCell sx={{ maxWidth: 160 }}>{article.journal}</TableCell>
 
                 <TableCell>

@@ -1,14 +1,13 @@
-import axios from 'axios'
+import axios from 'axios';
 
 declare global {
-    interface Window {
-        axios: typeof axios
-    }
+  interface Window {
+    axios: typeof axios;
+  }
 }
 
 if (typeof window !== 'undefined') {
+  window.axios = axios;
 
-    window.axios = axios
-
-    window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
+  window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 }

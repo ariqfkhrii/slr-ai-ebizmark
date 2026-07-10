@@ -9,7 +9,8 @@ export default function AutoReportingGuide() {
   return (
     <Box sx={{ maxHeight: '74.5vh', overflowY: 'auto', pr: 1 }}>
       <GuideInfo>
-        Halaman ini digunakan untuk menyusun laporan secara manual berdasarkan panduan PRISMA.
+        Halaman ini digunakan untuk menyusun laporan secara manual berdasarkan
+        panduan PRISMA.
       </GuideInfo>
 
       <GuideSection title="Metrik Laporan">

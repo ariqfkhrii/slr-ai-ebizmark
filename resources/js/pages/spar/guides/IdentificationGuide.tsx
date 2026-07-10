@@ -11,9 +11,9 @@ export default function AcquisitionGuide() {
     <Box sx={{ maxHeight: '74.5vh', overflowY: 'auto', pr: 1 }}>
       <GuideInfo>
         Tahap Acquisition digunakan untuk mengambil metadata artikel berdasarkan
-        kata kunci / judul yang telah ditentukan. Panel ini akan memandu Anda dalam
-        menggunakan fitur Acquisition untuk melakukan pencarian dan pengumpulan
-        artikel dari database.
+        kata kunci / judul yang telah ditentukan. Panel ini akan memandu Anda
+        dalam menggunakan fitur Acquisition untuk melakukan pencarian dan
+        pengumpulan artikel dari database.
       </GuideInfo>
 
       <GuideSection title="Mulai">
@@ -54,7 +54,8 @@ export default function AcquisitionGuide() {
           color="text.secondary"
           sx={{ mb: 1, fontSize: '11px' }}
         >
-          Menampilkan tabel artikel berdasarkan satu kata kunci / judul spesifik atau gabungan seluruhnya. Anda dapat melihat:
+          Menampilkan tabel artikel berdasarkan satu kata kunci / judul spesifik
+          atau gabungan seluruhnya. Anda dapat melihat:
         </Typography>
         <List dense disablePadding sx={{ pl: 2, mb: 1 }}>
           <ListItem disablePadding sx={{ py: 0.25 }}>
@@ -106,7 +107,8 @@ export default function AcquisitionGuide() {
           color="text.secondary"
           sx={{ mb: 1, fontSize: '11px' }}
         >
-          Menampilkan statistik dan hasil evaluasi dari proses penarikan data artikel, meliputi:
+          Menampilkan statistik dan hasil evaluasi dari proses penarikan data
+          artikel, meliputi:
         </Typography>
         <List dense disablePadding sx={{ pl: 2, mb: 1 }}>
           <ListItem disablePadding sx={{ py: 0.25 }}>
@@ -164,8 +166,8 @@ export default function AcquisitionGuide() {
 
       <GuideSection title="Tips Berguna">
         <GuideTip>
-          Gunakan kata kunci / judul yang spesifik untuk hasil pencarian yang lebih akurat
-          dan relevan.
+          Gunakan kata kunci / judul yang spesifik untuk hasil pencarian yang
+          lebih akurat dan relevan.
         </GuideTip>
 
         <GuideTip>
@@ -179,8 +181,8 @@ export default function AcquisitionGuide() {
         </GuideTip>
 
         <GuideTip>
-          Gunakan fitur filter kata kunci / judul untuk membandingkan hasil dari topik
-          penelitian yang berbeda.
+          Gunakan fitur filter kata kunci / judul untuk membandingkan hasil dari
+          topik penelitian yang berbeda.
         </GuideTip>
 
         <GuideTip>

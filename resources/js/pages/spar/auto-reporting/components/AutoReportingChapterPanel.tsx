@@ -60,7 +60,8 @@ export default function AutoReportingChapterPanel({
               />
             </Box>
             <Typography variant="body2" color="text.secondary">
-              Seluruh item diselesaikan secara manual dan dapat diedit satu per satu.
+              Seluruh item diselesaikan secara manual dan dapat diedit satu per
+              satu.
             </Typography>
           </Box>
         </Stack>

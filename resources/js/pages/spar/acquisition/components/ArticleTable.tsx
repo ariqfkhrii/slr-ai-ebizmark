@@ -377,7 +377,9 @@ export default function ArticleTable({
                           sx={{
                             display: 'block',
                             mt: 0.5,
-                            color: getArticleStatusColor(article.article_status),
+                            color: getArticleStatusColor(
+                              article.article_status,
+                            ),
                             lineHeight: 1.35,
                           }}
                         >
@@ -387,20 +389,29 @@ export default function ArticleTable({
                     </TableCell>
 
                     <TableCell>
-                      <Chip
-                        size="small"
-                        label={article.tier.toUpperCase()}
-                        color={
-                          article.tier === 'q1'
-                            ? 'success'
-                            : article.tier === 'q2'
-                              ? 'primary'
-                              : article.tier === 'q3'
-                                ? 'warning'
-                                : 'error'
-                        }
-                        sx={{ fontSize: 11, height: 22 }}
-                      />
+                      {article.tier ? (
+                        <Chip
+                          size="small"
+                          label={article.tier.toUpperCase()}
+                          color={
+                            article.tier === 'q1'
+                              ? 'success'
+                              : article.tier === 'q2'
+                                ? 'primary'
+                                : article.tier === 'q3'
+                                  ? 'warning'
+                                  : 'error'
+                          }
+                          sx={{ fontSize: 11, height: 22 }}
+                        />
+                      ) : (
+                        <Chip
+                          size="small"
+                          label="-"
+                          color="default"
+                          sx={{ fontSize: 11, height: 22 }}
+                        />
+                      )}
                     </TableCell>
 
                     <TableCell sx={{ fontSize: 12 }}>{article.doi}</TableCell>

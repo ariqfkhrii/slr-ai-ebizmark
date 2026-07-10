@@ -29,7 +29,9 @@ export default function AutoReportingDetailDialog({
   onSave,
 }: Props) {
   const [saving, setSaving] = useState(false);
-  const wordCount = draftContent ? draftContent.trim().split(/\s+/).filter(Boolean).length : 0;
+  const wordCount = draftContent
+    ? draftContent.trim().split(/\s+/).filter(Boolean).length
+    : 0;
 
   const handleSave = async () => {
     setSaving(true);
@@ -44,7 +46,11 @@ export default function AutoReportingDetailDialog({
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
         Detail item – {item?.title ?? 'Item PRISMA'}
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ display: 'block' }}
+        >
           {item?.chapter} · {wordCount} kata
         </Typography>
       </DialogTitle>
@@ -67,7 +73,9 @@ export default function AutoReportingDetailDialog({
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={saving}>Batal</Button>
+        <Button onClick={onClose} disabled={saving}>
+          Batal
+        </Button>
         <Button variant="contained" onClick={handleSave} disabled={saving}>
           {saving ? 'Menyimpan...' : 'Simpan'}
         </Button>

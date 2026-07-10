@@ -13,10 +13,7 @@ import { ExtractionArticle, ExtractionFormValues } from '../types';
 const countWords = (value?: string | null) => {
   if (!value) return 0;
 
-  return value
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean).length;
+  return value.trim().split(/\s+/).filter(Boolean).length;
 };
 
 const mapFilteredToExtractionArticles = (

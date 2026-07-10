@@ -1,8 +1,4 @@
-import {
-  Box,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Box, TextField, Typography } from '@mui/material';
 import { ExtractionFormValues } from '../types';
 
 type Props = {
@@ -76,7 +72,9 @@ export default function ExtractionForm({ values, onChange }: Props) {
         },
       }}
     >
-      <Typography sx={{ fontWeight: 900, fontSize: 16 }}>Extraction Fields</Typography>
+      <Typography sx={{ fontWeight: 900, fontSize: 16 }}>
+        Extraction Fields
+      </Typography>
       <Typography sx={{ color: '#64748b', fontSize: 12.5, mb: 0.5 }}>
         Struktur form disamakan dengan AI Extraction.
       </Typography>
@@ -86,7 +84,9 @@ export default function ExtractionForm({ values, onChange }: Props) {
           <Field
             label={field.label}
             value={values[field.key] as string}
-            onChange={(v) => onChange(field.key, v as ExtractionFormValues[typeof field.key])}
+            onChange={(v) =>
+              onChange(field.key, v as ExtractionFormValues[typeof field.key])
+            }
           />
         </Box>
       ))}

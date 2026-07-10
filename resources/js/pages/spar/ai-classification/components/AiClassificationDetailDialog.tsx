@@ -36,7 +36,9 @@ export default function AiClassificationDetailDialog({
   saving = false,
 }: Props) {
   const [draftResearchMethod, setDraftResearchMethod] = useState('');
-  const [draftClassifications, setDraftClassifications] = useState<Record<number, string>>({});
+  const [draftClassifications, setDraftClassifications] = useState<
+    Record<number, string>
+  >({});
 
   useEffect(() => {
     if (!article) return;
@@ -48,7 +50,11 @@ export default function AiClassificationDetailDialog({
   if (!article) return null;
 
   const handleSave = async () => {
-    const ok = await onSave(article.id, draftResearchMethod, draftClassifications);
+    const ok = await onSave(
+      article.id,
+      draftResearchMethod,
+      draftClassifications,
+    );
     if (ok) {
       onClose();
     }
@@ -165,11 +171,19 @@ export default function AiClassificationDetailDialog({
                       alignItems: 'start',
                     }}
                   >
-                    <Typography sx={{ fontSize: 13, fontWeight: 800, color: '#0f172a' }}>
+                    <Typography
+                      sx={{ fontSize: 13, fontWeight: 800, color: '#0f172a' }}
+                    >
                       {category.name}
                     </Typography>
 
-                    <Typography sx={{ fontSize: 13, lineHeight: 1.7, color: value ? '#475569' : '#94a3b8' }}>
+                    <Typography
+                      sx={{
+                        fontSize: 13,
+                        lineHeight: 1.7,
+                        color: value ? '#475569' : '#94a3b8',
+                      }}
+                    >
                       {value || 'Not classified'}
                     </Typography>
                   </Box>
@@ -279,7 +293,11 @@ export default function AiClassificationDetailDialog({
             disabled={saving}
             sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 900 }}
           >
-            {saving ? <CircularProgress size={18} color="inherit" /> : 'Save AI Classification'}
+            {saving ? (
+              <CircularProgress size={18} color="inherit" />
+            ) : (
+              'Save AI Classification'
+            )}
           </Button>
         </Box>
       </DialogContent>

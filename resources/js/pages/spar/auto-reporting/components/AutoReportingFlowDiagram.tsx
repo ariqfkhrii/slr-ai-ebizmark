@@ -316,8 +316,8 @@ export default function AutoReportingFlowDiagram({ filteredArticles }: AutoRepor
                 </g>
               ))}
 
-              {[246, 376, 506].map((py) => (
-                <path key={py} d={`M530 ${py} L558 ${py}`} stroke="#334155" strokeWidth={2} markerEnd="url(#arrow)" />
+              {[246, 376].map((py) => (
+                <path key={py} d={`M530 ${py} L558 ${py}`} stroke="#334155" strokeWidth={2} markerEnd="url(#line)" />
               ))}
 
               {[190, 320, 450, 575].map((py) => (

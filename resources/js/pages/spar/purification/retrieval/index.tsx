@@ -67,6 +67,7 @@ export default function Retrieval({
         year: item.raw_article?.publish_year ?? null,
         retrieved: Boolean(item.retrieved),
         note: item.included ? 'Included' : 'Not Included',
+        article_status: item.article_status,
       })),
     [filteredArticles],
   );

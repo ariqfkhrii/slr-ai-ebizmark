@@ -110,6 +110,10 @@ class FilteredArticleService
             return false;
         }
 
+        $filteredArticle->update([
+            'article_status' => 'Sedang mencari PDF publik...',
+        ]);
+
         dispatch(new FetchOpenAlexPdfJob($filteredArticle->id));
 
         return true;
@@ -130,8 +134,16 @@ class FilteredArticleService
             ->select('id')
             ->get();
 
-        foreach ($articles as $article) {
-            dispatch(new FetchOpenAlexPdfJob($article->id));
+        if ($articles->isNotEmpty()) {
+            FilteredArticle::query()
+                ->whereIn('id', $articles->pluck('id'))
+                ->update([
+                    'article_status' => 'Sedang mencari PDF publik...',
+                ]);
+
+            foreach ($articles as $article) {
+                dispatch(new FetchOpenAlexPdfJob($article->id));
+            }
         }
 
         return $articles->count();

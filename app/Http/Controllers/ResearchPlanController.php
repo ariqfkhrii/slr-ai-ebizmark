@@ -127,6 +127,7 @@ class ResearchPlanController extends Controller
                 'included',
                 'retrieved',
                 'pdf_path',
+                'article_status',
             ]);
 
         $classificationSetup = ClassificationSetup::query()

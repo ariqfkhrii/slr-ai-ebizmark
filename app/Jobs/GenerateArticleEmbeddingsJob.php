@@ -19,9 +19,12 @@ class GenerateArticleEmbeddingsJob implements ShouldQueue
      *
      * @param array $articleIds Array of RawArticle IDs to generate embeddings for.
      */
+    
     public function __construct(
         public array $articleIds
-    ) {}
+    ) {
+        $this->onQueue('embedding');
+    }
 
     /**
      * Execute the job.

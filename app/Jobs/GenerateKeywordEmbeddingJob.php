@@ -17,7 +17,9 @@ class GenerateKeywordEmbeddingJob implements ShouldQueue
 
     public function __construct(
         public int $keywordId
-    ) {}
+    ) {
+        $this->onQueue('keyword');
+    }
 
     public function handle(
         EmbeddingService $embeddingService,

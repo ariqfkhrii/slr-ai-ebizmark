@@ -9,6 +9,7 @@ export type RawArticle = {
   tier: 'q1' | 'q2' | 'q3' | 'q4';
   citation_count: number;
   publish_year: number;
+  article_status?: string | null;
 };
 
 export type Keyword = {

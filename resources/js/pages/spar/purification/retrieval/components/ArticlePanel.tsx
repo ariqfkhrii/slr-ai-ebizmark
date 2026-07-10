@@ -12,6 +12,22 @@ function buildArticleLink(preLink: string, doi: string, postLink: string) {
   return `${preLink}${encodeURIComponent(doi)}${postLink}`;
 }
 
+const getArticleStatusColor = (status?: string | null) => {
+  if (!status) return 'text.secondary';
+
+  const value = status.toLowerCase();
+
+  if (value.includes('berhasil') || value.includes('sudah tersedia')) {
+    return 'success.main';
+  }
+
+  if (value.includes('gagal') || value.includes('manual') || value.includes('dilewati')) {
+    return 'error.main';
+  }
+
+  return 'text.secondary';
+};
+
 export default function ArticlePanel({
   title,
   count,
@@ -91,6 +107,18 @@ export default function ArticlePanel({
                 window.clearInterval(poll);
                 setFetchingId(null);
                 dispatch(showSuccess('PDF berhasil ditemukan/diunduh untuk artikel ini.'));
+                router.reload({ only: ['filteredArticles'] });
+                return;
+              }
+
+              if (
+                data.article_status &&
+                (data.article_status.toLowerCase().includes('gagal') ||
+                  data.article_status.toLowerCase().includes('dilewati'))
+              ) {
+                window.clearInterval(poll);
+                setFetchingId(null);
+                dispatch(showError(data.article_status));
                 router.reload({ only: ['filteredArticles'] });
                 return;
               }
@@ -272,6 +300,19 @@ export default function ArticlePanel({
                 >
                   {article.note}
                 </Typography>
+
+                {article.article_status && (
+                  <Typography
+                    sx={{
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                      color: getArticleStatusColor(article.article_status),
+                      lineHeight: 1.35,
+                    }}
+                  >
+                    {article.article_status}
+                  </Typography>
+                )}
 
                 {/* FOOTER */}
                 <Box

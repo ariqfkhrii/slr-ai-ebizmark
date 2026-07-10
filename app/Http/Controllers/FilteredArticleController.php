@@ -83,6 +83,7 @@ class FilteredArticleController extends Controller
             $filteredArticle->update([
                 'retrieved' => true,
                 'pdf_path' => $storedPath,
+                'article_status' => 'PDF berhasil diunggah manual.',
             ]);
 
             Log::info('Manual PDF upload assigned to filtered article', [
@@ -174,6 +175,7 @@ class FilteredArticleController extends Controller
                 'publish_year' => $fa->rawArticle->publish_year ?? '-',
                 'tier' => $fa->rawArticle->tier ?? '-',
                 'included' => $fa->included,
+                'article_status' => $fa->article_status,
             ])
         );
     }
@@ -233,6 +235,7 @@ class FilteredArticleController extends Controller
             'id' => $filteredArticle->id,
             'retrieved' => (bool) $filteredArticle->retrieved,
             'pdf_path' => $filteredArticle->pdf_path,
+            'article_status' => $filteredArticle->article_status,
         ]);
     }
 

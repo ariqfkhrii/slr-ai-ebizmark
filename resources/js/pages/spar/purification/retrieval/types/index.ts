@@ -8,6 +8,7 @@ export type ArticleItem = {
   year: number | null;
   retrieved: boolean;
   note: string;
+  article_status?: string | null;
 };
 
 export type ResearchPlanSummary = {
@@ -33,6 +34,7 @@ export type FilteredArticleSummary = {
   included: boolean | number;
   retrieved: boolean | number;
   pdf_path: string | null;
+  article_status?: string | null;
   raw_article: RawArticleSummary | null;
   review?: ReviewSummary | null;
 };

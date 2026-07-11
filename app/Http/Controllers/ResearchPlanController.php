@@ -1,0 +1,158 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\ClassificationSetup;
+use App\Models\FilteredArticle;
+use App\Models\ResearchPlan;
+use App\Services\AutoReportingService;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use App\Http\Interfaces\ResearchPlanServiceInterface;
+// Import file request baru kita
+use App\Http\Requests\StoreResearchPlanRequest; 
+
+class ResearchPlanController extends Controller
+{
+    protected ResearchPlanServiceInterface $service;
+    protected AutoReportingService $autoReportingService;
+
+    public function __construct(ResearchPlanServiceInterface $service, AutoReportingService $autoReportingService)
+    {
+        $this->service = $service;
+        $this->autoReportingService = $autoReportingService;
+    }
+
+    public function index(Request $request)
+    {
+        $researchPlans = $this->service->listForUser($request->user());
+
+        return Inertia::render('dashboard', [
+            'researchPlans' => $researchPlans,
+            'auth' => [
+                'user' => $request->user()
+            ]
+        ]);
+    }
+
+    public function getById(Int $id) 
+    {
+        $researchPlan = $this->service->getById($id);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Research plan retrieved successfully',
+            'data' => $researchPlan
+        ], 200);
+    }
+
+    // Menggunakan FormRequest untuk validasi
+    public function store(StoreResearchPlanRequest $request)
+    {
+        // $request->validated() hanya akan mengambil data yang sudah divalidasi di file request
+        $this->service->createForUser($request->user(), $request->validated());
+
+        return redirect()->back()->with('success', 'Research Plan berhasil dibuat');
+    }
+
+    public function show(ResearchPlan $researchPlan)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(ResearchPlan $researchPlan)
+    {
+        //
+    }
+
+    // Menggunakan FormRequest juga untuk update
+    public function update(StoreResearchPlanRequest $request, ResearchPlan $researchPlan)
+    {
+        $this->service->update($researchPlan, $request->user(), $request->validated());
+
+        return redirect()->back()->with('success', 'Research Plan berhasil diupdate');
+    }
+
+    public function destroy(Request $request, ResearchPlan $researchPlan)
+    {
+        $this->service->delete($researchPlan, $request->user());
+
+        return redirect()->back()->with('success', 'Research Plan berhasil dihapus');
+    }
+
+    public function spar(Request $request)
+    {
+        $researchPlans = $request->user()
+            ->researchPlans()
+            ->latest()
+            ->get([
+                'research_plan_id',
+                'title',
+                'source_database',
+            ]);
+
+        $selectedId = (int) $request->query('research_plan_id', $researchPlans->first()?->research_plan_id);
+        $researchPlan = $researchPlans->firstWhere('research_plan_id', $selectedId);
+
+        if (! $researchPlan) {
+            $exists = ResearchPlan::query()
+                ->where('research_plan_id', $selectedId)
+                ->exists();
+
+            if ($exists) {
+                return Inertia::render('errors/forbidden-research-plan', [
+                    'requestedId' => $selectedId,
+                ]);
+            }
+
+            abort(404);
+        }
+
+        $filteredArticles = FilteredArticle::query()
+            ->where('research_plan_id', $researchPlan->research_plan_id)
+            ->with([
+                'rawArticle:id,doi,title,authors,keyword,abstract,issn_print,issn_e,publish_year,tier,citation_count,source_db',
+                'review:review_id,article_id',
+                'review.articleClassification:classification_id,review_id,research_method,category_1,category_2,category_3,category_4,category_5,category_6,grand_theory',
+                'review.extractionResult:extraction_id,review_id,abstract,introduction,result,conclusion,recommendation,novelty_gap,future_research,limitation',
+            ])
+            ->get([
+                'id',
+                'raw_article_id',
+                'research_plan_id',
+                'novelty_status',
+                'included',
+                'retrieved',
+                'pdf_path',
+                'article_status',
+            ]);
+
+        $classificationSetup = ClassificationSetup::query()
+            ->where('research_plan_id', $researchPlan->research_plan_id)
+            ->first([
+                'id_setup',
+                'research_plan_id',
+                'category_1',
+                'category_2',
+                'category_3',
+                'category_4',
+                'category_5',
+                'category_6',
+                'theory',
+            ]);
+
+        $autoReportingItems = $this->autoReportingService->ensureDefaultItems($selectedId);
+
+        return Inertia::render('spar/index', [
+            'researchPlanId'   => $selectedId,
+            'researchPlan'     => $researchPlan,
+            'researchPlans'    => $researchPlans,
+            'filteredArticles' => $filteredArticles,
+            'classificationSetup' => $classificationSetup,
+            'items'            => $autoReportingItems,
+        ]);
+    }
+}

@@ -35,4 +35,27 @@ return [
         ],
     ],
 
+    'scopus' => [
+        'key' => env('SCOPUS_API_KEY'),
+        'base_url' => env('SCOPUS_BASE_URL'),
+    ],
+
+    'pubmed' => [
+        'key' => env('PUBMED_API_KEY'),
+        'base_url' => env('PUBMED_BASE_URL'),
+    ],
+
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+    ],
+
+    'embedding' => [
+        'url' => env('EMBEDDING_API_URL'),
+    ],
+
+    'openalex' => [
+        'base_url' => env('OPENALEX_BASE_URL', 'https://api.openalex.org'),
+        'email'    => env('OPENALEX_EMAIL'),
+    ],
+
 ];

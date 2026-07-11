@@ -2,11 +2,19 @@
 
 namespace App\Providers;
 
+use App\Models\AutoReporting;
+use App\Services\FilteredArticleService;
+use App\Services\MetadataSearchServices;
+use App\Services\PubMedApiService;
+use App\Services\ResearchPlanKeyword\ResearchPlanKeywordService;
+use App\Services\ScopusApiService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,7 +23,23 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(
+            \App\Http\Interfaces\ResearchPlanRepositoryInterface::class,
+            \App\Repositories\ResearchPlanRepository::class
+        );
+
+        $this->app->bind(
+            \App\Http\Interfaces\ResearchPlanServiceInterface::class,
+            \App\Services\ResearchPlanService::class
+        );
+        $this->app->bind(ResearchPlanKeywordService::class, function ($app) {
+            return new ResearchPlanKeywordService();
+        });
+
+        $this->app->bind(PubMedApiService::class);
+        $this->app->bind(ScopusApiService::class);
+        $this->app->bind(MetadataSearchServices::class);
+        $this->app->bind(FilteredArticleService::class);
     }
 
     /**
@@ -23,6 +47,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (app()->environment('production')) {
+            URL::forceScheme('https');
+        }
+        // Route model binding
+        Route::model('autoReporting', AutoReporting::class);
+        
         $this->configureDefaults();
     }
 

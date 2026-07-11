@@ -1,40 +1,88 @@
-import { createInertiaApp } from '@inertiajs/react';
-import { Toaster } from '@/components/ui/sonner';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
-import AppLayout from '@/layouts/app-layout';
-import AuthLayout from '@/layouts/auth-layout';
-import SettingsLayout from '@/layouts/settings/layout';
+import '@fontsource/poppins/300.css';
+import '@fontsource/poppins/400.css';
+import '@fontsource/poppins/500.css';
+import '@fontsource/poppins/600.css';
+import '@fontsource/poppins/700.css';
+import { createInertiaApp } from '@inertiajs/react';
+import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Provider } from 'react-redux';
+import { store } from './store/store';
+
+import '../css/app.css';
+import './bootstrap';
+
+import { createRoot, hydrateRoot } from 'react-dom/client';
+import SnackbarProvider from './components/snackbar-provider';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const queryClient = new QueryClient();
 
-createInertiaApp({
-    title: (title) => (title ? `${title} - ${appName}` : appName),
-    layout: (name) => {
-        switch (true) {
-            case name === 'welcome':
-                return null;
-            case name.startsWith('auth/'):
-                return AuthLayout;
-            case name.startsWith('settings/'):
-                return [AppLayout, SettingsLayout];
-            default:
-                return AppLayout;
-        }
+const muiTheme = createTheme({
+  typography: {
+    fontFamily: 'Poppins, sans-serif',
+  },
+  palette: {
+    mode: 'light',
+    background: {
+      default: '#f9fafb',
     },
-    strictMode: true,
-    withApp(app) {
-        return (
-            <TooltipProvider delayDuration={0}>
-                {app}
-                <Toaster />
-            </TooltipProvider>
-        );
+    text: {
+      primary: '#111827',
+      secondary: '#6b7280',
     },
-    progress: {
-        color: '#4B5563',
-    },
+  },
 });
 
-// This will set light / dark mode on load...
+createInertiaApp({
+  resolve: (name: string) => {
+    const pages = import.meta.glob<{ default: React.ComponentType<any> }>(
+      './pages/**/*.tsx',
+      { eager: true },
+    );
+
+    const tryPaths = [
+      `./pages/${name}.tsx`,
+      `./pages/${name}.jsx`,
+      `./pages/${name}/index.tsx`,
+      `./pages/${name}/index.jsx`,
+    ];
+
+    for (const p of tryPaths) {
+      if (pages[p]) return pages[p].default;
+    }
+
+    throw new Error(`Page not found: ${name} (tried: ${tryPaths.join(', ')})`);
+  },
+
+  setup({ el, App, props }) {
+    const root = (
+      <QueryClientProvider client={queryClient}>
+        <Provider store={store}>
+          <ThemeProvider theme={muiTheme}>
+            <CssBaseline />
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <App {...props} />
+              <SnackbarProvider />
+            </LocalizationProvider>
+          </ThemeProvider>
+        </Provider>
+      </QueryClientProvider>
+    );
+
+    if (typeof window !== 'undefined' && el && (el as Element).nodeType === 1) {
+      const container = el as Element;
+
+      if (container.hasChildNodes()) {
+        hydrateRoot(container, root);
+      } else {
+        createRoot(container).render(root);
+      }
+    }
+  },
+});
+
 initializeTheme();

@@ -1,0 +1,42 @@
+export type RawArticle = {
+  id: number;
+  doi: string;
+  included: boolean;
+  title: string;
+  authors: string;
+  keyword: string | null;
+  abstract: string | null;
+  tier: 'q1' | 'q2' | 'q3' | 'q4';
+  citation_count: number;
+  publish_year: number;
+  article_status?: string | null;
+};
+
+export type Keyword = {
+  id: number;
+  name: string;
+  retrievedCount?: number;
+  duplicateCount?: number;
+  unmatchedTierCount?: number;
+  missingDoiCount?: number;
+  outOfYearRangeCount?: number;
+  articles?: RawArticle[];
+};
+
+export type AcquisitionState = {
+  keywords: Keyword[];
+  selectedKeyword: Keyword | null;
+};
+
+export type FetchHistory = {
+  id: number;
+  keywordId: number;
+  keywordName: string;
+  action: 'fetch' | 'update';
+  yearFrom: number;
+  yearTo: number;
+  tiers: string[];
+  resultCount: number;
+  status: 'success' | 'failed';
+  createdAt: string;
+};

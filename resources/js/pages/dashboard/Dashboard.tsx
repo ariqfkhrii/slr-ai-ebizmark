@@ -326,6 +326,14 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
 
                 <MenuItem
                   onClick={() => {
+                    window.location.href = '/';
+                  }}
+                >
+                  Beranda
+                </MenuItem>
+
+                <MenuItem
+                  onClick={() => {
                     window.location.href = '/settings/profile';
                   }}
                 >

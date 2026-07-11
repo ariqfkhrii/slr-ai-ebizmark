@@ -89,7 +89,7 @@ export default function Navbar({ onNavigate }: Props) {
           {isLoggedIn ? (
             <Link href={'dashboard'}>
               <Button variant="contained" size="medium">
-                Dashboard
+                Dashboard Topik SLR
               </Button>
             </Link>
           ) : (

@@ -89,7 +89,7 @@ export default function ClassificationResultTable({
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Chip
             size="small"
-            label={`${filteredArticles.length} records`}
+            label={`${filteredArticles.length} artikel`}
             sx={{
               fontSize: 11,
               fontWeight: 800,
@@ -100,7 +100,7 @@ export default function ClassificationResultTable({
 
           <Chip
             size="small"
-            label={`${activeCategories.length} categories`}
+            label={`${activeCategories.length} kategori`}
             sx={{
               fontSize: 11,
               fontWeight: 800,
@@ -114,7 +114,7 @@ export default function ClassificationResultTable({
       <Box sx={{ p: 2, pb: 1.25 }}>
         <TextField
           size="small"
-          placeholder="Search article, author, method, category..."
+          placeholder="Search..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           sx={{
@@ -202,16 +202,16 @@ export default function ClassificationResultTable({
           <TableHead>
             <TableRow>
               <TableCell width={56}>No</TableCell>
-              <TableCell>Authors</TableCell>
-              <TableCell>Country</TableCell>
-              <TableCell>Research Method</TableCell>
+              <TableCell>Author</TableCell>
+              <TableCell>Negara</TableCell>
+              <TableCell>Metode Penelitian</TableCell>
 
               {activeCategories.map((category) => (
                 <TableCell key={category.id}>{category.name}</TableCell>
               ))}
 
               <TableCell align="center" width={70}>
-                Act
+                Aksi
               </TableCell>
             </TableRow>
           </TableHead>
@@ -291,7 +291,7 @@ export default function ClassificationResultTable({
                           overflow: 'hidden',
                         }}
                       >
-                        {value || 'Not classified'}
+                        {value || 'Tidak Di Klasifikasi'}
                       </Typography>
                     </TableCell>
                   );

@@ -1,4 +1,3 @@
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { Box, Button, Chip, Paper, TextField, Typography } from '@mui/material';
 import { ClassificationCategory } from '../types';
 
@@ -128,7 +127,7 @@ export default function AiClassificationSetup({
                     size="small"
                     fullWidth
                     value={category.name}
-                    placeholder={`Category ${category.id}`}
+                    placeholder={`Kategori ${category.id}`}
                     onChange={(e) =>
                       onUpdateCategory(category.id, e.target.value)
                     }
@@ -153,7 +152,7 @@ export default function AiClassificationSetup({
           <Typography
             sx={{ mb: 1, fontSize: 12, fontWeight: 800, color: '#475569' }}
           >
-            Theory
+            Teori
           </Typography>
 
           <TextField
@@ -161,7 +160,7 @@ export default function AiClassificationSetup({
             multiline
             minRows={3}
             value={theory}
-            placeholder="Add theory or notes..."
+            placeholder="Tambahkan Teori atau Catatan..."
             onChange={(e) => onUpdateTheory(e.target.value)}
             sx={{
               '& .MuiOutlinedInput-root': {
@@ -189,7 +188,6 @@ export default function AiClassificationSetup({
         <Button
           fullWidth
           variant="contained"
-          startIcon={<AutoAwesomeIcon fontSize="small" />}
           onClick={onSaveSetup}
           sx={{
             py: 1,
@@ -204,7 +202,7 @@ export default function AiClassificationSetup({
             },
           }}
         >
-          Save Setup
+          Simpan
         </Button>
 
         <Button

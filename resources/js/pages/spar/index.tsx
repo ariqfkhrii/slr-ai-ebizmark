@@ -1,7 +1,8 @@
 import { getResearchPlanById } from '@/clients/researchPlan';
 import { Head } from '@inertiajs/react';
-import { Box, Paper, Tooltip, Typography } from '@mui/material';
+import { Box, IconButton, Paper, Tooltip, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
+import { House } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Acquisition from './acquisition';
 import AiClassification from './ai-classification';
@@ -21,10 +22,38 @@ import { ApiResponse, ResearchPlan } from './types';
 
 const BreadcrumbDisplay = () => {
   const { title } = useBreadcrumb();
+
   return (
-    <Typography variant="h6" sx={{ fontWeight: 700 }}>
-      {title}
-    </Typography>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Tooltip title={'Kembali ke Menu Topik SLR'}>
+        <IconButton
+          component="a"
+          href="/dashboard"
+          sx={{
+            width: 32,
+            height: 32,
+            borderRadius: 3,
+            bgcolor: 'primary.main',
+            color: 'common.white',
+            '&:hover': {
+              bgcolor: 'primary.dark',
+            },
+          }}
+        >
+          <House size={26} />
+        </IconButton>
+      </Tooltip>
+
+      <Typography
+        variant="h6"
+        sx={{
+          fontWeight: 700,
+          ml: 0.5,
+        }}
+      >
+        {title}
+      </Typography>
+    </Box>
   );
 };
 

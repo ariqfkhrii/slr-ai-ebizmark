@@ -16,7 +16,7 @@ export default function ForbiddenResearchPlan({
             Akses ditolak
           </h1>
           <p className="mt-2 text-sm text-gray-600">
-            Research plan dengan ID {requestedId} tidak dimiliki oleh akun Anda.
+            Topik SLR dengan ID {requestedId} tidak dimiliki oleh akun Anda.
           </p>
         </div>
 
@@ -25,7 +25,7 @@ export default function ForbiddenResearchPlan({
             href="/dashboard"
             className="inline-flex items-center rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
           >
-            Kembali ke Dashboard
+            Kembali ke Menu Topik SLR
           </Link>
         </div>
       </div>

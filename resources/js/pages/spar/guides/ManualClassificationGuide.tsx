@@ -62,13 +62,13 @@ export default function ManualClassificationGuide() {
 
         <GuideStep
           number={2}
-          title="Country"
+          title="Negara"
           description="Negara asal penulis atau afiliasi penelitian."
         />
 
         <GuideStep
           number={3}
-          title="Research Method"
+          title="Metode Penelitian"
           description="Metode penelitian yang digunakan dalam artikel."
         />
 

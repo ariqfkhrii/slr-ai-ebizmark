@@ -543,7 +543,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                 color="text.secondary"
                 sx={{ mt: 0.5 }}
               >
-                Buat topik SLR pertama untuk mulai proses PRISMA.
+                Buat topik SLR pertama untuk mulai proses SPAR.
               </Typography>
             </Box>
           )}

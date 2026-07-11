@@ -326,6 +326,14 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
 
                 <MenuItem
                   onClick={() => {
+                    window.location.href = '/';
+                  }}
+                >
+                  Beranda
+                </MenuItem>
+
+                <MenuItem
+                  onClick={() => {
                     window.location.href = '/settings/profile';
                   }}
                 >
@@ -535,7 +543,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                 color="text.secondary"
                 sx={{ mt: 0.5 }}
               >
-                Buat topik SLR pertama untuk mulai proses PRISMA.
+                Buat topik SLR pertama untuk mulai proses SPAR.
               </Typography>
             </Box>
           )}

@@ -166,8 +166,41 @@ class PubMedIngestService
      */
     protected function buildTerm(string $keyword, int $startYear, int $endYear): string
     {
-        $searchQuery = '(' . $keyword . ')';
-        
+        if (!str_contains($keyword, ';') && !str_contains($keyword, '!')) {
+            $keyword = trim($keyword);
+            
+            if (!str_starts_with($keyword, '"') && !str_ends_with($keyword, '"')) {
+                $keyword = '"' . $keyword . '"';
+            }
+
+            $searchQuery = $keyword . '[ti]';
+        } else {
+            $parts = explode(';', $keyword);
+            $queryBuilder = [];
+
+            foreach ($parts as $index => $part) {
+                $part = trim($part);
+                $isNot = str_starts_with($part, '!');
+                
+                if ($isNot) {
+                    $part = ltrim($part, '!');
+                }
+
+                if (str_contains($part, ' ') && !str_starts_with($part, '"') && !str_ends_with($part, '"')) {
+                    $part = '"' . $part . '"';
+                }
+
+                if ($isNot) {
+                    $queryBuilder[] = $index === 0 ? "NOT {$part}" : "NOT {$part}";
+                } else {
+                    $queryBuilder[] = $index === 0 ? $part : "AND {$part}";
+                }
+            }
+
+            $formattedKeyword = implode(' ', $queryBuilder);
+            $searchQuery = '(' . $formattedKeyword . ')';
+        }
+
         $qualityFilter = '("Journal Article"[pt] AND "medline"[sb] NOT "preprint"[pt])';
 
         return $searchQuery . ' AND ' . $qualityFilter . ' AND ' . $startYear . ':' . $endYear . '[dp]';

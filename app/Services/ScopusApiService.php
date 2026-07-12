@@ -29,15 +29,45 @@ class ScopusApiService
     /**
      * Build a Scopus API query string from the given keyword.
      *
-     * This method formats the keyword to ensure that any "NOT" operators are correctly interpreted by the Scopus API.
-     * It constructs a query string that searches for the keyword in the title, abstract, and keywords of publications.
-     *
      * @param string $keyword The keyword to be included in the search query.
      * @return string The formatted Scopus API query string.
      */
     public function buildScopusQuery(string $keyword): string
     {
-        $formattedKeyword = preg_replace('/\bNOT\b/i', 'AND NOT', $keyword);
+        if (!str_contains($keyword, ';') && !str_contains($keyword, '!')) {
+            $keyword = trim($keyword);
+            
+            if (!str_starts_with($keyword, '"') && !str_ends_with($keyword, '"')) {
+                $keyword = '"' . $keyword . '"';
+            }
+
+            return 'TITLE(' . $keyword . ')';
+        }
+
+        $parts = explode(';', $keyword);
+        $queryBuilder = [];
+
+        foreach ($parts as $index => $part) {
+            $part = trim($part);
+            $isNot = str_starts_with($part, '!');
+            
+            if ($isNot) {
+                $part = ltrim($part, '!');
+            }
+
+            // Bungkus tiap frasa dengan kutip jika mengandung spasi
+            if (str_contains($part, ' ') && !str_starts_with($part, '"') && !str_ends_with($part, '"')) {
+                $part = '"' . $part . '"';
+            }
+
+            if ($isNot) {
+                $queryBuilder[] = $index === 0 ? "NOT {$part}" : "AND NOT {$part}";
+            } else {
+                $queryBuilder[] = $index === 0 ? $part : "AND {$part}";
+            }
+        }
+
+        $formattedKeyword = implode(' ', $queryBuilder);
 
         return 'TITLE-ABS-KEY(' . $formattedKeyword . ')';
     }

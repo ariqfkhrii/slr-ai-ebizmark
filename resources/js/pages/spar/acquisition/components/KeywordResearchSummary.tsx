@@ -3,6 +3,7 @@ import { Keyword } from '../types';
 
 type Props = {
   keyword: Keyword;
+  sourceDatabase?: string;
 };
 
 function SummaryCard({
@@ -38,17 +39,21 @@ function SummaryCard({
   );
 }
 
-export default function KeywordResearchSummary({ keyword }: Props) {
+export default function KeywordResearchSummary({
+  keyword,
+  sourceDatabase,
+}: Props) {
   const articleCount = keyword.retrievedCount ?? 0;
   const duplicateCount = keyword.duplicateCount ?? 0;
   const unmatchedTierCount = keyword.unmatchedTierCount ?? 0;
   const missingDoiCount = keyword.missingDoiCount ?? 0;
   const outOfYearRangeCount = keyword.outOfYearRangeCount ?? 0;
 
+  const isScopus = (sourceDatabase ?? '').toLowerCase() === 'scopus';
   const totalPreviewCount =
     articleCount +
     duplicateCount +
-    unmatchedTierCount +
+    (isScopus ? unmatchedTierCount : 0) +
     missingDoiCount;
 
   return (
@@ -120,11 +125,13 @@ export default function KeywordResearchSummary({ keyword }: Props) {
         caption="Artikel dengan identitas sama saat ditarik, atau sudah didapatkan dari keyword lain."
       />
 
-      <SummaryCard
-        label="Tier tidak cocok"
-        value={unmatchedTierCount}
-        caption="Artikel dengan tier di luar rentang pilihan."
-      />
+      {isScopus && (
+        <SummaryCard
+          label="Tier tidak cocok"
+          value={unmatchedTierCount}
+          caption="Artikel dengan tier di luar rentang pilihan."
+        />
+      )}
 
       <SummaryCard
         label="Tanpa DOI"

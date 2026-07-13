@@ -1,126 +1,142 @@
-import { Form, Head, Link, usePage } from '@inertiajs/react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
-import DeleteUser from '@/components/delete-user';
-import Heading from '@/components/heading';
-import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import SettingsLayout from '@/layouts/settings/layout';
-import { edit } from '@/routes/profile';
-import { send } from '@/routes/verification';
+import { Form, Head, usePage } from '@inertiajs/react';
 
-export default function Profile({
-    mustVerifyEmail,
-    status,
-}: {
-    mustVerifyEmail: boolean;
-    status?: string;
-}) {
-    const { auth } = usePage().props;
+import {
+  Avatar,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Divider,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
+import { ArrowLeft, User } from 'lucide-react';
 
-    return (
-        <>
-            <Head title="Profile settings" />
+export default function Profile() {
+  const { auth } = usePage().props as any;
 
-            <h1 className="sr-only">Profile settings</h1>
+  return (
+    <>
+      <Head title="Profil Saya" />
 
-            <div className="space-y-6">
-                <Heading
-                    variant="small"
-                    title="Profile information"
-                    description="Update your name and email address"
-                />
+      <Box
+        sx={{
+          minHeight: '100%',
+          px: 3,
+          py: 4,
+          bgcolor: '#f5f7fb',
+        }}
+      >
+        {/* Back Button */}
+        <Button
+          component="a"
+          href="/dashboard"
+          startIcon={<ArrowLeft size={18} />}
+          variant="text"
+          sx={{
+            mb: 4,
+            textTransform: 'none',
+            fontWeight: 600,
+          }}
+        >
+          Kembali
+        </Button>
 
-                <Form
-                    {...ProfileController.update.form()}
-                    options={{
-                        preserveScroll: true,
-                    }}
-                    className="space-y-6"
+        {/* Center Content */}
+        <Stack
+          spacing={3}
+          sx={{
+            maxWidth: 700,
+            mx: 'auto',
+          }}
+        >
+          <Card elevation={3}>
+            <CardContent sx={{ p: 4 }}>
+              <Stack
+                direction="row"
+                spacing={3}
+                sx={{ mb: 4, alignItems: 'center' }}
+              >
+                <Avatar
+                  sx={{
+                    width: 72,
+                    height: 72,
+                    bgcolor: 'primary.main',
+                  }}
                 >
-                    {({ processing, errors }) => (
-                        <>
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
+                  <User size={34} />
+                </Avatar>
 
-                                <Input
-                                    id="name"
-                                    className="mt-1 block w-full"
-                                    defaultValue={auth.user.name}
-                                    name="name"
-                                    required
-                                    autoComplete="name"
-                                    placeholder="Full name"
-                                />
+                <Box>
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      fontWeight: 700,
+                    }}
+                  >
+                    {auth.user.name}
+                  </Typography>
 
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.name}
-                                />
-                            </div>
+                  <Typography color="text.secondary">
+                    {auth.user.email}
+                  </Typography>
+                </Box>
+              </Stack>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+              <Divider sx={{ mb: 4 }} />
 
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    className="mt-1 block w-full"
-                                    defaultValue={auth.user.email}
-                                    name="email"
-                                    required
-                                    autoComplete="username"
-                                    placeholder="Email address"
-                                />
+              <Form
+                {...ProfileController.update.form()}
+                options={{
+                  preserveScroll: true,
+                }}
+              >
+                {({ processing, errors }) => (
+                  <Stack spacing={3}>
+                    <TextField
+                      fullWidth
+                      label="Nama Lengkap"
+                      name="name"
+                      defaultValue={auth.user.name}
+                      error={!!errors.name}
+                      helperText={errors.name}
+                    />
 
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.email}
-                                />
-                            </div>
+                    <TextField
+                      fullWidth
+                      label="Email"
+                      type="email"
+                      name="email"
+                      defaultValue={auth.user.email}
+                      error={!!errors.email}
+                      helperText={errors.email}
+                    />
 
-                            {mustVerifyEmail &&
-                                auth.user.email_verified_at === null && (
-                                    <div>
-                                        <p className="-mt-4 text-sm text-muted-foreground">
-                                            Your email address is unverified.{' '}
-                                            <Link
-                                                href={send()}
-                                                as="button"
-                                                className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
-                                            >
-                                                Click here to resend the
-                                                verification email.
-                                            </Link>
-                                        </p>
-
-                                        {status ===
-                                            'verification-link-sent' && (
-                                            <div className="mt-2 text-sm font-medium text-green-600">
-                                                A new verification link has been
-                                                sent to your email address.
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                            <div className="flex items-center gap-4">
-                                <Button
-                                    disabled={processing}
-                                    data-test="update-profile-button"
-                                >
-                                    Save
-                                </Button>
-                            </div>
-                        </>
-                    )}
-                </Form>
-            </div>
-
-            <DeleteUser />
-        </>
-    );
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        disabled={processing}
+                        sx={{
+                          px: 4,
+                          py: 1.2,
+                          borderRadius: 2,
+                          textTransform: 'none',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
+                      </Button>
+                    </Box>
+                  </Stack>
+                )}
+              </Form>
+            </CardContent>
+          </Card>
+        </Stack>
+      </Box>
+    </>
+  );
 }
-
-Profile.layout = (page: React.ReactNode) => <SettingsLayout>{page}</SettingsLayout>;

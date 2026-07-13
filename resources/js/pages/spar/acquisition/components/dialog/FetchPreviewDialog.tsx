@@ -179,7 +179,7 @@ export default function FetchPreviewDialog({
                   mb: 1,
                 }}
               >
-                REKOMENDASI SLR
+                JUMLAH DATA
               </Typography>
 
               <Box
@@ -199,8 +199,8 @@ export default function FetchPreviewDialog({
                 }}
               >
                 {isRecommended
-                  ? '✓ Direkomendasikan'
-                  : 'Tidak Direkomendasikan'}
+                  ? '✓ Dalam Rentang Ideal'
+                  : 'Di luar Rentang Ideal'}
               </Box>
 
               <Typography

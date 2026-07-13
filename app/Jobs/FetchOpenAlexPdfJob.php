@@ -12,12 +12,17 @@ class FetchOpenAlexPdfJob implements ShouldQueue
 {
     use Queueable;
 
+    private const STATUS_DOWNLOADED = 'PDF berhasil diunduh dari OpenAlex.';
+    private const STATUS_NOT_OPEN_ACCESS = 'PDF gagal diunduh karena tidak open access. Silakan upload manual.';
+    private const STATUS_NO_DOI = 'PDF OpenAlex dilewati karena DOI tidak tersedia. Silakan upload manual.';
+    private const STATUS_ALREADY_EXISTS = 'PDF sudah tersedia.';
+
     public int $tries = 3;
     public array $backoff = [10, 30];
 
     public function __construct(protected int $filteredArticleId)
     {
-        $this->onQueue('default');
+        $this->onQueue('openalex');
     }
 
     /**
@@ -36,6 +41,10 @@ class FetchOpenAlexPdfJob implements ShouldQueue
 
         // Skip if already retrieved
         if ($filteredArticle->pdf_path) {
+            $filteredArticle->update([
+                'article_status' => self::STATUS_ALREADY_EXISTS,
+            ]);
+
             Log::info('[FetchOpenAlexPdfJob] Article already has a PDF, skipping', [
                 'filtered_article_id' => $this->filteredArticleId,
             ]);
@@ -45,6 +54,10 @@ class FetchOpenAlexPdfJob implements ShouldQueue
         $doi = $filteredArticle->rawArticle?->doi;
 
         if (! $doi || $doi === '-') {
+            $filteredArticle->update([
+                'article_status' => self::STATUS_NO_DOI,
+            ]);
+
             Log::info('[FetchOpenAlexPdfJob] No DOI available for article, skipping', [
                 'filtered_article_id' => $this->filteredArticleId,
             ]);
@@ -62,6 +75,7 @@ class FetchOpenAlexPdfJob implements ShouldQueue
             $filteredArticle->update([
                 'pdf_path'  => $localPath,
                 'retrieved' => true,
+                'article_status' => self::STATUS_DOWNLOADED,
             ]);
 
             Log::info('[FetchOpenAlexPdfJob] PDF fetched and article updated', [
@@ -69,6 +83,10 @@ class FetchOpenAlexPdfJob implements ShouldQueue
                 'pdf_path'            => $localPath,
             ]);
         } else {
+            $filteredArticle->update([
+                'article_status' => self::STATUS_NOT_OPEN_ACCESS,
+            ]);
+
             Log::info('[FetchOpenAlexPdfJob] No public PDF found for article', [
                 'filtered_article_id' => $this->filteredArticleId,
                 'doi'                 => $doi,

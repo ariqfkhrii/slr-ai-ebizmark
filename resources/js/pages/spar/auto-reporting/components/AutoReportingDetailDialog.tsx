@@ -29,7 +29,9 @@ export default function AutoReportingDetailDialog({
   onSave,
 }: Props) {
   const [saving, setSaving] = useState(false);
-  const wordCount = draftContent ? draftContent.trim().split(/\s+/).filter(Boolean).length : 0;
+  const wordCount = draftContent
+    ? draftContent.trim().split(/\s+/).filter(Boolean).length
+    : 0;
 
   const handleSave = async () => {
     setSaving(true);
@@ -43,8 +45,12 @@ export default function AutoReportingDetailDialog({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        Detail hasil AI – {item?.title ?? 'Item PRISMA'}
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+        Detail item – {item?.title ?? 'Item PRISMA'}
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ display: 'block' }}
+        >
           {item?.chapter} · {wordCount} kata
         </Typography>
       </DialogTitle>
@@ -56,24 +62,20 @@ export default function AutoReportingDetailDialog({
           {item?.detail}
         </Typography>
 
-        {item?.status === 'generated' && (
-          <Alert severity="info" sx={{ mb: 2 }}>
-            Konten ini di-generate oleh Gemini AI. Silakan edit sesuai kebutuhan.
-          </Alert>
-        )}
-
         <TextField
           fullWidth
           multiline
           minRows={12}
           value={draftContent}
           onChange={(event) => onChangeContent(event.target.value)}
-          placeholder="Edit hasil AI di sini..."
+          placeholder="Edit narasi di sini..."
           label="Narasi"
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={saving}>Batal</Button>
+        <Button onClick={onClose} disabled={saving}>
+          Batal
+        </Button>
         <Button variant="contained" onClick={handleSave} disabled={saving}>
           {saving ? 'Menyimpan...' : 'Simpan'}
         </Button>

@@ -8,6 +8,7 @@ export type ArticleItem = {
   year: number | null;
   retrieved: boolean;
   note: string;
+  article_status?: string | null;
 };
 
 export type ResearchPlanSummary = {
@@ -30,9 +31,10 @@ export type FilteredArticleSummary = {
   raw_article_id: number;
   research_plan_id: number;
   novelty_status: string | null;
-  included: boolean;
+  included: boolean | number;
   retrieved: boolean | number;
   pdf_path: string | null;
+  article_status?: string | null;
   raw_article: RawArticleSummary | null;
   review?: ReviewSummary | null;
 };
@@ -90,6 +92,7 @@ export type ArticlePanelProps = {
   emptyText: string;
   preLink: string;
   postLink: string;
+  researchPlanId: number;
   onToggleRetrieved?: (articleId: number, nextRetrieved: boolean) => void;
   onAutoFetch?: (articleId: number) => void;
 };

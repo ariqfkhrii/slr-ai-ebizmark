@@ -1,5 +1,4 @@
 import CloseIcon from '@mui/icons-material/Close';
-import SaveIcon from '@mui/icons-material/Save';
 import {
   Box,
   Button,
@@ -126,7 +125,7 @@ export default function ClassificationDetailDialog({
             }}
           >
             <Typography sx={{ fontSize: 16, fontWeight: 900, mb: 1 }}>
-              Abstract / Result
+              Abstrak / Hasil
             </Typography>
 
             <Typography
@@ -146,7 +145,7 @@ export default function ClassificationDetailDialog({
             }}
           >
             <Typography sx={{ fontSize: 16, fontWeight: 900, mb: 1.5 }}>
-              Research Method
+              Metode Penelitian
             </Typography>
 
             <TextField
@@ -230,12 +229,11 @@ export default function ClassificationDetailDialog({
             onClick={onClose}
             sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 800 }}
           >
-            Cancel
+            Batal
           </Button>
 
           <Button
             variant="contained"
-            startIcon={<SaveIcon fontSize="small" />}
             onClick={() => {
               if (onSave) {
                 onSave(article.id);
@@ -244,7 +242,7 @@ export default function ClassificationDetailDialog({
             }}
             sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 900 }}
           >
-            Save Classification
+            Simpan
           </Button>
         </Box>
       </DialogContent>

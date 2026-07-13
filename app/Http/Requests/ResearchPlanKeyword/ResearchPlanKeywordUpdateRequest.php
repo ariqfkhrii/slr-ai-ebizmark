@@ -21,11 +21,12 @@ class ResearchPlanKeywordUpdateRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         if ($this->has('new_keyword')) {
-            // Ubah variasi 'AND NOT' menjadi 'NOT' di field new_keyword
-            $normalizedKeyword = preg_replace('/\bAND NOT\b/i', 'NOT', $this->new_keyword);
+            $cleanedKeyword = collect(explode(';', $this->new_keyword))
+                ->map(fn($item) => trim($item))
+                ->implode(';');
             
             $this->merge([
-                'new_keyword' => trim($normalizedKeyword),
+                'new_keyword' => $cleanedKeyword,
             ]);
         }
     }
@@ -42,13 +43,7 @@ class ResearchPlanKeywordUpdateRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                'regex:/^[\p{L}0-9\s\*\?\"\'\{\}\-\/\(\)\\\\\.,:\[\]\~]+$/u',
-                
-                function ($attribute, $value, $fail) {
-                    if (preg_match('/\bOR\b/i', $value) || str_contains($value, '|')) {
-                        $fail('Operator OR (maupun simbol |) tidak didukung dalam satu pencarian demi keamanan limit data. Harap pecah menjadi beberapa kata kunci.');
-                    }
-                },
+                'regex:/^[\p{L}0-9\s;!]+$/u',
             ],
             'old_keyword_id' => 'required|exists:keywords,id',
         ];
@@ -65,7 +60,7 @@ class ResearchPlanKeywordUpdateRequest extends FormRequest
             'new_keyword.required'    => 'Kata kunci baru wajib diisi.',
             'new_keyword.string'      => 'Kata kunci baru harus berupa format teks.',
             'new_keyword.max'         => 'Kata kunci baru maksimal 255 karakter.',
-            'new_keyword.regex'       => 'Karakter tidak valid. Hanya huruf, angka, dan operator (* ? " \' { } [ ] - / ( ) ~) yang diizinkan.',
+            'new_keyword.regex'       => 'Karakter tidak valid. Hanya huruf, angka, spasi, pemisah (;), dan awalan (!) yang diizinkan.',
             'old_keyword_id.required' => 'Sistem tidak dapat mengenali kata kunci mana yang ingin diubah. Silakan muat ulang halaman dan coba lagi.',
             'old_keyword_id.exists'   => 'Kata kunci yang ingin diubah sudah tidak ada atau mungkin telah dihapus. Silakan muat ulang halaman.',
         ];

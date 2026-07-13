@@ -10,6 +10,12 @@ import { ExtractionArticle, ExtractionFormValues } from '../types';
 // Helpers
 // ---------------------------------------------------------------------------
 
+const countWords = (value?: string | null) => {
+  if (!value) return 0;
+
+  return value.trim().split(/\s+/).filter(Boolean).length;
+};
+
 const mapFilteredToExtractionArticles = (
   filteredArticles: FilteredArticleSummary[],
 ): ExtractionArticle[] =>
@@ -18,6 +24,18 @@ const mapFilteredToExtractionArticles = (
     .map((item) => {
       const raw = item.raw_article;
       const extraction = item.review?.extraction_result ?? null;
+      const textContent = [
+        extraction?.abstract,
+        extraction?.introduction,
+        extraction?.result,
+        extraction?.conclusion,
+        extraction?.recommendation,
+        extraction?.novelty_gap,
+        extraction?.limitation,
+        extraction?.future_research,
+      ]
+        .filter(Boolean)
+        .join(' ');
 
       return {
         id: item.filtered_article_id,
@@ -28,8 +46,9 @@ const mapFilteredToExtractionArticles = (
         aiUsage: Boolean(item.included),
         citation: 0,
         quartile: raw?.tier ?? '-',
-        text: 0,
+        text: countWords(textContent),
         novelty: Boolean(item.novelty_status),
+        noveltyGap: extraction?.novelty_gap ?? '',
         status: extraction ? 'extracted' : 'pending',
         pdfUrl: item.pdf_path ? `/storage/${item.pdf_path}` : undefined,
       };

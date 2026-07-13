@@ -157,65 +157,7 @@ export default function SparStepper({
                   : {},
               }}
             >
-              {isClassification ? (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 1,
-                    width: '100%',
-                  }}
-                >
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      fontWeight: 700,
-                      fontSize: 11,
-                      textTransform: 'uppercase',
-                      lineHeight: 1,
-                      letterSpacing: '.5px',
-                    }}
-                  >
-                    {stepLabel}
-                  </Typography>
-
-                  <Select
-                    size="small"
-                    value={classificationMode}
-                    onChange={(event) =>
-                      onClassificationModeChange?.(
-                        event.target.value as 'manual' | 'ai',
-                      )
-                    }
-                    onClick={(event) => event.stopPropagation()}
-                    sx={{
-                      color: 'inherit',
-                      fontWeight: 700,
-                      fontSize: 11,
-                      textTransform: 'uppercase',
-                      letterSpacing: '.5px',
-                      minWidth: 140,
-                      '.MuiOutlinedInput-notchedOutline': {
-                        border: 'none',
-                      },
-                      '.MuiSelect-select': {
-                        py: 0,
-                        px: 0,
-                      },
-                      '.MuiSvgIcon-root': {
-                        color: 'inherit',
-                      },
-                      '.MuiSelect-icon': {
-                        display: 'none',
-                      },
-                    }}
-                  >
-                    <MenuItem value="manual">Manual</MenuItem>
-                    <MenuItem value="ai">AI</MenuItem>
-                  </Select>
-                </Box>
-              ) : isExtraction ? (
+              {isExtraction ? (
                 <Box
                   sx={{
                     display: 'flex',

@@ -113,7 +113,6 @@ class ResearchPlanController extends Controller
 
         $filteredArticles = FilteredArticle::query()
             ->where('research_plan_id', $researchPlan->research_plan_id)
-            ->where('included', true)
             ->with([
                 'rawArticle:id,doi,title,authors,keyword,abstract,issn_print,issn_e,publish_year,tier,citation_count,source_db',
                 'review:review_id,article_id',
@@ -128,6 +127,7 @@ class ResearchPlanController extends Controller
                 'included',
                 'retrieved',
                 'pdf_path',
+                'article_status',
             ]);
 
         $classificationSetup = ClassificationSetup::query()

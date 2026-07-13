@@ -83,7 +83,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
       preserveScroll: true,
 
       onSuccess: () => {
-        dispatch(showSuccess('Topik penelitian berhasil dibuat'));
+        dispatch(showSuccess('Topik SLR berhasil dibuat'));
 
         reset();
         setShowCreateModal(false);
@@ -117,7 +117,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
       preserveScroll: true,
 
       onSuccess: () => {
-        dispatch(showSuccess('Topik Penelitian berhasil diperbarui'));
+        dispatch(showSuccess('Topik SLR berhasil diperbarui'));
 
         reset();
         setShowEditModal(false);
@@ -143,7 +143,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
       preserveScroll: true,
 
       onSuccess: () => {
-        dispatch(showSuccess('Topik penelitian berhasil dihapus'));
+        dispatch(showSuccess('Topik SLR berhasil dihapus'));
 
         setShowDeleteModal(false);
         setSelectedPlan(null);
@@ -159,14 +159,14 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
     if (sourceDatabase === 'pubmed') {
       return {
         source: 'pubmed',
-        label: 'PubMed Articles',
+        label: 'Artikel PubMed',
         value: plan.pubmed_quantity ?? 0,
       };
     }
 
     return {
       source: 'scopus',
-      label: 'Scopus Articles',
+      label: 'Artikel Scopus',
       value: plan.scopus_quantity ?? 0,
     };
   };
@@ -210,7 +210,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                 }}
               >
                 <Typography variant="h5" sx={{ fontWeight: 800 }}>
-                  Topik Penelitian
+                  Topik SLR
                 </Typography>
               </Stack>
 
@@ -232,6 +232,18 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                 gap: 3,
               }}
             >
+              <Button
+                variant="contained"
+                onClick={handleOpenCreateModal}
+                sx={{
+                  borderRadius: 3,
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  px: 2.5,
+                }}
+              >
+                Buat Topik SLR Baru
+              </Button>
               <Button
                 onClick={handleOpenProfile}
                 variant="outlined"
@@ -314,6 +326,14 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
 
                 <MenuItem
                   onClick={() => {
+                    window.location.href = '/';
+                  }}
+                >
+                  Beranda
+                </MenuItem>
+
+                <MenuItem
+                  onClick={() => {
                     window.location.href = '/settings/profile';
                   }}
                 >
@@ -329,19 +349,6 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                   Logout
                 </MenuItem>
               </Menu>
-
-              <Button
-                variant="contained"
-                onClick={handleOpenCreateModal}
-                sx={{
-                  borderRadius: 3,
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  px: 2.5,
-                }}
-              >
-                Buat Topik Penelitian Baru
-              </Button>
             </Stack>
           </Stack>
 
@@ -471,7 +478,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                             variant="contained"
                             fullWidth
                           >
-                            Lihat Detail
+                            Mulai SLR
                           </Button>
 
                           <Stack
@@ -528,7 +535,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
               }}
             >
               <Typography sx={{ fontWeight: 700, color: 'text.secondary' }}>
-                Belum ada topik penelitian.
+                Belum ada topik SLR.
               </Typography>
 
               <Typography
@@ -536,7 +543,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                 color="text.secondary"
                 sx={{ mt: 0.5 }}
               >
-                Buat topik penelitian pertama untuk mulai proses PRISMA.
+                Buat topik SLR pertama untuk mulai proses SPAR.
               </Typography>
             </Box>
           )}
@@ -554,16 +561,14 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 800 }}>
-          Buat Topik Penelitian
-        </DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800 }}>Buat Topik SLR</DialogTitle>
 
         <form onSubmit={submit}>
           <DialogContent>
             <Stack spacing={3} sx={{ mt: 1 }}>
               <TextField
-                label="Topik Penelitian"
-                placeholder="Masukkan topik penelitian"
+                label="Topik SLR"
+                placeholder="Masukkan topik SLR"
                 value={data.title}
                 onChange={(e) => setData('title', e.target.value)}
                 error={Boolean(errors.title)}
@@ -612,7 +617,7 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
               disabled={processing}
               sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 700 }}
             >
-              Buat Topik Penelitian
+              Buat Topik SLR
             </Button>
           </DialogActions>
         </form>
@@ -629,15 +634,13 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 800 }}>
-          Edit Topik Penelitian
-        </DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800 }}>Edit Topik SLR</DialogTitle>
 
         <form onSubmit={updatePlan}>
           <DialogContent>
             <Stack spacing={3} sx={{ mt: 1 }}>
               <TextField
-                label="Judul Topik Penelitian"
+                label="Judul Topik SLR"
                 value={data.title}
                 onChange={(e) => setData('title', e.target.value)}
                 error={Boolean(errors.title)}
@@ -703,13 +706,11 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 800 }}>
-          Hapus Topik Penelitian
-        </DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800 }}>Hapus Topik SLR</DialogTitle>
 
         <DialogContent>
           <Typography color="text.secondary">
-            Apakah Anda yakin ingin menghapus topik penelitian{' '}
+            Apakah Anda yakin ingin menghapus topik SLR{' '}
             <strong>{selectedPlan?.title}</strong>?
           </Typography>
         </DialogContent>

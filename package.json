@@ -63,8 +63,10 @@
     "clsx": "^2.1.1",
     "concurrently": "^9.0.1",
     "dayjs": "^1.11.21",
+    "exceljs": "^4.4.0",
     "globals": "^15.14.0",
     "input-otp": "^1.4.2",
+    "jspdf": "^4.2.1",
     "laravel-vite-plugin": "^3.1.0",
     "lucide-react": "^0.475.0",
     "react": "^19.2.0",
@@ -77,6 +79,9 @@
     "typescript": "^5.7.2",
     "vite": "^8.0.0",
     "ziggy-js": "^2.6.2"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "4.9.5",

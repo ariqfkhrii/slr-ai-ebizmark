@@ -65,6 +65,22 @@ const compactFieldSx = {
 
 const TIER_OPTIONS = ['q1', 'q2', 'q3', 'q4'];
 
+const getArticleStatusColor = (status?: string | null) => {
+  if (!status) return 'text.secondary';
+
+  const value = status.toLowerCase();
+
+  if (value.includes('berhasil') || value.includes('sudah tersedia')) {
+    return 'success.main';
+  }
+
+  if (value.includes('gagal') || value.includes('manual')) {
+    return 'error.main';
+  }
+
+  return 'text.secondary';
+};
+
 export default function ArticleTable({
   keywordId,
   researchPlanId,
@@ -355,23 +371,47 @@ export default function ArticleTable({
                           sx={{ fontSize: 11, height: 22 }}
                         />
                       )}
+                      {article.article_status ? (
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            display: 'block',
+                            mt: 0.5,
+                            color: getArticleStatusColor(
+                              article.article_status,
+                            ),
+                            lineHeight: 1.35,
+                          }}
+                        >
+                          {article.article_status}
+                        </Typography>
+                      ) : null}
                     </TableCell>
 
                     <TableCell>
-                      <Chip
-                        size="small"
-                        label={article.tier.toUpperCase()}
-                        color={
-                          article.tier === 'q1'
-                            ? 'success'
-                            : article.tier === 'q2'
-                              ? 'primary'
-                              : article.tier === 'q3'
-                                ? 'warning'
-                                : 'error'
-                        }
-                        sx={{ fontSize: 11, height: 22 }}
-                      />
+                      {article.tier ? (
+                        <Chip
+                          size="small"
+                          label={article.tier.toUpperCase()}
+                          color={
+                            article.tier === 'q1'
+                              ? 'success'
+                              : article.tier === 'q2'
+                                ? 'primary'
+                                : article.tier === 'q3'
+                                  ? 'warning'
+                                  : 'error'
+                          }
+                          sx={{ fontSize: 11, height: 22 }}
+                        />
+                      ) : (
+                        <Chip
+                          size="small"
+                          label="-"
+                          color="default"
+                          sx={{ fontSize: 11, height: 22 }}
+                        />
+                      )}
                     </TableCell>
 
                     <TableCell sx={{ fontSize: 12 }}>{article.doi}</TableCell>

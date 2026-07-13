@@ -4,6 +4,11 @@ import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import {
   Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   List,
   ListItem,
@@ -34,15 +39,23 @@ export default function KeywordList({
   const [input, setInput] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingValue, setEditingValue] = useState('');
+  const [originalValue, setOriginalValue] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const startEdit = (keyword: Keyword) => {
     setEditingId(keyword.id);
     setEditingValue(keyword.name);
+    setOriginalValue(keyword.name);
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setEditingValue('');
+  };
+
+  const cancelConfirmEdit = () => {
+    setConfirmOpen(false);
+    cancelEdit();
   };
 
   const submitEdit = () => {
@@ -51,9 +64,16 @@ export default function KeywordList({
     const trimmed = editingValue.trim();
     if (!trimmed) return;
 
-    onUpdate(editingId, trimmed);
-    setEditingId(null);
-    setEditingValue('');
+    const current = keywords.find((k) => k.id === editingId);
+
+    if (!current) return;
+
+    if (trimmed === current.name.trim()) {
+      cancelEdit();
+      return;
+    }
+
+    setConfirmOpen(true);
   };
 
   const handleAdd = () => {
@@ -62,6 +82,17 @@ export default function KeywordList({
 
     onAdd(trimmed);
     setInput('');
+  };
+
+  const confirmEdit = () => {
+    if (!editingId) return;
+
+    onUpdate(editingId, editingValue.trim());
+
+    setConfirmOpen(false);
+    setEditingId(null);
+    setEditingValue('');
+    setOriginalValue('');
   };
 
   return (
@@ -289,6 +320,42 @@ export default function KeywordList({
           );
         })}
       </List>
+
+      <Dialog
+          open={confirmOpen}
+          onClose={() => setConfirmOpen(false)}
+          maxWidth="xs"
+          fullWidth
+      >
+          <DialogTitle>
+              Ubah Kata Kunci / Judul
+          </DialogTitle>
+
+          <DialogContent>
+              <Typography>
+                  Mengubah kata kunci / judul akan menghapus seluruh metadata yang
+                  telah diambil untuk kata kunci / judul ini. Anda perlu melakukan
+                  <b> Fetch Metadata</b> kembali setelah perubahan.
+              </Typography>
+          </DialogContent>
+
+          <DialogActions>
+              <Button
+                  onClick={cancelConfirmEdit}
+                  variant="outlined"
+              >
+                  Batal
+              </Button>
+
+              <Button
+                  onClick={confirmEdit}
+                  color="warning"
+                  variant="contained"
+              >
+                  Lanjut
+              </Button>
+          </DialogActions>
+      </Dialog>
     </Box>
   );
 }

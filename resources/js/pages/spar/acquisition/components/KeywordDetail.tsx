@@ -7,8 +7,8 @@ import DeleteKeywordConfirmationDialog from './dialog/DeleteKeywordConfirmationD
 import FetchParameterDialog, {
   FetchParams,
 } from './dialog/FetchParameterDialog';
-import KeywordTabs, { TabValue } from './KeywordTabs';
 import KeywordResearchSummary from './KeywordResearchSummary';
+import KeywordTabs, { TabValue } from './KeywordTabs';
 
 export type MetadataPreviewResult = {
   message: string;
@@ -90,6 +90,7 @@ export default function KeywordDetail({
           variant="contained"
           size="small"
           onClick={(e) => setAnchorEl(e.currentTarget)}
+          disabled={hasMetadata}
           startIcon={
             hasMetadata ? (
               <RotateCcw size={14} />
@@ -116,7 +117,7 @@ export default function KeywordDetail({
               : {}),
           }}
         >
-          {hasMetadata ? 'Update Metadata' : 'Fetch Metadata'}
+          {hasMetadata ? 'Fetch Metadata' : 'Fetch Metadata'}
         </Button>
 
         <Button

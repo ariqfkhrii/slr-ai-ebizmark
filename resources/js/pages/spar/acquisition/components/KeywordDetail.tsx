@@ -117,7 +117,7 @@ export default function KeywordDetail({
               : {}),
           }}
         >
-          {hasMetadata ? 'Update Metadata' : 'Fetch Metadata'}
+          {hasMetadata ? 'Fetch Metadata' : 'Fetch Metadata'}
         </Button>
 
         <Button

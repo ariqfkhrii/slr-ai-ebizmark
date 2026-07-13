@@ -22,9 +22,9 @@ export default function KeywordResearchSummary({ keyword }: Props) {
       caption: 'Total keseluruhan artikel yang didapatkan ketika preview.',
     },
     {
-      label: 'Artikel Valid',
+      label: 'Artikel Diperoleh',
       value: articleCount,
-      caption: 'Jumlah artikel asli yang sekarang didapatkan.',
+      caption: 'Jumlah artikel yang berhasil diperoleh setelah proses filtering.',
     },
     {
       label: 'Duplikat',

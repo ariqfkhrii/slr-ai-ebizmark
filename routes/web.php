@@ -10,6 +10,7 @@ use App\Http\Controllers\MetadataSearchController;
 use App\Http\Controllers\PurificationController;
 use App\Http\Controllers\ResearchPlanController;
 use App\Http\Controllers\ResearchPlanKeywordController;
+use App\Http\Controllers\OtherSourceController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -106,6 +107,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('auto-reporting.update');
     Route::post('/auto-reportings/{autoReporting}/regenerate', [AutoReportingController::class, 'regenerate'])
         ->name('auto-reporting.regenerate');
+
+    Route::post(
+        '/research-plans/{researchPlan}/other-source',
+        [OtherSourceController::class, 'store']
+    )->name('other-source.store');
+
+    Route::get(
+        '/research-plans/{researchPlan}/upload-other-source',
+        [OtherSourceController::class, 'index']
+    )->name('other-source.index');
+
+    Route::get(
+        '/research-plans/{researchPlan}/available-keywords',
+        [OtherSourceController::class, 'keywords']
+    )->name('other-source.keywords');
 
     // Research Plan Keywords
     Route::get('/research-plans/{researchPlanId}/keywords', [ResearchPlanKeywordController::class, 'index']);

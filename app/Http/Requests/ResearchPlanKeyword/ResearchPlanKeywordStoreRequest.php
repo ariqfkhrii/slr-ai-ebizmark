@@ -21,10 +21,12 @@ class ResearchPlanKeywordStoreRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         if ($this->has('keyword')) {
-            $normalizedKeyword = preg_replace('/\bAND NOT\b/i', 'NOT', $this->keyword);
+            $cleanedKeyword = collect(explode(';', $this->keyword))
+                ->map(fn($item) => trim($item))
+                ->implode(';');
             
             $this->merge([
-                'keyword' => trim($normalizedKeyword),
+                'keyword' => $cleanedKeyword,
             ]);
         }
     }
@@ -41,13 +43,7 @@ class ResearchPlanKeywordStoreRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                'regex:/^[\p{L}0-9\s\*\?\"\'\{\}\-\/\(\)\\\\\.,:\[\]\~]+$/u',
-                
-                function ($attribute, $value, $fail) {
-                    if (preg_match('/\bOR\b/i', $value) || str_contains($value, '|')) {
-                        $fail('Operator OR (maupun simbol |) tidak didukung dalam satu pencarian demi keamanan limit data. Harap pecah menjadi beberapa kata kunci.');
-                    }
-                },
+                'regex:/^[\p{L}0-9\s;!]+$/u',
             ],
         ];
     }
@@ -63,7 +59,7 @@ class ResearchPlanKeywordStoreRequest extends FormRequest
             'keyword.required' => 'Kata kunci wajib diisi.',
             'keyword.string'   => 'Kata kunci harus berupa format teks.',
             'keyword.max'      => 'Kata kunci maksimal 255 karakter.',
-            'keyword.regex'    => 'Karakter tidak valid. Hanya huruf, angka, dan operator (* ? " \' { } [ ] - / ( ) ~) yang diizinkan.',
+            'keyword.regex'    => 'Karakter tidak valid. Hanya huruf, angka, spasi, pemisah (;), dan awalan (!) yang diizinkan.',
         ];
     }
 }

@@ -169,7 +169,12 @@ export default function KeywordDetail({
         <ArticleTable researchPlanId={researchPlanId} tabType="all-keywords" />
       )}
 
-      {tab === 'summary' && <KeywordResearchSummary keyword={keyword} />}
+      {tab === 'summary' && (
+        <KeywordResearchSummary
+          keyword={keyword}
+          sourceDatabase={sourceDatabase}
+        />
+      )}
 
       {/* DELETE DIALOG */}
       <DeleteKeywordConfirmationDialog

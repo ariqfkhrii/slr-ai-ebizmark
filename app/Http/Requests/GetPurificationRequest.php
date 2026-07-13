@@ -36,11 +36,11 @@ class GetPurificationRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'size.integer' => 'The size must be an integer.',
-            'size.min' => 'The size must be at least 1.',
-            'size.max' => 'The size may not be greater than 100.',
-            'sort.string' => 'The sort must be a string.',
-            'sort.in' => 'The sort must be one of the following: relevance.',
+            'size.integer' => 'Jumlah data harus berupa angka.',
+            'size.min'     => 'Jumlah data minimal 1.',
+            'size.max'     => 'Jumlah data maksimal 100.',
+            'sort.string'  => 'Urutan pengurutan harus berupa teks.',
+            'sort.in'      => 'Nilai pengurutan hanya boleh "relevance".',
         ];
     }
 }

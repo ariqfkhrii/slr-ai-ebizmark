@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
@@ -124,19 +125,13 @@ class PubMedApiService
             'api_key'  => config('services.pubmed.key'),
         ]);
 
-        if ($response->successful()) {
-            $data = $response->json();
-            return [
-                'total' => (int) ($data['esearchresult']['count'] ?? 0),
-                'ids'   => $data['esearchresult']['idlist'] ?? [],
-            ];
-        }
+        $this->handleApiResponseErrors($response);
 
-        Log::warning('PubMed Search Preview API Failed: ' . $response->body());
-
+        $data = $response->json();
+        
         return [
-            'total' => 0,
-            'ids'   => [],
+            'total' => (int) ($data['esearchresult']['count'] ?? 0),
+            'ids'   => $data['esearchresult']['idlist'] ?? [],
         ];
     }
     
@@ -161,13 +156,9 @@ class PubMedApiService
             'api_key' => config('services.pubmed.key'),
         ]);
 
-        if ($response->successful()) {
-            return (string) $response->body();
-        }
+        $this->handleApiResponseErrors($response);
 
-        Log::warning('PubMed Fetch API Failed: ' . $response->body());
-
-        return '';
+        return (string) $response->body();
     }
 
     /**
@@ -192,19 +183,13 @@ class PubMedApiService
             'api_key'  => config('services.pubmed.key'),
         ]);
 
-        if ($response->successful()) {
-            return (string) $response->body();
-        }
+        $this->handleApiResponseErrors($response);
 
-        Log::warning('PubMed Link API Failed: ' . $response->body());
-
-        return '';
+        return (string) $response->body();
     }
     
     /**
      * Get the total count of articles matching the specified keyword and publication date range.
-     * This method constructs a search query that includes the keyword in various fields (Title/Abstract, Other Term, MeSH Terms)
-     * and applies filters to ensure that only journal articles indexed in Medline are counted, excluding preprints.
      *
      * @param string $keyword The keyword to search for in the articles.
      * @param int|null $startYear The starting publication year for the search.
@@ -232,14 +217,11 @@ class PubMedApiService
             'api_key' => config('services.pubmed.key'),
         ]);
 
-        if ($response->successful()) {
-            $data = $response->json();
-            return (int) ($data['esearchresult']['count'] ?? 0);
-        }
+        $this->handleApiResponseErrors($response);
 
-        Log::error('PubMed Count API Failed: ' . $response->body());
+        $data = $response->json();
         
-        return 0;
+        return (int) ($data['esearchresult']['count'] ?? 0);
     }
 
     /**
@@ -263,13 +245,9 @@ class PubMedApiService
             'api_key'  => config('services.pubmed.key'),
         ]);
 
-        if ($response->successful()) {
-            return $response->json('esearchresult.idlist', []);
-        }
+        $this->handleApiResponseErrors($response);
 
-        Log::warning('PubMed Search API Failed: ' . $response->body());
-
-        return [];
+        return $response->json('esearchresult.idlist', []);
     }
 
     /**
@@ -293,12 +271,48 @@ class PubMedApiService
             'api_key' => config('services.pubmed.key'),
         ]);
 
-        if ($response->successful()) {
-            return $response->json('result', []);
+        $this->handleApiResponseErrors($response);
+
+        return $response->json('result', []);
+    }
+
+    /**
+     * Handle API response errors and throw appropriate exceptions for PubMed.
+     *
+     * @param Response $response
+     * @throws \Exception
+     */
+    protected function handleApiResponseErrors(Response $response): void
+    {
+        $status = $response->status();
+        $body = $response->body();
+
+        if (!$response->successful()) {
+            Log::error('PubMed API HTTP Error: ' . $body, ['status' => $status]);
+
+            match ($status) {
+                400 => throw new \Exception('BAD_REQUEST'),
+                401, 403 => throw new \Exception('AUTH_ERROR'),
+                429 => throw new \Exception('API_RATE_LIMIT'),
+                500, 502, 503, 504 => throw new \Exception('SERVER_ERROR'),
+                default => throw new \Exception('UNKNOWN_API_ERROR'),
+            };
         }
 
-        Log::warning('PubMed Summary API Failed: ' . $response->body());
+        $contentType = $response->header('Content-Type') ?? '';
 
-        return [];
+        if (str_contains($contentType, 'json')) {
+            $data = $response->json();
+            
+            if (isset($data['error']) || isset($data['esearchresult']['errorlist'])) {
+                Log::error('PubMed API Logic Error (JSON): ' . $body);
+                throw new \Exception('BAD_REQUEST');
+            }
+        } else {
+            if (str_contains($body, '<ERROR>') || str_contains($body, '<ErrorList>')) {
+                Log::error('PubMed API Logic Error (XML): ' . $body);
+                throw new \Exception('BAD_REQUEST');
+            }
+        }
     }
 }

@@ -40,22 +40,22 @@ class MetadataSearchRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'keyword_id.required'  => 'The keyword_id field is required.',
-            'keyword_id.exists'    => 'The selected keyword_id is invalid.',
-            'start_year.required'  => 'The start_year field is required.',
-            'start_year.integer'   => 'The start_year must be an integer.',
-            'start_year.min'       => 'The start_year must be at least 1900.',
-            'start_year.max'       => 'The start_year may not be greater than the current year.',
-            'end_year.required'    => 'The end_year field is required.',
-            'end_year.integer'     => 'The end_year must be an integer.',
-            'end_year.min'         => 'The end_year must be at least 1900.',
-            'end_year.max'         => 'The end_year may not be greater than the current year.',
-            'end_year.gte'         => 'The end_year must be greater than or equal to the start_year.',
-            'tiers.array'          => 'The tiers field must be an array.',
-            'tiers.*.in'           => 'Each tier must be one of the following: q1, q2, q3, q4.',
-            'can_execute.required' => 'The execution confirmation is required.',
-            'can_execute.boolean'  => 'The execution confirmation must be a boolean.',
-            'can_execute.accepted' => 'The search cannot be executed because it does not meet the recommended article count criteria.',
+            'keyword_id.required'  => 'Silakan pilih kata kunci terlebih dahulu.',
+            'keyword_id.exists'    => 'Kata kunci yang dipilih tidak valid.',
+            'start_year.required'  => 'Masukkan tahun awal pencarian.',
+            'start_year.integer'   => 'Tahun awal pencarian harus berupa angka.',
+            'start_year.min'       => 'Tahun awal pencarian minimal 1900.',
+            'start_year.max'       => 'Tahun awal pencarian tidak boleh melebihi tahun saat ini.',
+            'end_year.required'    => 'Masukkan tahun akhir pencarian.',
+            'end_year.integer'     => 'Tahun akhir pencarian harus berupa angka.',
+            'end_year.min'         => 'Tahun akhir pencarian minimal 1900.',
+            'end_year.max'         => 'Tahun akhir pencarian tidak boleh melebihi tahun saat ini.',
+            'end_year.gte'         => 'Tahun akhir pencarian harus sama dengan atau setelah tahun awal pencarian.',
+            'tiers.array'          => 'Filter kuartil jurnal tidak valid.',
+            'tiers.*.in'           => 'Kuartil jurnal yang dipilih tidak valid.',
+            'can_execute.required' => 'Konfirmasi pencarian diperlukan.',
+            'can_execute.boolean'  => 'Konfirmasi pencarian tidak valid.',
+            'can_execute.accepted' => 'Pencarian tidak dapat dilanjutkan karena jumlah artikel yang diperkirakan tidak memenuhi kriteria yang disarankan.',
         ];
     }
 }

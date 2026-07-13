@@ -683,7 +683,7 @@ class MetadataSearchServices
                 'out_of_year_range_count' => $outOfYearRangeCount,
             ];
 
-            cache()->put($key, $cachePayload, now()->addDays(1));
+            cache()->put($key, $cachePayload, now()->endOfDay());
         }
 
         ArticleMetadataTemp::where('batch_id', $batch->id)->delete();

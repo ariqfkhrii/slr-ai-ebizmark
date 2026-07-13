@@ -1,14 +1,12 @@
 import { router } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 
-import { Download, InfoIcon, Link2, ShieldCheck   Upload,
-} from 'lucide-react';
+import { Download, InfoIcon, Link2, ShieldCheck, Upload } from 'lucide-react';
 
 import {
   Alert,
   Box,
   Button,
-  CircularProgress,
   Divider,
   Paper,
   TextField,

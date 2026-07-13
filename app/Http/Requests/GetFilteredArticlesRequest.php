@@ -43,15 +43,19 @@ class GetFilteredArticlesRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'research_plan_id.required' => 'The research plan ID is required.',
-            'research_plan_id.integer'  => 'The research plan ID must be an integer.',
-            'keyword_id.integer'        => 'The keyword ID must be an integer.',
-            'size.integer'              => 'The size must be an integer.',
-            'size.min'                  => 'The size must be at least 1.',
-            'size.max'                  => 'The size must not exceed 100.',
-            'tiers.array'               => 'The tiers must be an array.',
-            'tiers.*.string'            => 'Each tier must be a string.',
-            'tiers.*.in'                => 'Each tier must be one of: q1, q2, q3, q4.',
+            'research_plan_id.required' => 'ID rencana penelitian wajib diisi.',
+            'research_plan_id.integer'  => 'ID rencana penelitian harus berupa angka.',
+            'keyword_id.integer'        => 'ID kata kunci harus berupa angka.',
+            'size.integer'              => 'Jumlah data harus berupa angka.',
+            'size.min'                  => 'Jumlah data minimal 1.',
+            'size.max'                  => 'Jumlah data maksimal 100.',
+            'search.string'             => 'Kata pencarian harus berupa teks.',
+            'included.boolean'          => 'Nilai status inklusi harus berupa benar atau salah.',
+            'year_from.integer'         => 'Tahun awal harus berupa angka.',
+            'year_to.integer'           => 'Tahun akhir harus berupa angka.',
+            'tiers.array'               => 'Daftar kuartil harus berupa array.',
+            'tiers.*.string'            => 'Setiap nilai kuartil harus berupa teks.',
+            'tiers.*.in'                => 'Nilai kuartil hanya boleh q1, q2, q3, atau q4.',
         ];
     }
 }

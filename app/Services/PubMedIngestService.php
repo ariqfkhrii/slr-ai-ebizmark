@@ -166,20 +166,22 @@ class PubMedIngestService
      */
     protected function buildTerm(string $keyword, int $startYear, int $endYear): string
     {
-        if (!str_contains($keyword, ';') && !str_contains($keyword, '!')) {
-            $keyword = trim($keyword);
-            
+        $keyword = trim($keyword);
+        
+        $isSingleWord = !str_contains($keyword, ' ');
+
+        if (!str_contains($keyword, ';') && !str_contains($keyword, '!') && !$isSingleWord) {
             if (!str_starts_with($keyword, '"') && !str_ends_with($keyword, '"')) {
                 $keyword = '"' . $keyword . '"';
             }
 
             $searchQuery = $keyword . '[ti]';
         } else {
-            $parts = explode(';', $keyword);
+            $parts = array_filter(array_map('trim', explode(';', $keyword)));
             $queryBuilder = [];
+            $index = 0;
 
-            foreach ($parts as $index => $part) {
-                $part = trim($part);
+            foreach ($parts as $part) {
                 $isNot = str_starts_with($part, '!');
                 
                 if ($isNot) {
@@ -195,6 +197,8 @@ class PubMedIngestService
                 } else {
                     $queryBuilder[] = $index === 0 ? $part : "AND {$part}";
                 }
+                
+                $index++;
             }
 
             $formattedKeyword = implode(' ', $queryBuilder);

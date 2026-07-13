@@ -34,9 +34,11 @@ class ScopusApiService
      */
     public function buildScopusQuery(string $keyword): string
     {
-        if (!str_contains($keyword, ';') && !str_contains($keyword, '!')) {
-            $keyword = trim($keyword);
-            
+        $keyword = trim($keyword);
+        
+        $isSingleWord = !str_contains($keyword, ' ');
+
+        if (!str_contains($keyword, ';') && !str_contains($keyword, '!') && !$isSingleWord) {
             if (!str_starts_with($keyword, '"') && !str_ends_with($keyword, '"')) {
                 $keyword = '"' . $keyword . '"';
             }
@@ -44,18 +46,17 @@ class ScopusApiService
             return 'TITLE(' . $keyword . ')';
         }
 
-        $parts = explode(';', $keyword);
+        $parts = array_filter(array_map('trim', explode(';', $keyword)));
         $queryBuilder = [];
+        $index = 0;
 
-        foreach ($parts as $index => $part) {
-            $part = trim($part);
+        foreach ($parts as $part) {
             $isNot = str_starts_with($part, '!');
             
             if ($isNot) {
                 $part = ltrim($part, '!');
             }
 
-            // Bungkus tiap frasa dengan kutip jika mengandung spasi
             if (str_contains($part, ' ') && !str_starts_with($part, '"') && !str_ends_with($part, '"')) {
                 $part = '"' . $part . '"';
             }
@@ -65,6 +66,8 @@ class ScopusApiService
             } else {
                 $queryBuilder[] = $index === 0 ? $part : "AND {$part}";
             }
+            
+            $index++;
         }
 
         $formattedKeyword = implode(' ', $queryBuilder);

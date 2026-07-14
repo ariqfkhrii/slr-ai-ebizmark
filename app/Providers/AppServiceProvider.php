@@ -48,7 +48,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if (app()->environment('production')) {
-            //URL::forceScheme('http');
+            URL::forceScheme('https');
         }
         // Route model binding
         Route::model('autoReporting', AutoReporting::class);

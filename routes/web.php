@@ -18,13 +18,6 @@ Route::inertia('/', 'landing/Landing', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 
-Route::get('/php-info', function () {
-    return [
-        'upload_max_filesize' => ini_get('upload_max_filesize'),
-        'post_max_size' => ini_get('post_max_size'),
-    ];
-});
-
 Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/dashboard', [ResearchPlanController::class, 'index'])

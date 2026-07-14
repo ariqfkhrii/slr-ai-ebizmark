@@ -53,13 +53,9 @@ return [
         'url' => env('EMBEDDING_API_URL'),
     ],
 
-    'pdftotext' => [
-        'path' => env('PDFTOTEXT_PATH', 'pdftotext'),
-    ],
-
     'openalex' => [
         'base_url' => env('OPENALEX_BASE_URL', 'https://api.openalex.org'),
-        'email' => env('OPENALEX_EMAIL'),
+        'email'    => env('OPENALEX_EMAIL'),
     ],
 
 ];

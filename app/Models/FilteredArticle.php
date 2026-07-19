@@ -4,10 +4,13 @@ namespace App\Models;
 
 use App\Models\RawArticle;
 use App\Models\ResearchPlan;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class FilteredArticle extends Model
 {
+    use HasFactory;
+    
     protected $fillable = [
         'research_plan_id',
         'raw_article_id',

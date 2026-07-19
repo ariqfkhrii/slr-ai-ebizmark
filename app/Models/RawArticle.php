@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class RawArticle extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'doi',
         'title',

@@ -1,11 +1,7 @@
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Paper,
-  Typography,
-} from '@mui/material';
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { Box, CircularProgress, IconButton, Tooltip } from '@mui/material';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+
 import { useBreadcrumb } from '../../components/BreadcrumbContext';
 import { useGuide } from '../../components/spar-layout';
 import ScreeningGuide from '../../guides/ScreeningGuide';
@@ -15,7 +11,7 @@ import { useScreening } from './hooks/useScreening';
 type Props = {
   researchPlanId: number;
   onScreeningComplete?: () => void;
-  setToolbar: (toolbar: ReactNode) => void;
+  setToolbar: (toolbar: React.ReactNode) => void;
 };
 
 export default function Screening({
@@ -25,7 +21,7 @@ export default function Screening({
 }: Props) {
   const [selectedIncluded, setSelectedIncluded] = useState<number[]>([]);
   const [selectedExcluded, setSelectedExcluded] = useState<number[]>([]);
-  const selectedCount = selectedIncluded.length + selectedExcluded.length;
+
   const guideContent = useMemo(() => <ScreeningGuide />, []);
   const { setTitle } = useBreadcrumb();
 
@@ -35,7 +31,7 @@ export default function Screening({
       onStatusChange: onScreeningComplete,
     });
 
-  const { guideOpen } = useGuide({
+  useGuide({
     title: 'Screening',
     content: guideContent,
   });
@@ -45,48 +41,13 @@ export default function Screening({
   }, [setTitle]);
 
   useEffect(() => {
-    setToolbar(
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        {selectedCount > 0 ? (
-          <Paper
-            elevation={3}
-            sx={{
-              px: 2,
-              py: 1,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 2,
-              borderRadius: 2,
-              mt: 1,
-              mr: guideOpen ? 2 : 17,
-              transition: 'margin-right 250ms ease',
-            }}
-          >
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              {selectedCount} artikel dipilih
-            </Typography>
-
-            <Button size="small" onClick={handleCancelSelection}>
-              Batal
-            </Button>
-
-            <Button
-              size="small"
-              variant="contained"
-              onClick={handleConfirmSelection}
-              disabled={bulkUpdateStatus.isPending}
-            >
-              Konfirmasi
-            </Button>
-          </Paper>
-        ) : null}
-      </Box>,
-    );
+    setToolbar(null);
 
     return () => setToolbar(null);
-  }, [selectedCount, guideOpen]);
+  }, []);
 
   const filteredArticles = data ?? [];
+
   const excludedArticles = useMemo(
     () => filteredArticles.filter((item) => item.included !== true),
     [filteredArticles],
@@ -97,37 +58,36 @@ export default function Screening({
     [filteredArticles],
   );
 
-  const handleCancelSelection = () => {
-    setSelectedIncluded([]);
-    setSelectedExcluded([]);
-  };
-
-  const handleConfirmSelection = async () => {
-    if (selectedCount === 0) return;
+  const handleExclude = async () => {
+    if (selectedIncluded.length === 0) return;
 
     try {
-      if (selectedExcluded.length > 0) {
-        await bulkUpdateStatus.mutateAsync({
-          filteredArticleIds: selectedExcluded,
-          included: true,
-        });
-      }
+      await bulkUpdateStatus.mutateAsync({
+        filteredArticleIds: selectedIncluded,
+        included: false,
+      });
 
-      if (selectedIncluded.length > 0) {
-        await bulkUpdateStatus.mutateAsync({
-          filteredArticleIds: selectedIncluded,
-          included: false,
-        });
-      }
+      setSelectedIncluded([]);
+    } catch {}
+  };
 
-      handleCancelSelection();
+  const handleInclude = async () => {
+    if (selectedExcluded.length === 0) return;
+
+    try {
+      await bulkUpdateStatus.mutateAsync({
+        filteredArticleIds: selectedExcluded,
+        included: true,
+      });
+
+      setSelectedExcluded([]);
     } catch {}
   };
 
   const handleCalculateRelevances = async () => {
     try {
       await calculateRelevances.mutateAsync({
-        researchPlanId: researchPlanId,
+        researchPlanId,
       });
     } catch {}
   };
@@ -177,6 +137,93 @@ export default function Screening({
           calculateRelevancesPending={calculateRelevances.isPending}
           articleStatus="included"
         />
+        <Box
+          sx={{
+            width: 56,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+              alignItems: 'center',
+            }}
+          >
+            <Tooltip title="Pindahkan ke Excluded">
+              <span>
+                <IconButton
+                  onClick={handleExclude}
+                  disabled={
+                    selectedIncluded.length === 0 || bulkUpdateStatus.isPending
+                  }
+                  sx={{
+                    bgcolor:
+                      selectedIncluded.length > 0
+                        ? 'error.main'
+                        : 'action.disabledBackground',
+                    color:
+                      selectedIncluded.length > 0
+                        ? 'common.white'
+                        : 'action.disabled',
+                    width: 42,
+                    height: 42,
+                    transition: 'all .2s',
+
+                    '&:hover': {
+                      bgcolor: 'error.dark',
+                    },
+
+                    '&.Mui-disabled': {
+                      bgcolor: 'action.disabledBackground',
+                      color: 'action.disabled',
+                    },
+                  }}
+                >
+                  <ChevronRight size={22} />
+                </IconButton>
+              </span>
+            </Tooltip>
+
+            <Tooltip title="Pindahkan ke Included">
+              <span>
+                <IconButton
+                  onClick={handleInclude}
+                  disabled={
+                    selectedExcluded.length === 0 || bulkUpdateStatus.isPending
+                  }
+                  sx={{
+                    bgcolor:
+                      selectedExcluded.length > 0
+                        ? 'success.main'
+                        : 'action.disabledBackground',
+                    color:
+                      selectedExcluded.length > 0
+                        ? 'common.white'
+                        : 'action.disabled',
+                    width: 42,
+                    height: 42,
+                    transition: 'all .2s',
+
+                    '&:hover': {
+                      bgcolor: 'success.dark',
+                    },
+
+                    '&.Mui-disabled': {
+                      bgcolor: 'action.disabledBackground',
+                      color: 'action.disabled',
+                    },
+                  }}
+                >
+                  <ChevronLeft size={22} />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </Box>
+        </Box>
 
         <ScreeningTable
           title="Artikel di-exclude"

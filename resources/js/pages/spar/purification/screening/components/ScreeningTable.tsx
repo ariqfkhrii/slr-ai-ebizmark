@@ -1,11 +1,18 @@
+import YearRangePicker from '@/components/table/YearRangePicker';
 import {
   Box,
   Button,
   Checkbox,
   Chip,
   Collapse,
+  FormControl,
   IconButton,
+  InputLabel,
+  ListItemText,
+  MenuItem,
+  OutlinedInput,
   Paper,
+  Select,
   Table,
   TableBody,
   TableCell,
@@ -14,12 +21,12 @@ import {
   TablePagination,
   TableRow,
   TableSortLabel,
+  TextField,
   Typography,
 } from '@mui/material';
 import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { FilteredArticle } from '../types';
-
 type Props = {
   title: string;
   articles: FilteredArticle[];
@@ -55,6 +62,53 @@ export default function ScreeningTable({
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
+  const [search, setSearch] = useState('');
+  const [selectedTiers, setSelectedTiers] = useState<string[]>([]);
+  const [yearFrom, setYearFrom] = useState<number>();
+  const [yearTo, setYearTo] = useState<number>();
+  const compactFieldSx = {
+    '& .MuiInputBase-root': {
+      height: 32,
+      fontSize: 12,
+    },
+    '& .MuiInputBase-input': {
+      fontSize: 12,
+      py: 0,
+    },
+    '& .MuiInputLabel-root': {
+      fontSize: 12,
+      top: -2,
+    },
+    '& .MuiInputLabel-shrink': {
+      transform: 'translate(14px, -6px) scale(0.75)',
+    },
+  };
+
+  const TIER_OPTIONS = ['q1', 'q2', 'q3', 'q4'];
+
+  const filteredArticles = useMemo(() => {
+    return articles.filter((item) => {
+      const article = item.raw_article;
+
+      const keyword = search.trim().toLowerCase();
+
+      const matchSearch =
+        keyword === '' ||
+        article.title?.toLowerCase().includes(keyword) ||
+        article.doi?.toLowerCase().includes(keyword);
+
+      const matchTier =
+        selectedTiers.length === 0 ||
+        selectedTiers.includes(article.tier?.toLowerCase());
+
+      const year = article.publish_year;
+
+      const matchYear =
+        (!yearFrom || year >= yearFrom) && (!yearTo || year <= yearTo);
+
+      return matchSearch && matchTier && matchYear;
+    });
+  }, [articles, search, selectedTiers, yearFrom, yearTo]);
 
   const toggleRow = (id: number) => {
     setExpandedRows((prev) =>
@@ -63,23 +117,23 @@ export default function ScreeningTable({
   };
 
   const sortedArticles = useMemo(() => {
-    return [...articles].sort((a, b) => {
+    return [...filteredArticles].sort((a, b) => {
       const scoreA = a.similarity_score ?? Number.NEGATIVE_INFINITY;
       const scoreB = b.similarity_score ?? Number.NEGATIVE_INFINITY;
 
       return sortDirection === 'asc' ? scoreA - scoreB : scoreB - scoreA;
     });
-  }, [articles, sortDirection]);
+  }, [filteredArticles, sortDirection]);
 
   const rankedArticles = useMemo(() => {
-    return [...articles]
+    return [...filteredArticles]
       .filter((article) => article.similarity_score != null)
       .sort((a, b) => (b.similarity_score ?? 0) - (a.similarity_score ?? 0))
       .map((article, index) => ({
         id: article.filtered_article_id,
         rank: index + 1,
       }));
-  }, [articles]);
+  }, [filteredArticles]);
 
   const rankMap = useMemo(() => {
     return Object.fromEntries(
@@ -99,7 +153,7 @@ export default function ScreeningTable({
 
   useEffect(() => {
     setPage(0);
-  }, [articles.length]);
+  }, [sortedArticles.length]);
 
   return (
     <Paper
@@ -132,25 +186,6 @@ export default function ScreeningTable({
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          {articleStatus === 'included' && (
-            <Button
-              size="small"
-              variant="contained"
-              onClick={onCalculateRelevances}
-              disabled={calculateRelevancesPending}
-              sx={{
-                px: 2,
-                py: 1,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 2,
-                borderRadius: 3,
-              }}
-            >
-              Urutkan Relevansi
-            </Button>
-          )}
-
           <Chip
             label={`${articles.length} Artikel`}
             color={actionLabel === 'Include' ? 'error' : 'success'}
@@ -158,6 +193,123 @@ export default function ScreeningTable({
             sx={{ p: 1 }}
           />
         </Box>
+      </Box>
+
+      <Box
+        sx={{
+          p: 1,
+          display: 'flex',
+          gap: 1,
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          bgcolor: 'background.default',
+          '& .MuiInputBase-input': {
+            fontSize: 12,
+          },
+          '& .MuiInputLabel-root': {
+            fontSize: 12,
+          },
+        }}
+      >
+        <TextField
+          size="small"
+          placeholder="Cari Judul / DOI"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          sx={{ width: 220, ...compactFieldSx }}
+        />
+
+        <FormControl size="small" sx={{ width: 150, ...compactFieldSx }}>
+          <InputLabel>Tier</InputLabel>
+
+          <Select
+            multiple
+            value={selectedTiers}
+            onChange={(e) =>
+              setSelectedTiers(
+                typeof e.target.value === 'string'
+                  ? e.target.value.split(',')
+                  : e.target.value,
+              )
+            }
+            input={<OutlinedInput label="Tier" />}
+            renderValue={(selected) => {
+              const tiers = selected as string[];
+              const display = tiers.slice(0, 2);
+              const remain = tiers.length - 2;
+
+              return (
+                <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                  {display.map((tier) => (
+                    <Chip
+                      key={tier}
+                      size="small"
+                      label={tier.toUpperCase()}
+                      color={
+                        tier === 'q1'
+                          ? 'success'
+                          : tier === 'q2'
+                            ? 'primary'
+                            : tier === 'q3'
+                              ? 'warning'
+                              : 'error'
+                      }
+                      sx={{
+                        fontSize: 11,
+                        height: 22,
+                      }}
+                    />
+                  ))}
+
+                  {remain > 0 && (
+                    <Chip
+                      label={`+${remain}`}
+                      size="small"
+                      sx={{
+                        fontSize: 11,
+                        height: 22,
+                      }}
+                    />
+                  )}
+                </Box>
+              );
+            }}
+          >
+            {TIER_OPTIONS.map((tier) => (
+              <MenuItem key={tier} value={tier}>
+                <Checkbox checked={selectedTiers.includes(tier)} />
+
+                <ListItemText primary={tier.toUpperCase()} />
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <YearRangePicker
+          yearFrom={yearFrom}
+          yearTo={yearTo}
+          onYearFromChange={setYearFrom}
+          onYearToChange={setYearTo}
+        />
+
+        {articleStatus === 'included' && (
+          <Button
+            size="small"
+            variant="contained"
+            onClick={onCalculateRelevances}
+            disabled={calculateRelevancesPending}
+            sx={{
+              height: 32,
+              minHeight: 32,
+              fontSize: 12,
+              fontWeight: 500,
+              textTransform: 'none',
+              borderRadius: 1,
+            }}
+          >
+            Urutkan Relevansi
+          </Button>
+        )}
       </Box>
 
       <TableContainer
@@ -436,7 +588,7 @@ export default function ScreeningTable({
 
       <TablePagination
         component="div"
-        count={articles.length}
+        count={sortedArticles.length}
         page={page}
         onPageChange={(_, newPage) => setPage(newPage)}
         rowsPerPage={rowsPerPage}

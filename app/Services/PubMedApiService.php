@@ -304,7 +304,7 @@ class PubMedApiService
         if (str_contains($contentType, 'json')) {
             $data = $response->json();
             
-            if (isset($data['error']) || isset($data['esearchresult']['errorlist'])) {
+            if (isset($data['error'])) {
                 Log::error('PubMed API Logic Error (JSON): ' . $body);
                 throw new \Exception('BAD_REQUEST');
             }

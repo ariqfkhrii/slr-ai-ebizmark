@@ -1,10 +1,10 @@
 import {
   Box,
+  Button,
   Checkbox,
   Chip,
   CircularProgress,
   FormControl,
-  IconButton,
   InputLabel,
   ListItemText,
   MenuItem,
@@ -417,15 +417,16 @@ export default function ArticleTable({
                     <TableCell sx={{ fontSize: 12 }}>{article.doi}</TableCell>
 
                     <TableCell>
-                      <IconButton
-                        component="a"
-                        href="#"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <Button
                         size="small"
+                        href={`https://doi.org/${article.doi}`}
+                        target="_blank"
+                        sx={{
+                          minWidth: 36,
+                        }}
                       >
                         <ExternalLink size={16} />
-                      </IconButton>
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))

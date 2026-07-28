@@ -55,9 +55,22 @@ class FetchScopusJob implements ShouldQueue
             }
             throw $e;
         } catch (\Exception $e) {
-            if ($e->getMessage() === 'API_RATE_LIMIT') {
-                $this->release(15); 
+            $message = $e->getMessage();
+
+            if (in_array($message, ['API_RATE_LIMIT', 'SERVER_ERROR'])) {
+                $delay = $message === 'API_RATE_LIMIT' ? 15 : 30;
+                $this->release($delay); 
                 return;
+            }
+
+            if (in_array($message, ['AUTH_ERROR', 'BAD_REQUEST'])) {
+                \Illuminate\Support\Facades\Log::critical(
+                    "Scopus batch job was forcefully cancelled due to: {$message}. Batch ID: " . $this->batch()?->id
+                );
+                
+                $this->batch()?->cancel();
+                
+                return; 
             }
             
             throw $e; 

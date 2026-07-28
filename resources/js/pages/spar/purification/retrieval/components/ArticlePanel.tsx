@@ -1,5 +1,7 @@
 import { Download, ExternalLink, FileText } from 'lucide-react';
 
+import { useAppDispatch } from '@/lib/store/hooks';
+import { showError, showSuccess } from '@/store/slices/snackbarSlice';
 import { router } from '@inertiajs/react';
 import {
   Box,
@@ -11,8 +13,6 @@ import {
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
-import { useAppDispatch } from '@/lib/store/hooks';
-import { showError, showSuccess } from '@/store/slices/snackbarSlice';
 
 import type { ArticlePanelProps } from '../types';
 

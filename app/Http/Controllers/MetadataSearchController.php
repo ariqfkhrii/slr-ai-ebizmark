@@ -34,11 +34,11 @@ class MetadataSearchController extends Controller
             $totalCount = $previewResult['total_count'];
             
             if ($previewResult['is_recommended']) {
-                $message = 'Preview search results retrieved successfully.';
+                $message = 'Pratinjau hasil pencarian siap ditampilkan.';
             } elseif ($totalCount < 100) {
-                $message = "The number of articles found is too low ({$totalCount}). Minimum required is 100. Proceeding further is not allowed.";
+                $message = "Artikel yang ditemukan terlalu sedikit ({$totalCount}). Minimal harus ada 100 artikel untuk melanjutkan pencarian.";
             } else {
-                $message = "The number of articles found exceeds 5,000 ({$totalCount}). This is the limit. Proceeding further is not allowed.";
+                $message = "Pencarian tidak bisa dilanjutkan karena melebihi batas maksimal 5.000 artikel (ditemukan {$totalCount}). Silakan buat kata kunci atau judul yang lebih spesifik.";
             }
 
             return response()->json([
@@ -50,10 +50,24 @@ class MetadataSearchController extends Controller
         } catch (\Exception $e) {
             Log::error('Preview Search Error: ' . $e->getMessage());
 
+            $message = match ($e->getMessage()) {
+                'API_RATE_LIMIT' => 'Layanan penyedia data sedang sibuk (terlalu banyak permintaan). Mohon tunggu beberapa saat dan coba lagi.',
+                'AUTH_ERROR'     => 'Sistem tidak dapat terhubung ke penyedia data karena masalah akses. Silakan hubungi administrator.',
+                'BAD_REQUEST'    => 'Format pencarian tidak valid. Silakan periksa kembali format pencarian Anda.',
+                'SERVER_ERROR'   => 'Layanan penyedia data sedang mengalami gangguan. Silakan coba lagi nanti.',
+                default          => 'Sistem gagal memuat pratinjau pencarian. Silakan coba beberapa saat lagi.',
+            };
+
+            $statusCode = match ($e->getMessage()) {
+                'API_RATE_LIMIT' => 429,
+                'BAD_REQUEST'    => 400,
+                default          => 500,
+            };
+
             return response()->json([
-                'message' => 'Failed to retrieve preview results. Please try again later.',
+                'message' => $message,
                 'error'   => config('app.debug') ? $e->getMessage() : 'Internal Server Error'
-            ], 500);
+            ], $statusCode);
         }
     }
 
@@ -65,35 +79,59 @@ class MetadataSearchController extends Controller
      */
     public function dispatchResult(MetadataSearchRequest $request, $id)
     {
-        $validated = $request->validated();
+        try {
+            $validated = $request->validated();
 
-        $result = $this->service->executeSearch($validated, $id);
+            $result = $this->service->executeSearch($validated, $id);
 
-        return match ($result['status']) {
-            'full_cache' => response()->json([
-                'message' => 'All sources found in cache.',
-            ], $result['code']),
+            return match ($result['status']) {
+                'full_cache' => response()->json([
+                    'message' => 'Semua data artikel sudah tersedia dan siap ditampilkan.',
+                ], $result['code']),
 
-            'active_running' => response()->json([
-                'message' => 'An active search plan is already running for this keyword.',
-                'batch_id' => $result['batch_id'] ?? null,
-            ], $result['code']),
+                'active_running' => response()->json([
+                    'message' => 'Pencarian untuk kata kunci ini sedang diproses. Mohon tunggu sebentar.',
+                    'batch_id' => $result['batch_id'] ?? null,
+                ], $result['code']),
 
-            'no_results' => response()->json([
-                'message' => 'No results found on the external databases for this keyword.',
-            ], $result['code']),
+                'no_results' => response()->json([
+                    'message' => 'Tidak ada artikel yang ditemukan untuk kata kunci ini.',
+                ], $result['code']),
 
-            'dispatched' => response()->json([
-                'message' => 'Search initiated successfully.',
-                'batch_id' => $result['batch_id'] ?? null,
-                'missed_sources' => $result['missed_sources'] ?? [],
-            ], $result['code']),
+                'dispatched' => response()->json([
+                    'message' => 'Pencarian mulai diproses.',
+                    'batch_id' => $result['batch_id'] ?? null,
+                    'missed_sources' => $result['missed_sources'] ?? [],
+                ], $result['code']),
 
-            default => response()->json([
-                'message' => 'Unknown metadata search status.',
-                'status' => $result['status'] ?? null,
-            ], 500),
-        };
+                default => response()->json([
+                    'message' => 'Terjadi masalah yang tidak terduga pada status pencarian.',
+                    'status' => $result['status'] ?? null,
+                ], 500),
+            };
+        } catch (\Exception $e) {
+            Log::error('Dispatch Search Error: ' . $e->getMessage());
+
+            $message = match ($e->getMessage()) {
+                'API_RATE_LIMIT' => 'Layanan penyedia data sedang sibuk. Mohon tunggu beberapa saat dan coba lagi.',
+                'AUTH_ERROR'     => 'Sistem tidak dapat terhubung ke penyedia data karena masalah akses. Silakan hubungi administrator.',
+                'BAD_REQUEST'    => 'Format pencarian tidak valid. Silakan periksa kembali format pencarian Anda.',
+                'SERVER_ERROR'   => 'Layanan penyedia data sedang mengalami gangguan. Silakan coba lagi nanti.',
+                default          => 'Terjadi kesalahan tidak terduga saat memulai pencarian.',
+            };
+
+            $statusCode = match ($e->getMessage()) {
+                'API_RATE_LIMIT' => 429,
+                'BAD_REQUEST'    => 400,
+                default          => 500,
+            };
+
+            return response()->json([
+                'message' => $message,
+                'status'  => 'error',
+                'error'   => config('app.debug') ? $e->getMessage() : 'Internal Server Error'
+            ], $statusCode);
+        }
     }
 
     /**
@@ -107,17 +145,17 @@ class MetadataSearchController extends Controller
         $batch = Bus::findBatch($batchId);
 
         if (! $batch) {
-            return response()->json(['message' => 'Batch not found.'], 404);
+            return response()->json(['message' => 'Proses pencarian tidak ditemukan.'], 404);
         }
 
         if ($batch->finished()) {
-            return response()->json(['message' => 'Cannot cancel a completed batch.'], 400);
+            return response()->json(['message' => 'Pencarian yang sudah selesai tidak bisa dibatalkan.'], 400);
         }
         
         $batch->cancel();
 
         return response()->json([
-            'message' => 'Search job cancelled successfully.',
+            'message' => 'Proses pencarian berhasil dibatalkan.',
             'batch_id' => $batch->id
         ], 200);
     }
@@ -130,7 +168,7 @@ class MetadataSearchController extends Controller
 
         if (! $batch) {
             return response()->json([
-                'message' => 'Batch not found.',
+                'message' => 'Proses pencarian tidak ditemukan.',
             ], 404);
         }
 

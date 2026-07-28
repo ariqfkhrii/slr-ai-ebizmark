@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
@@ -29,15 +30,48 @@ class ScopusApiService
     /**
      * Build a Scopus API query string from the given keyword.
      *
-     * This method formats the keyword to ensure that any "NOT" operators are correctly interpreted by the Scopus API.
-     * It constructs a query string that searches for the keyword in the title, abstract, and keywords of publications.
-     *
      * @param string $keyword The keyword to be included in the search query.
      * @return string The formatted Scopus API query string.
      */
     public function buildScopusQuery(string $keyword): string
     {
-        $formattedKeyword = preg_replace('/\bNOT\b/i', 'AND NOT', $keyword);
+        $keyword = trim($keyword);
+        
+        $isSingleWord = !str_contains($keyword, ' ');
+
+        if (!str_contains($keyword, ';') && !str_contains($keyword, '!') && !$isSingleWord) {
+            if (!str_starts_with($keyword, '"') && !str_ends_with($keyword, '"')) {
+                $keyword = '"' . $keyword . '"';
+            }
+
+            return 'TITLE(' . $keyword . ')';
+        }
+
+        $parts = array_filter(array_map('trim', explode(';', $keyword)));
+        $queryBuilder = [];
+        $index = 0;
+
+        foreach ($parts as $part) {
+            $isNot = str_starts_with($part, '!');
+            
+            if ($isNot) {
+                $part = ltrim($part, '!');
+            }
+
+            if (str_contains($part, ' ') && !str_starts_with($part, '"') && !str_ends_with($part, '"')) {
+                $part = '"' . $part . '"';
+            }
+
+            if ($isNot) {
+                $queryBuilder[] = $index === 0 ? "NOT {$part}" : "AND NOT {$part}";
+            } else {
+                $queryBuilder[] = $index === 0 ? $part : "AND {$part}";
+            }
+            
+            $index++;
+        }
+
+        $formattedKeyword = implode(' ', $queryBuilder);
 
         return 'TITLE-ABS-KEY(' . $formattedKeyword . ')';
     }
@@ -67,14 +101,7 @@ class ScopusApiService
             'start' => 0,
         ]);
 
-        if ($response->status() === 429) {
-            throw new \Exception('API_RATE_LIMIT');
-        }
-
-        if (! $response->successful()) {
-            Log::warning('Scopus Search Preview API Failed: ' . $response->body());
-            return ['total' => 0, 'entries' => []];
-        }
+        $this->handleApiResponseErrors($response);
 
         $data = $response->json();
 
@@ -111,18 +138,10 @@ class ScopusApiService
             'count' => 1,
         ]);
 
-        if ($response->status() === 429) {
-            throw new \Exception('API_RATE_LIMIT');
-        }
+        $this->handleApiResponseErrors($response);
 
-        if ($response->successful()) {
-            $data = $response->json();
-            return (int) ($data['search-results']['opensearch:totalResults'] ?? 0);
-        }
-
-        Log::error('Scopus Count API Failed: ' . $response->body());
-        
-        return 0;
+        $data = $response->json();
+        return (int) ($data['search-results']['opensearch:totalResults'] ?? 0);
     }
 
     /**
@@ -147,18 +166,33 @@ class ScopusApiService
             'start' => $start,
         ]);
 
-        if ($response->status() === 429) {
-            throw new \Exception('API_RATE_LIMIT');
-        }
-
-        if (! $response->successful()) {
-            Log::warning('Scopus Search API Failed: ' . $response->body(), [
-                'status' => $response->status(),
-            ]);
-
-            return [];
-        }
+        $this->handleApiResponseErrors($response);
 
         return $response->json('search-results.entry', []);
+    }
+
+    /**
+     * Handle API response errors and throw appropriate exceptions.
+     *
+     * @param \Illuminate\Http\Client\Response $response
+     * @throws \Exception
+     */
+    protected function handleApiResponseErrors(Response $response): void
+    {
+        if ($response->successful()) {
+            return;
+        }
+
+        $status = $response->status();
+        
+        Log::error('Scopus API Error: ' . $response->body(), ['status' => $status]);
+
+        match ($status) {
+            401, 403 => throw new \Exception('AUTH_ERROR'),
+            400, 405, 406 => throw new \Exception('BAD_REQUEST'),
+            429 => throw new \Exception('API_RATE_LIMIT'),
+            500, 502, 503 => throw new \Exception('SERVER_ERROR'),
+            default => throw new \Exception('UNKNOWN_API_ERROR'),
+        };
     }
 }

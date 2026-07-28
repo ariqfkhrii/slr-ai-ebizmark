@@ -117,7 +117,7 @@ export default function KeywordDetail({
               : {}),
           }}
         >
-          {hasMetadata ? 'Update Metadata' : 'Fetch Metadata'}
+          {hasMetadata ? 'Fetch Metadata' : 'Fetch Metadata'}
         </Button>
 
         <Button
@@ -169,7 +169,12 @@ export default function KeywordDetail({
         <ArticleTable researchPlanId={researchPlanId} tabType="all-keywords" />
       )}
 
-      {tab === 'summary' && <KeywordResearchSummary keyword={keyword} />}
+      {tab === 'summary' && (
+        <KeywordResearchSummary
+          keyword={keyword}
+          sourceDatabase={sourceDatabase}
+        />
+      )}
 
       {/* DELETE DIALOG */}
       <DeleteKeywordConfirmationDialog

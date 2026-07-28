@@ -422,6 +422,7 @@ class MetadataSearchServices
                 $insertData[] = [
                     'research_plan_id' => $planId,
                     'raw_article_id'   => $articleId,
+                    'keyword_id'       => $keywordId,
                     'created_at'       => $now,
                     'updated_at'       => $now,
                 ];
@@ -683,7 +684,7 @@ class MetadataSearchServices
                 'out_of_year_range_count' => $outOfYearRangeCount,
             ];
 
-            cache()->put($key, $cachePayload, now()->addDays(1));
+            cache()->put($key, $cachePayload, now()->endOfDay());
         }
 
         ArticleMetadataTemp::where('batch_id', $batch->id)->delete();

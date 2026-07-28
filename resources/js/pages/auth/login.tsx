@@ -1,16 +1,20 @@
-import { Form, Head } from '@inertiajs/react';
-import InputError from '@/components/input-error';
-import PasswordInput from '@/components/password-input';
-import TextLink from '@/components/text-link';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
-import AuthLayout from '@/layouts/auth-layout';
+import { Form, Head, Link } from '@inertiajs/react';
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Checkbox,
+  FormControlLabel,
+  InputAdornment,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
+import { ArrowLeft, Lock, Mail } from 'lucide-react';
+
 import { register } from '@/routes';
 import { store } from '@/routes/login';
-import { request } from '@/routes/password';
 
 type Props = {
   status?: string;
@@ -20,97 +24,268 @@ type Props = {
 
 export default function Login({
   status,
-  canResetPassword,
   canRegister,
+  canResetPassword,
 }: Props) {
   return (
-    <AuthLayout
-      title="Log in to your account"
-      description="Enter your email and password below to log in"
-    >
-      <Head title="Log in" />
+    <>
+      <Head title="Login" />
 
-      <Form
-        {...store.form()}
-        resetOnSuccess={['password']}
-        className="flex flex-col gap-6"
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'grid',
+          gridTemplateColumns: {
+            xs: '1fr',
+            md: '1.2fr 0.8fr',
+          },
+        }}
       >
-        {({ processing, errors }) => (
-          <>
-            <div className="grid gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  name="email"
-                  required
-                  autoFocus
-                  tabIndex={1}
-                  autoComplete="email"
-                  placeholder="email@example.com"
-                />
-                <InputError message={errors.email} />
-              </div>
+        <Button
+          href="/"
+          startIcon={<ArrowLeft size={18} />}
+          variant="contained"
+          color="inherit"
+          sx={{
+            position: 'fixed',
+            top: 24,
+            left: 24,
+            bgcolor: 'rgba(255,255,255,0.95)',
+            color: 'primary.main',
+            borderRadius: 3,
+            px: 2,
+            boxShadow: 3,
+            textTransform: 'none',
+            fontWeight: 600,
+            '&:hover': {
+              bgcolor: 'common.white',
+            },
+          }}
+        >
+          Beranda
+        </Button>
+        {/* LEFT */}
+        <Box
+          sx={{
+            display: {
+              xs: 'none',
+              md: 'flex',
+            },
+            flexDirection: 'column',
+            justifyContent: 'center',
+            px: 10,
+            color: 'white',
+            background:
+              'linear-gradient(135deg,#1565C0 0%,#1E88E5 40%,#42A5F5 100%)',
+          }}
+        >
+          <Typography variant="h3" sx={{ fontWeight: 800 }}>
+            SLR AI
+          </Typography>
 
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  {canResetPassword && (
-                    <TextLink
-                      href={request()}
-                      className="ml-auto text-sm"
-                      tabIndex={5}
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 300,
+              mb: 4,
+            }}
+          >
+            Ebizmark
+          </Typography>
+
+          <Typography
+            variant="h5"
+            sx={{
+              maxWidth: 480,
+              fontWeight: 600,
+            }}
+          >
+            Platform Systematic Literature Review Berbasis AI
+          </Typography>
+
+          <Typography
+            sx={{
+              mt: 2,
+              opacity: 0.85,
+              maxWidth: 500,
+            }}
+          >
+            Kelola proses Systematic Literature Review mulai dari pencarian
+            artikel, penyaringan, klasifikasi, ekstraksi data, hingga penyusunan
+            laporan dalam satu platform terintegrasi.
+          </Typography>
+        </Box>
+
+        {/* RIGHT */}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            p: 4,
+            bgcolor: '#f5f7fb',
+          }}
+        >
+          <Card
+            elevation={6}
+            sx={{
+              width: '100%',
+              maxWidth: 450,
+              borderRadius: 4,
+            }}
+          >
+            <CardContent sx={{ p: 5 }}>
+              <Typography variant="h4" sx={{ fontWeight: 700 }} gutterBottom>
+                Selamat Datang!
+              </Typography>
+
+              <Typography color="text.secondary" sx={{ mb: 4 }}>
+                Masuk untuk menggunakan <b>SLR AI Ebizmark</b>.
+              </Typography>
+
+              <Form {...store.form()} resetOnSuccess={['password']}>
+                {({ processing, errors }) => (
+                  <Stack spacing={3}>
+                    <TextField
+                      fullWidth
+                      name="email"
+                      label="Email"
+                      type="email"
+                      error={!!errors.email}
+                      helperText={errors.email}
+                      sx={{
+                        '& input:-webkit-autofill': {
+                          WebkitBoxShadow: '0 0 0 100px #fff inset',
+                          WebkitTextFillColor: '#000',
+                          caretColor: '#000',
+                          transition: 'background-color 9999s ease-in-out 0s',
+                        },
+                        '& input:-webkit-autofill:hover': {
+                          WebkitBoxShadow: '0 0 0 100px #fff inset',
+                        },
+                        '& input:-webkit-autofill:focus': {
+                          WebkitBoxShadow: '0 0 0 100px #fff inset',
+                        },
+                      }}
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Mail size={18} />
+                            </InputAdornment>
+                          ),
+                        },
+                      }}
+                    />
+
+                    <TextField
+                      fullWidth
+                      name="password"
+                      label="Password"
+                      type="password"
+                      error={!!errors.password}
+                      helperText={errors.password}
+                      sx={{
+                        '& input:-webkit-autofill': {
+                          WebkitBoxShadow: '0 0 0 100px #fff inset',
+                          WebkitTextFillColor: '#000',
+                          caretColor: '#000',
+                          transition: 'background-color 9999s ease-in-out 0s',
+                        },
+                        '& input:-webkit-autofill:hover': {
+                          WebkitBoxShadow: '0 0 0 100px #fff inset',
+                        },
+                        '& input:-webkit-autofill:focus': {
+                          WebkitBoxShadow: '0 0 0 100px #fff inset',
+                        },
+                      }}
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Lock size={18} />
+                            </InputAdornment>
+                          ),
+                        },
+                      }}
+                    />
+
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
                     >
-                      Forgot password?
-                    </TextLink>
-                  )}
-                </div>
-                <PasswordInput
-                  id="password"
-                  name="password"
-                  required
-                  tabIndex={2}
-                  autoComplete="current-password"
-                  placeholder="Password"
-                />
-                <InputError message={errors.password} />
-              </div>
+                      <FormControlLabel
+                        control={<Checkbox name="remember" />}
+                        label="Tetap masuk"
+                      />
 
-              <div className="flex items-center space-x-3">
-                <Checkbox id="remember" name="remember" tabIndex={3} />
-                <Label htmlFor="remember">Remember me</Label>
-              </div>
+                      {/* {canResetPassword && (
+                        <Link
+                          href={request()}
+                          style={{
+                            textDecoration: 'none',
+                            color: '#1976d2',
+                            fontWeight: 500,
+                          }}
+                        >
+                          Lupa password?
+                        </Link>
+                      )} */}
+                    </Box>
 
-              <Button
-                type="submit"
-                className="mt-4 w-full"
-                tabIndex={4}
-                disabled={processing}
-                data-test="login-button"
-              >
-                {processing && <Spinner />}
-                Log in
-              </Button>
-            </div>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      size="large"
+                      fullWidth
+                      disabled={processing}
+                      sx={{
+                        py: 1.5,
+                        borderRadius: 2,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {processing ? 'Signing in...' : 'Sign In'}
+                    </Button>
 
-            {canRegister && (
-              <div className="text-center text-sm text-muted-foreground">
-                Don't have an account?{' '}
-                <TextLink href={register()} tabIndex={5}>
-                  Sign up
-                </TextLink>
-              </div>
-            )}
-          </>
-        )}
-      </Form>
+                    {canRegister && (
+                      <Typography
+                        sx={{ textAlign: 'center' }}
+                        color="text.secondary"
+                      >
+                        Belum memiliki akun?{' '}
+                        <Link
+                          href={register()}
+                          style={{
+                            color: '#1976d2',
+                            textDecoration: 'underline',
+                            textUnderlineOffset: '3px',
+                            fontWeight: 600,
+                          }}
+                        >
+                          Buat Akun
+                        </Link>
+                      </Typography>
+                    )}
 
-      {status && (
-        <div className="mb-4 text-center text-sm font-medium text-green-600">
-          {status}
-        </div>
-      )}
-    </AuthLayout>
+                    {status && (
+                      <Typography
+                        color="success.main"
+                        sx={{ textAlign: 'center' }}
+                      >
+                        {status}
+                      </Typography>
+                    )}
+                  </Stack>
+                )}
+              </Form>
+            </CardContent>
+          </Card>
+        </Box>
+      </Box>
+    </>
   );
 }

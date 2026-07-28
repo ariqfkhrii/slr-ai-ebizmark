@@ -113,7 +113,7 @@ export default function AiClassificationResultTable({
       <Box sx={{ p: 2, pb: 1.25 }}>
         <TextField
           size="small"
-          placeholder="Search article, author, method, category..."
+          placeholder="Search..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           sx={{
@@ -290,7 +290,7 @@ export default function AiClassificationResultTable({
                           overflow: 'hidden',
                         }}
                       >
-                        {value || 'Not classified'}
+                        {value || 'Tidak Di Klasifikasi'}
                       </Typography>
                     </TableCell>
                   );

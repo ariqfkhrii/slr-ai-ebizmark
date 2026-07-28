@@ -1,7 +1,15 @@
 import { getResearchPlanById } from '@/clients/researchPlan';
-import { Head } from '@inertiajs/react';
-import { Box, Paper, Tooltip, Typography } from '@mui/material';
+import { Head, router } from '@inertiajs/react';
+import {
+  Box,
+  Button,
+  IconButton,
+  Paper,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
+import { House, Upload } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Acquisition from './acquisition';
 import AiClassification from './ai-classification';
@@ -19,12 +27,61 @@ import { useSparStatus } from './hooks/useSparStatus';
 import Purification from './purification';
 import { ApiResponse, ResearchPlan } from './types';
 
-const BreadcrumbDisplay = () => {
+const BreadcrumbDisplay = ({ researchPlanId }: { researchPlanId: number }) => {
   const { title } = useBreadcrumb();
+
   return (
-    <Typography variant="h6" sx={{ fontWeight: 700 }}>
-      {title}
-    </Typography>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Tooltip title={'Kembali ke Menu Topik SLR'}>
+          <IconButton
+            component="a"
+            href="/dashboard"
+            sx={{
+              width: 32,
+              height: 32,
+              borderRadius: 3,
+              bgcolor: 'primary.main',
+              color: 'common.white',
+              '&:hover': {
+                bgcolor: 'primary.dark',
+              },
+            }}
+          >
+            <House size={26} />
+          </IconButton>
+        </Tooltip>
+
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 700,
+            ml: 0.5,
+          }}
+        >
+          {title}
+        </Typography>
+      </Box>
+      <Box>
+        <Tooltip title={'Unggah Sumber Lain'}>
+          <Button
+            variant="contained"
+            startIcon={<Upload size={20} />}
+            onClick={() =>
+              router.visit(
+                `/research-plans/${researchPlanId}/upload-other-source`,
+              )
+            }
+            sx={{
+              borderRadius: 3,
+              textTransform: 'none',
+            }}
+          >
+            Unggah Sumber Lain
+          </Button>
+        </Tooltip>
+      </Box>
+    </Box>
   );
 };
 
@@ -115,7 +172,7 @@ export default function Spar(props: any) {
           elevation={2}
           sx={{ px: 2, py: 1.5, borderRadius: 0, flexShrink: 0 }}
         >
-          <BreadcrumbDisplay />
+          <BreadcrumbDisplay researchPlanId={researchPlanId} />
         </Paper>
 
         <Paper

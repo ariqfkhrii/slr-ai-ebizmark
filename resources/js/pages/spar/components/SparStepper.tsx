@@ -1,4 +1,5 @@
 import { Box, MenuItem, Select, Typography } from '@mui/material';
+import { useEffect } from 'react';
 
 const steps = [
   'Acquisition',
@@ -7,6 +8,8 @@ const steps = [
   'Extraction',
   'Report',
 ];
+
+const STORAGE_KEY = 'spar-active-step';
 
 type Props = {
   activeStep?: number;
@@ -33,11 +36,48 @@ export default function SparStepper({
   onExtractionModeChange,
   onStepClick,
 }: Props) {
+  useEffect(() => {
+    const savedStep = sessionStorage.getItem(STORAGE_KEY);
+
+    if (!savedStep) return;
+
+    const step = Number(savedStep);
+
+    if (Number.isNaN(step)) return;
+
+    const canOpen = [
+      true,
+      canOpenScreening,
+      canOpenClassification,
+      canOpenExtraction,
+      canOpenReport,
+    ];
+
+    if (step >= 0 && step < steps.length && canOpen[step]) {
+      onStepClick?.(step);
+    }
+  }, [
+    canOpenScreening,
+    canOpenClassification,
+    canOpenExtraction,
+    canOpenReport,
+    onStepClick,
+  ]);
+
+  const handleStepClick = (step: number) => {
+    sessionStorage.setItem(STORAGE_KEY, step.toString());
+    onStepClick?.(step);
+  };
+
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEY, activeStep.toString());
+  }, [activeStep]);
+
   return (
     <Box
       sx={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(6, 1fr)',
+        gridTemplateColumns: 'repeat(5, 1fr)',
         alignItems: 'center',
         gap: 4,
         width: '100%',
@@ -46,6 +86,7 @@ export default function SparStepper({
       {steps.map((step, index) => {
         const isActive = index === activeStep;
         const isCompleted = index < activeStep;
+
         const isAcquisition = index === 0;
         const isPurification = index === 1;
         const isClassification = index === 2;
@@ -131,7 +172,7 @@ export default function SparStepper({
             <Box
               onClick={() => {
                 if (!isClickable) return;
-                onStepClick?.(index);
+                handleStepClick(index);
               }}
               sx={{
                 width: '100%',

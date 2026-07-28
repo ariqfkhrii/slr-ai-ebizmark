@@ -184,7 +184,7 @@ export default function AiClassificationDetailDialog({
                         color: value ? '#475569' : '#94a3b8',
                       }}
                     >
-                      {value || 'Not classified'}
+                      {value || 'Tidak Di Klasifikasi'}
                     </Typography>
                   </Box>
                 );

@@ -9,12 +9,8 @@ type Props = {
 
 const tabs = [
   {
-    label: 'Artikel per Kata Kunci / Judul',
+    label: 'Daftar Artikel',
     value: 'per-keyword',
-  },
-  {
-    label: 'Artikel seluruh Kata Kunci / Judul',
-    value: 'all-keywords',
   },
   {
     label: 'Ringkasan Hasil Pengambilan Metadata',

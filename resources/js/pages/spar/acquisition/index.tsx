@@ -81,6 +81,15 @@ export default function AcquisitionPage({
     }));
   }, [keywordsQuery.data]);
 
+  useEffect(() => {
+    if (keywords.length > 0) {
+      const exists = keywords.some((k) => k.id === selectedId);
+      if (selectedId === null || !exists) {
+        setSelectedId(keywords[0].id);
+      }
+    }
+  }, [keywords, selectedId]);
+
   const selectedKeyword = useMemo(
     () => keywords.find((k) => k.id === selectedId) ?? null,
     [keywords, selectedId],
@@ -102,7 +111,11 @@ export default function AcquisitionPage({
   };
 
   const handleDeleteKeyword = (id: number) => {
-    deleteKeyword.mutate(id);
+    deleteKeyword.mutate(id, {
+      onSuccess: () => {
+        setSelectedId(null);
+      },
+    });
   };
 
   const handlePreviewMetadata = (keywordId: number, params: FetchParams) => {
@@ -194,11 +207,14 @@ export default function AcquisitionPage({
       }}
     >
       <KeywordList
-        keywords={keywords}
-        onAdd={handleAddKeyword}
-        onDelete={handleDeleteKeyword}
-        onUpdate={handleUpdateKeyword}
-        onSelect={setSelectedId}
+        keyword={selectedKeyword}
+        onSave={(query) => {
+          if (selectedKeyword) {
+            handleUpdateKeyword(selectedKeyword.id, query);
+          } else {
+            handleAddKeyword(query);
+          }
+        }}
       />
 
       <KeywordDetail

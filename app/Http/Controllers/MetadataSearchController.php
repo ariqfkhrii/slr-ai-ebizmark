@@ -35,8 +35,6 @@ class MetadataSearchController extends Controller
             
             if ($previewResult['is_recommended']) {
                 $message = 'Pratinjau hasil pencarian siap ditampilkan.';
-            } elseif ($totalCount < 100) {
-                $message = "Artikel yang ditemukan terlalu sedikit ({$totalCount}). Minimal harus ada 100 artikel untuk melanjutkan pencarian.";
             } else {
                 $message = "Pencarian tidak bisa dilanjutkan karena melebihi batas maksimal 5.000 artikel (ditemukan {$totalCount}). Silakan buat kata kunci atau judul yang lebih spesifik.";
             }

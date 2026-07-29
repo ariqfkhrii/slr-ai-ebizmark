@@ -3,8 +3,7 @@
 namespace App\Services;
 
 use App\Enums\ArticleTempStatus;
-use App\Jobs\FetchPubMedJob;
-use App\Jobs\FetchScopusJob;
+use App\Jobs\PrepareSearchBatchJob;
 use App\Models\ArticleMetadataTemp;
 use App\Models\FilteredArticle;
 use App\Models\Keyword;
@@ -54,7 +53,7 @@ class MetadataSearchServices
             return [
                 'source'         => $params['source'],
                 'total_count'    => $result['totalCount'],
-                'is_recommended' => $result['totalCount'] >= 100 && $result['totalCount'] <= 5000,
+                'is_recommended' => $result['totalCount'] <= 5000,
                 'samples'        => $result['samples'],
             ];
         });
@@ -231,10 +230,6 @@ class MetadataSearchServices
     /**
      * Formats raw PubMed XML data into a standardized array of article samples.
      *
-     * Parses the XML string to extract key information such as the article's title, 
-     * publication year, and authors. It also maps each article's PMID to its 
-     * corresponding citation count.
-     *
      * @param string $xmlString      The raw XML response from the PubMed API.
      * @param array  $citationCounts An associative array mapping PMIDs to their citation counts.
      * @return array A list of formatted article samples containing title, year, authors, tier, and citation count.
@@ -343,6 +338,10 @@ class MetadataSearchServices
         $endYear = $validatedRequest['end_year'];
         $tiers = $validatedRequest['tiers'] ?? [];
 
+        if (!empty($tiers)) {
+            sort($tiers);
+        }
+
         if ($source === 'pubmed') {
             $tierPart = 'tier:all:';
         } else {
@@ -393,7 +392,6 @@ class MetadataSearchServices
         $totalDuplicates = 0;
         $totalUnmatched = 0;
         $totalMissingDoi = 0;
-        $totalOutOfYear = 0;
 
         foreach ($hits as $key => $cacheData) {
             if (isset($cacheData['raw_article_ids'])) {
@@ -401,7 +399,6 @@ class MetadataSearchServices
                 $totalDuplicates += $cacheData['duplicate_count'] ?? 0;
                 $totalUnmatched  += $cacheData['unmatched_tier_count'] ?? 0;
                 $totalMissingDoi += $cacheData['missing_doi_count'] ?? 0;
-                $totalOutOfYear  += $cacheData['out_of_year_range_count'] ?? 0;
             } else {
                 $rawArticleIds = is_array($cacheData) ? $cacheData : [];
             }
@@ -441,10 +438,6 @@ class MetadataSearchServices
                 'unmatched_tier_count' => $totalUnmatched,
                 'missing_doi_count'    => $totalMissingDoi,
             ]);
-
-        ResearchPlanKeyword::where('research_plan_id', $planId)
-            ->where('keyword_id', $keywordId)
-            ->update(['out_of_year_range_count' => $totalOutOfYear]);
     }
 
     /**
@@ -488,79 +481,23 @@ class MetadataSearchServices
     }
 
     /**
-     * Dispatch search jobs for missed sources and manage batch processing.
+     * Create an empty job batch and dispatch a background setup job to populate it.
      *
-     * @param array $validatedRequest
-     * @param string $source
-     * @param array $cacheKeys
-     * @param int|string $planId
-     * @return string|null
+     * @param array $validatedRequest The validated input data containing search parameters (e.g., keyword_id, tiers).
+     * @param string $source The target database source (e.g., 'scopus', 'pubmed').
+     * @param array $cacheKeys Generated cache keys for the search, where the first key is used for the batch.
+     * @param int|string $planId The ID of the associated research plan.
+     * @return string The generated Batch ID used to track the progress of the jobs.
      */
     public function dispatchSearchJobs(array $validatedRequest, string $source, array $cacheKeys, $planId)
     {
         $keywordId = $validatedRequest['keyword_id'];
-
-        $keywordModel  = Keyword::findOrFail($keywordId);
-        $keywordString = $keywordModel->keyword;
-
-        $startYear = $validatedRequest['start_year'];
-        $endYear   = $validatedRequest['end_year'];
-
-        $jobs = [];
-
-        // Make jobs per source based on missed sources
+        $tiers = $validatedRequest['tiers'] ?? [];
         $cacheKey = $cacheKeys[0];
 
-        $itemsPerPage = 25;
-        $pagesPerJob  = 0;
-        $totalCount   = 0;
+        cache()->put("pending_batches_{$planId}_{$keywordId}", 1, now()->addHours(2));
 
-        $totalWithYear = 0;
-        $totalWithoutYear = 0;
-
-        if ($source === 'scopus') {
-            $pagesPerJob = 5;
-            $totalWithYear = $this->scopusApi->getTotalCount($keywordString, $startYear, $endYear);
-            $totalWithoutYear = $this->scopusApi->getTotalCount($keywordString, null, null);
-            $totalCount  = min($totalWithYear, 5000);
-        } elseif ($source === 'pubmed') {
-            $pagesPerJob = 20;
-            $totalWithYear = $this->pubmedApi->getTotalCount($keywordString, $startYear, $endYear);
-            $totalWithoutYear = $this->pubmedApi->getTotalCount($keywordString, null, null);
-            $totalCount  = min($totalWithYear, 5000);
-        }
-
-        $outOfYearRangeCount = max(0, $totalWithoutYear - $totalWithYear);
-
-        ResearchPlanKeyword::where('research_plan_id', $planId)
-            ->where('keyword_id', $keywordId)
-            ->update(['out_of_year_range_count' => $outOfYearRangeCount]);
-
-        if ($totalCount === 0) return null;
-
-        $totalPages = (int) ceil($totalCount / $itemsPerPage);
-
-        // Make jobs per page range
-        for ($startPage = 1; $startPage <= $totalPages; $startPage += $pagesPerJob) {
-            $endPage = min($startPage + $pagesPerJob - 1, $totalPages);
-
-            if ($source === 'scopus') {
-                $jobs[] = new FetchScopusJob($validatedRequest, $startPage, $endPage, $cacheKey);
-            } elseif ($source === 'pubmed') {
-                $jobs[] = new FetchPubMedJob($validatedRequest, $startPage, $endPage, $cacheKey);
-            }
-        }
-
-        if (empty($jobs)) return null;
-
-        // Save total batch count in cache to manage completion later
-        $totalBatches = 1;
-        cache()->put("pending_batches_{$planId}_{$keywordId}", $totalBatches, now()->addHours(2));
-
-        $tiers = $validatedRequest['tiers'] ?? [];
-
-        // Dispatch jobs per source in separate batches
-        $dispatched = Bus::batch($jobs)
+        $batch = Bus::batch([])
             ->name("Metadata Search " . strtoupper($source) . " KW-{$keywordId}")
             ->onQueue($source)
             ->then(function (\Illuminate\Bus\Batch $batch) use ($cacheKeys, $planId, $keywordId, $source, $tiers) {
@@ -568,9 +505,8 @@ class MetadataSearchServices
             })
             ->catch(function (\Illuminate\Bus\Batch $batch, \Throwable $e) use ($planId, $keywordId) {
                 \Illuminate\Support\Facades\Log::error("Metadata Search Batch failed: " . $e->getMessage());
-                cache()->forget("active_search_plan_{$planId}_kw_{$keywordId}");
             })
-            ->finally(function (\Illuminate\Bus\Batch $batch) use ($planId, $keywordId, $source) {
+            ->finally(function (\Illuminate\Bus\Batch $batch) use ($planId, $keywordId, $source, $cacheKeys) {
                 if ($batch->canceled()) {
                     cache()->forget("active_search_plan_{$planId}_kw_{$keywordId}");
                     cache()->forget("pending_batches_{$planId}_{$keywordId}");
@@ -578,22 +514,35 @@ class MetadataSearchServices
 
                     ArticleMetadataTemp::where('batch_id', $batch->id)->delete();
 
+                    FilteredArticle::where('research_plan_id', $planId)
+                        ->where('keyword_id', $keywordId)
+                        ->delete();
+
+                    foreach ($cacheKeys as $key) {
+                        cache()->forget($key);
+                    }
+                    
                     ResearchPlanKeyword::where('research_plan_id', $planId)
                         ->where('keyword_id', $keywordId)
                         ->update([
-                            'article_count'           => 0,
-                            'duplicate_count'         => 0,
-                            'unmatched_tier_count'    => 0,
-                            'missing_doi_count'       => 0,
-                            'out_of_year_range_count' => 0,
+                            'article_count'        => 0,
+                            'duplicate_count'      => 0,
+                            'unmatched_tier_count' => 0,
+                            'missing_doi_count'    => 0,
                         ]);
-                    
-                    \Illuminate\Support\Facades\Log::info("Metadata Search Batch {$batch->id} was cleanly cancelled and counts reset to 0.");
                 }
             })
             ->dispatch();
 
-        return (string) $dispatched->id;
+        dispatch(new PrepareSearchBatchJob(
+            $batch->id,
+            $validatedRequest,
+            $source,
+            $cacheKey,
+            $planId
+        ))->onQueue('setup'); 
+
+        return (string) $batch->id;
     }
 
     /**
@@ -661,12 +610,6 @@ class MetadataSearchServices
                 'missing_doi_count'    => $missingDoiCount,
             ]);
 
-        $pivot = ResearchPlanKeyword::where('research_plan_id', $planId)
-            ->where('keyword_id', $keywordId)
-            ->first();
-            
-        $outOfYearRangeCount = $pivot ? $pivot->out_of_year_range_count : 0;
-
         $groupedData = $acceptedData->groupBy('cache_key');
 
         foreach ($cacheKeys as $key) {
@@ -677,11 +620,10 @@ class MetadataSearchServices
                 : [];
 
             $cachePayload = [
-                'raw_article_ids'         => $records,
-                'duplicate_count'         => $totalDuplicateCount,
-                'unmatched_tier_count'    => $unmatchedTierCount,
-                'missing_doi_count'       => $missingDoiCount,
-                'out_of_year_range_count' => $outOfYearRangeCount,
+                'raw_article_ids'      => $records,
+                'duplicate_count'      => $totalDuplicateCount,
+                'unmatched_tier_count' => $unmatchedTierCount,
+                'missing_doi_count'    => $missingDoiCount,
             ];
 
             cache()->put($key, $cachePayload, now()->endOfDay());

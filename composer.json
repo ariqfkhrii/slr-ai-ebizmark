@@ -50,7 +50,7 @@
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "npx concurrently -c \"#60a5fa,#34d399,#fbbf24,#f87171,#a78bfa,#fb923c,#22d3ee,#94a3b8\" --names=\"server,vite,openalex,embedding,keyword,similarity,scopus,pubmed\" \"php artisan serve\" \"npm run dev\" \"php artisan queue:work --queue=openalex\" \"php artisan queue:work --queue=embedding\" \"php artisan queue:work --queue=keyword\" \"php artisan queue:work --queue=similarity-calculation\" \"php artisan queue:work --queue=scopus\" \"php artisan queue:work --queue=pubmed\""
+            "npx concurrently -c \"#60a5fa,#34d399,#fbbf24,#f87171,#a78bfa,#fb923c,#22d3ee,#94a3b8,#10b981\" --names=\"server,vite,setup,openalex,embedding,keyword,similarity,scopus,pubmed\" \"php artisan serve\" \"npm run dev\" \"php artisan queue:work --queue=setup\" \"php artisan queue:work --queue=openalex\" \"php artisan queue:work --queue=embedding\" \"php artisan queue:work --queue=keyword\" \"php artisan queue:work --queue=similarity-calculation\" \"php artisan queue:work --queue=scopus\" \"php artisan queue:work --queue=pubmed\""
         ],
         "lint": [
             "pint --parallel"

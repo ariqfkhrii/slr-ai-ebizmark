@@ -57,45 +57,34 @@ class PubMedApiService
      */
     public function buildPubMedQuery(string $keyword): string
     {
-        $keyword = trim($keyword);
+        $keyword = preg_replace('/\s+/', ' ', trim($keyword));
+
+        $tokens = preg_split('/\b(AND|OR|NOT)\b/', $keyword, -1, PREG_SPLIT_DELIM_CAPTURE);
         
-        $isSingleWord = !str_contains($keyword, ' ');
-
-        if (!str_contains($keyword, ';') && !str_contains($keyword, '!') && !$isSingleWord) {
-            if (!str_starts_with($keyword, '"') && !str_ends_with($keyword, '"')) {
-                $keyword = '"' . $keyword . '"';
-            }
-
-            return $keyword . '[ti]';
-        }
-
-        $parts = array_filter(array_map('trim', explode(';', $keyword)));
         $queryBuilder = [];
-        $index = 0;
 
-        foreach ($parts as $part) {
-            $isNot = str_starts_with($part, '!');
-            
-            if ($isNot) {
-                $part = ltrim($part, '!');
+        foreach ($tokens as $token) {
+            $token = trim($token);
+
+            if (empty($token)) {
+                continue;
             }
 
-            if (str_contains($part, ' ') && !str_starts_with($part, '"') && !str_ends_with($part, '"')) {
-                $part = '"' . $part . '"';
-            }
-
-            if ($isNot) {
-                $queryBuilder[] = $index === 0 ? "NOT {$part}" : "NOT {$part}";
+            if (in_array($token, ['AND', 'OR', 'NOT'])) {
+                $queryBuilder[] = $token;
             } else {
-                $queryBuilder[] = $index === 0 ? $part : "AND {$part}";
+                if (str_contains($token, ' ') && !str_starts_with($token, '"') && !str_ends_with($token, '"')) {
+                    $token = '"' . $token . '"';
+                }
+                
+                $queryBuilder[] = $token;
             }
-            
-            $index++;
         }
 
         $formattedKeyword = implode(' ', $queryBuilder);
+        $finalQuery = '(' . $formattedKeyword . ')';
 
-        return '(' . $formattedKeyword . ')';
+        return $finalQuery;
     }
 
     /**
@@ -304,7 +293,7 @@ class PubMedApiService
         if (str_contains($contentType, 'json')) {
             $data = $response->json();
             
-            if (isset($data['error']) || isset($data['esearchresult']['errorlist'])) {
+            if (isset($data['error'])) {
                 Log::error('PubMed API Logic Error (JSON): ' . $body);
                 throw new \Exception('BAD_REQUEST');
             }

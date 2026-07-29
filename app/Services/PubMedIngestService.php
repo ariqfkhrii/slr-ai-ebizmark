@@ -166,48 +166,37 @@ class PubMedIngestService
      */
     protected function buildTerm(string $keyword, int $startYear, int $endYear): string
     {
-        $keyword = trim($keyword);
+        $keyword = preg_replace('/\s+/', ' ', trim($keyword));
+
+        $tokens = preg_split('/\b(AND|OR|NOT)\b/', $keyword, -1, PREG_SPLIT_DELIM_CAPTURE);
         
-        $isSingleWord = !str_contains($keyword, ' ');
+        $queryBuilder = [];
 
-        if (!str_contains($keyword, ';') && !str_contains($keyword, '!') && !$isSingleWord) {
-            if (!str_starts_with($keyword, '"') && !str_ends_with($keyword, '"')) {
-                $keyword = '"' . $keyword . '"';
+        foreach ($tokens as $token) {
+            $token = trim($token);
+
+            if (empty($token)) {
+                continue;
             }
 
-            $searchQuery = $keyword . '[ti]';
-        } else {
-            $parts = array_filter(array_map('trim', explode(';', $keyword)));
-            $queryBuilder = [];
-            $index = 0;
-
-            foreach ($parts as $part) {
-                $isNot = str_starts_with($part, '!');
-                
-                if ($isNot) {
-                    $part = ltrim($part, '!');
-                }
-
-                if (str_contains($part, ' ') && !str_starts_with($part, '"') && !str_ends_with($part, '"')) {
-                    $part = '"' . $part . '"';
-                }
-
-                if ($isNot) {
-                    $queryBuilder[] = $index === 0 ? "NOT {$part}" : "NOT {$part}";
-                } else {
-                    $queryBuilder[] = $index === 0 ? $part : "AND {$part}";
+            if (in_array($token, ['AND', 'OR', 'NOT'])) {
+                $queryBuilder[] = $token;
+            } else {
+                if (str_contains($token, ' ') && !str_starts_with($token, '"') && !str_ends_with($token, '"')) {
+                    $token = '"' . $token . '"';
                 }
                 
-                $index++;
+                $queryBuilder[] = $token;
             }
-
-            $formattedKeyword = implode(' ', $queryBuilder);
-            $searchQuery = '(' . $formattedKeyword . ')';
         }
 
-        $qualityFilter = '("Journal Article"[pt] AND "medline"[sb] NOT "preprint"[pt])';
+        $formattedKeyword = implode(' ', $queryBuilder);
+        $searchQuery = '(' . $formattedKeyword . ')';
 
-        return $searchQuery . ' AND ' . $qualityFilter . ' AND ' . $startYear . ':' . $endYear . '[dp]';
+        $qualityFilter = '("Journal Article"[pt] AND "medline"[sb] NOT "preprint"[pt])';
+        $finalQuery = $searchQuery . ' AND ' . $qualityFilter . ' AND ' . $startYear . ':' . $endYear . '[dp]';
+
+        return $finalQuery;
     }
 
     /**

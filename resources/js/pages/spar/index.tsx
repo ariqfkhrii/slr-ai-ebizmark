@@ -263,6 +263,9 @@ export default function Spar(props: any) {
                 <Acquisition
                   researchPlanId={researchPlanId}
                   sourceDatabase={sourceDatabase}
+                  onFetchSuccess={() => {
+                    refetch();
+                  }}
                 />
               )}
 

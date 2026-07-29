@@ -54,7 +54,7 @@ class MetadataSearchServices
             return [
                 'source'         => $params['source'],
                 'total_count'    => $result['totalCount'],
-                'is_recommended' => $result['totalCount'] >= 100 && $result['totalCount'] <= 5000,
+                'is_recommended' => $result['totalCount'] <= 5000,
                 'samples'        => $result['samples'],
             ];
         });

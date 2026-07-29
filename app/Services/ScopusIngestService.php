@@ -17,17 +17,14 @@ class ScopusIngestService
     }
 
     /**
-     * Ingest articles from the Scopus API based on the provided search criteria and pagination parameters.
-     *
-     * This method retrieves articles from the Scopus API in batches defined by the start and end page parameters. It processes each batch of articles, normalizing DOIs, extracting relevant information, and determining the journal tier based on ISSN values. Valid articles are then upserted into the RawArticle database table, and a subset of articles that meet the preview criteria are stored in the ArticleMetadataTemp table for later retrieval.
+     * Ingest articles from the Scopus API for a single atomic page/cursor position.
      *
      * @param array $validatedRequest The validated request data containing search criteria such as keyword ID, start year, end year, and selected tiers.
-     * @param int $startPage The starting page number for pagination (inclusive).
-     * @param int $endPage The ending page number for pagination (inclusive).
+     * @param int $page The page number representing this job's single cursor-pagination position (1-indexed).
      * @param string|null $batchId An optional identifier for the batch being processed, used for tracking purposes.
      * @param string $cacheKey A unique key used to associate preview articles with a specific cache entry.
      */
-    public function ingest(array $validatedRequest, int $startPage, int $endPage, ?string $batchId, string $cacheKey): void
+    public function ingest(array $validatedRequest, int $page, ?string $batchId, string $cacheKey): void
     {
         $keywordText = Keyword::findOrFail($validatedRequest['keyword_id'])->keyword;
         $startYear = (int) $validatedRequest['start_year'];
@@ -36,16 +33,14 @@ class ScopusIngestService
         $itemsPerPage = 25;
         $query = $this->scopusApi->buildScopusQuery($keywordText) . ' AND PUBYEAR > ' . ($startYear - 1) . ' AND PUBYEAR < ' . ($endYear + 1);
 
-        for ($page = $startPage; $page <= $endPage; $page++) {
-            $startIndex = ($page - 1) * $itemsPerPage;
-            $entries = $this->scopusApi->search($query, $itemsPerPage, $startIndex);
+        $startIndex = ($page - 1) * $itemsPerPage;
+        $entries = $this->scopusApi->search($query, $itemsPerPage, $startIndex);
 
-            if (empty($entries)) {
-                continue;
-            }
-
-            $this->processBatch($entries, $validatedRequest, $batchId, $cacheKey);
+        if (empty($entries)) {
+            return;
         }
+
+        $this->processBatch($entries, $validatedRequest, $batchId, $cacheKey);
     }
 
     /**

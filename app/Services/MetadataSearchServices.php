@@ -3,8 +3,7 @@
 namespace App\Services;
 
 use App\Enums\ArticleTempStatus;
-use App\Jobs\FetchPubMedJob;
-use App\Jobs\FetchScopusJob;
+use App\Jobs\PrepareSearchBatchJob;
 use App\Models\ArticleMetadataTemp;
 use App\Models\FilteredArticle;
 use App\Models\Keyword;
@@ -339,6 +338,10 @@ class MetadataSearchServices
         $endYear = $validatedRequest['end_year'];
         $tiers = $validatedRequest['tiers'] ?? [];
 
+        if (!empty($tiers)) {
+            sort($tiers);
+        }
+
         if ($source === 'pubmed') {
             $tierPart = 'tier:all:';
         } else {
@@ -478,68 +481,23 @@ class MetadataSearchServices
     }
 
     /**
-     * Dispatch search jobs for missed sources and manage batch processing.
+     * Create an empty job batch and dispatch a background setup job to populate it.
      *
-     * @param array $validatedRequest
-     * @param string $source
-     * @param array $cacheKeys
-     * @param int|string $planId
-     * @return string|null
+     * @param array $validatedRequest The validated input data containing search parameters (e.g., keyword_id, tiers).
+     * @param string $source The target database source (e.g., 'scopus', 'pubmed').
+     * @param array $cacheKeys Generated cache keys for the search, where the first key is used for the batch.
+     * @param int|string $planId The ID of the associated research plan.
+     * @return string The generated Batch ID used to track the progress of the jobs.
      */
     public function dispatchSearchJobs(array $validatedRequest, string $source, array $cacheKeys, $planId)
     {
         $keywordId = $validatedRequest['keyword_id'];
-
-        $keywordModel  = Keyword::findOrFail($keywordId);
-        $keywordString = $keywordModel->keyword;
-
-        $startYear = $validatedRequest['start_year'];
-        $endYear   = $validatedRequest['end_year'];
-
-        $jobs = [];
-
-        // Make jobs per source based on missed sources
+        $tiers = $validatedRequest['tiers'] ?? [];
         $cacheKey = $cacheKeys[0];
 
-        $itemsPerPage = 25;
-        $pagesPerJob  = 0;
-        $totalCount   = 0;
+        cache()->put("pending_batches_{$planId}_{$keywordId}", 1, now()->addHours(2));
 
-        if ($source === 'scopus') {
-            $pagesPerJob = 5;
-            $totalCount = $this->scopusApi->getTotalCount($keywordString, $startYear, $endYear);
-            $totalCount = min($totalCount, 5000);
-        } elseif ($source === 'pubmed') {
-            $pagesPerJob = 20;
-            $totalCount = $this->pubmedApi->getTotalCount($keywordString, $startYear, $endYear);
-            $totalCount = min($totalCount, 5000);
-        }
-
-        if ($totalCount === 0) return null;
-
-        $totalPages = (int) ceil($totalCount / $itemsPerPage);
-
-        // Make jobs per page range
-        for ($startPage = 1; $startPage <= $totalPages; $startPage += $pagesPerJob) {
-            $endPage = min($startPage + $pagesPerJob - 1, $totalPages);
-
-            if ($source === 'scopus') {
-                $jobs[] = new FetchScopusJob($validatedRequest, $startPage, $endPage, $cacheKey);
-            } elseif ($source === 'pubmed') {
-                $jobs[] = new FetchPubMedJob($validatedRequest, $startPage, $endPage, $cacheKey);
-            }
-        }
-
-        if (empty($jobs)) return null;
-
-        // Save total batch count in cache to manage completion later
-        $totalBatches = 1;
-        cache()->put("pending_batches_{$planId}_{$keywordId}", $totalBatches, now()->addHours(2));
-
-        $tiers = $validatedRequest['tiers'] ?? [];
-
-        // Dispatch jobs per source in separate batches
-        $dispatched = Bus::batch($jobs)
+        $batch = Bus::batch([])
             ->name("Metadata Search " . strtoupper($source) . " KW-{$keywordId}")
             ->onQueue($source)
             ->then(function (\Illuminate\Bus\Batch $batch) use ($cacheKeys, $planId, $keywordId, $source, $tiers) {
@@ -547,9 +505,8 @@ class MetadataSearchServices
             })
             ->catch(function (\Illuminate\Bus\Batch $batch, \Throwable $e) use ($planId, $keywordId) {
                 \Illuminate\Support\Facades\Log::error("Metadata Search Batch failed: " . $e->getMessage());
-                cache()->forget("active_search_plan_{$planId}_kw_{$keywordId}");
             })
-            ->finally(function (\Illuminate\Bus\Batch $batch) use ($planId, $keywordId, $source) {
+            ->finally(function (\Illuminate\Bus\Batch $batch) use ($planId, $keywordId, $source, $cacheKeys) {
                 if ($batch->canceled()) {
                     cache()->forget("active_search_plan_{$planId}_kw_{$keywordId}");
                     cache()->forget("pending_batches_{$planId}_{$keywordId}");
@@ -557,6 +514,14 @@ class MetadataSearchServices
 
                     ArticleMetadataTemp::where('batch_id', $batch->id)->delete();
 
+                    FilteredArticle::where('research_plan_id', $planId)
+                        ->where('keyword_id', $keywordId)
+                        ->delete();
+
+                    foreach ($cacheKeys as $key) {
+                        cache()->forget($key);
+                    }
+                    
                     ResearchPlanKeyword::where('research_plan_id', $planId)
                         ->where('keyword_id', $keywordId)
                         ->update([
@@ -565,13 +530,19 @@ class MetadataSearchServices
                             'unmatched_tier_count' => 0,
                             'missing_doi_count'    => 0,
                         ]);
-                    
-                    \Illuminate\Support\Facades\Log::info("Metadata Search Batch {$batch->id} was cleanly cancelled and counts reset to 0.");
                 }
             })
             ->dispatch();
 
-        return (string) $dispatched->id;
+        dispatch(new PrepareSearchBatchJob(
+            $batch->id,
+            $validatedRequest,
+            $source,
+            $cacheKey,
+            $planId
+        ))->onQueue('setup'); 
+
+        return (string) $batch->id;
     }
 
     /**

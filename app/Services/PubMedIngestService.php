@@ -20,50 +20,41 @@ class PubMedIngestService
     }
 
     /**
-     * Ingest articles from PubMed based on the provided search parameters and pagination settings.
-     * This method retrieves article IDs matching the search criteria, fetches detailed information
-     * and citation counts for those articles, and then processes the data in batches to store it
-     * in the database. It also handles the association of ingested articles with a preview cache for later retrieval.
+     * Ingest articles from PubMed for a single atomic page.
      *
      * @param array $validatedRequest The validated request data containing search parameters.
-     * @param int $startPage The starting page number for pagination.
-     * @param int $endPage The ending page number for pagination.
+     * @param int $page The page number representing this job's single PMID-retrieval position (1-indexed).
      * @param string|null $batchId An optional batch ID to associate with the ingested articles.
      * @param string $cacheKey A unique cache key to associate with the ingested articles for preview purposes.
      */
-    public function ingest(array $validatedRequest, int $startPage, int $endPage, ?string $batchId, string $cacheKey): void
+    public function ingest(array $validatedRequest, int $page, ?string $batchId, string $cacheKey): void
     {
         $keyword = Keyword::findOrFail($validatedRequest['keyword_id'])->keyword;
         $startYear = (int) $validatedRequest['start_year'];
         $endYear = (int) $validatedRequest['end_year'];
 
-        $itemsPerPage = 25;
+        $itemsPerPage = 175;
         $term = $this->buildTerm($keyword, $startYear, $endYear);
 
-        $retstart = ($startPage - 1) * $itemsPerPage;
-        $totalItems = ($endPage - $startPage + 1) * $itemsPerPage;
+        $retstart = ($page - 1) * $itemsPerPage;
 
-        $allIds = $this->pubmedApi->searchIds($term, $retstart, $totalItems);
+        $ids = $this->pubmedApi->searchIds($term, $retstart, $itemsPerPage);
 
-        if (empty($allIds)) {
+        if (empty($ids)) {
             return;
         }
 
-        $idChunks = array_chunk($allIds, 250);
+        $detailsXml = $this->pubmedApi->fetchDetails($ids);
+        $payloads = $this->parseDetailsXml($detailsXml);
 
-        foreach ($idChunks as $chunkedIds) {
-            $detailsXml = $this->pubmedApi->fetchDetails($chunkedIds);
-            $payloads = $this->parseDetailsXml($detailsXml);
-
-            if (empty($payloads)) {
-                continue;
-            }
-
-            $citationsXml = $this->pubmedApi->fetchCitations($chunkedIds);
-            $citationCounts = $this->parseCitationsXml($citationsXml);
-
-            $this->processBatch($payloads, $citationCounts, $batchId, $cacheKey);
+        if (empty($payloads)) {
+            return;
         }
+
+        $citationsXml = $this->pubmedApi->fetchCitations($ids);
+        $citationCounts = $this->parseCitationsXml($citationsXml);
+
+        $this->processBatch($payloads, $citationCounts, $batchId, $cacheKey);
     }
 
     /**

@@ -122,7 +122,7 @@ export default function KeywordResearchSummary({
       <SummaryCard
         label="Duplikat"
         value={duplicateCount}
-        caption="Artikel dengan identitas sama saat ditarik, atau sudah didapatkan dari keyword lain."
+        caption="Artikel dengan identitas sama saat ditarik."
       />
 
       {isScopus && (
@@ -137,12 +137,6 @@ export default function KeywordResearchSummary({
         label="Tanpa DOI"
         value={missingDoiCount}
         caption="Artikel yang tidak memiliki DOI."
-      />
-
-      <SummaryCard
-        label="Di luar tahun"
-        value={outOfYearRangeCount}
-        caption="Artikel yang berada di luar rentang tahun yang ditentukan."
       />
     </Box>
   );

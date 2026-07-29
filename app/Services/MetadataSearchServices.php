@@ -231,10 +231,6 @@ class MetadataSearchServices
     /**
      * Formats raw PubMed XML data into a standardized array of article samples.
      *
-     * Parses the XML string to extract key information such as the article's title, 
-     * publication year, and authors. It also maps each article's PMID to its 
-     * corresponding citation count.
-     *
      * @param string $xmlString      The raw XML response from the PubMed API.
      * @param array  $citationCounts An associative array mapping PMIDs to their citation counts.
      * @return array A list of formatted article samples containing title, year, authors, tier, and citation count.
@@ -393,7 +389,6 @@ class MetadataSearchServices
         $totalDuplicates = 0;
         $totalUnmatched = 0;
         $totalMissingDoi = 0;
-        $totalOutOfYear = 0;
 
         foreach ($hits as $key => $cacheData) {
             if (isset($cacheData['raw_article_ids'])) {
@@ -401,7 +396,6 @@ class MetadataSearchServices
                 $totalDuplicates += $cacheData['duplicate_count'] ?? 0;
                 $totalUnmatched  += $cacheData['unmatched_tier_count'] ?? 0;
                 $totalMissingDoi += $cacheData['missing_doi_count'] ?? 0;
-                $totalOutOfYear  += $cacheData['out_of_year_range_count'] ?? 0;
             } else {
                 $rawArticleIds = is_array($cacheData) ? $cacheData : [];
             }
@@ -441,10 +435,6 @@ class MetadataSearchServices
                 'unmatched_tier_count' => $totalUnmatched,
                 'missing_doi_count'    => $totalMissingDoi,
             ]);
-
-        ResearchPlanKeyword::where('research_plan_id', $planId)
-            ->where('keyword_id', $keywordId)
-            ->update(['out_of_year_range_count' => $totalOutOfYear]);
     }
 
     /**
@@ -515,26 +505,15 @@ class MetadataSearchServices
         $pagesPerJob  = 0;
         $totalCount   = 0;
 
-        $totalWithYear = 0;
-        $totalWithoutYear = 0;
-
         if ($source === 'scopus') {
             $pagesPerJob = 5;
-            $totalWithYear = $this->scopusApi->getTotalCount($keywordString, $startYear, $endYear);
-            $totalWithoutYear = $this->scopusApi->getTotalCount($keywordString, null, null);
-            $totalCount  = min($totalWithYear, 5000);
+            $totalCount = $this->scopusApi->getTotalCount($keywordString, $startYear, $endYear);
+            $totalCount = min($totalCount, 5000);
         } elseif ($source === 'pubmed') {
             $pagesPerJob = 20;
-            $totalWithYear = $this->pubmedApi->getTotalCount($keywordString, $startYear, $endYear);
-            $totalWithoutYear = $this->pubmedApi->getTotalCount($keywordString, null, null);
-            $totalCount  = min($totalWithYear, 5000);
+            $totalCount = $this->pubmedApi->getTotalCount($keywordString, $startYear, $endYear);
+            $totalCount = min($totalCount, 5000);
         }
-
-        $outOfYearRangeCount = max(0, $totalWithoutYear - $totalWithYear);
-
-        ResearchPlanKeyword::where('research_plan_id', $planId)
-            ->where('keyword_id', $keywordId)
-            ->update(['out_of_year_range_count' => $outOfYearRangeCount]);
 
         if ($totalCount === 0) return null;
 
@@ -581,11 +560,10 @@ class MetadataSearchServices
                     ResearchPlanKeyword::where('research_plan_id', $planId)
                         ->where('keyword_id', $keywordId)
                         ->update([
-                            'article_count'           => 0,
-                            'duplicate_count'         => 0,
-                            'unmatched_tier_count'    => 0,
-                            'missing_doi_count'       => 0,
-                            'out_of_year_range_count' => 0,
+                            'article_count'        => 0,
+                            'duplicate_count'      => 0,
+                            'unmatched_tier_count' => 0,
+                            'missing_doi_count'    => 0,
                         ]);
                     
                     \Illuminate\Support\Facades\Log::info("Metadata Search Batch {$batch->id} was cleanly cancelled and counts reset to 0.");
@@ -661,12 +639,6 @@ class MetadataSearchServices
                 'missing_doi_count'    => $missingDoiCount,
             ]);
 
-        $pivot = ResearchPlanKeyword::where('research_plan_id', $planId)
-            ->where('keyword_id', $keywordId)
-            ->first();
-            
-        $outOfYearRangeCount = $pivot ? $pivot->out_of_year_range_count : 0;
-
         $groupedData = $acceptedData->groupBy('cache_key');
 
         foreach ($cacheKeys as $key) {
@@ -677,11 +649,10 @@ class MetadataSearchServices
                 : [];
 
             $cachePayload = [
-                'raw_article_ids'         => $records,
-                'duplicate_count'         => $totalDuplicateCount,
-                'unmatched_tier_count'    => $unmatchedTierCount,
-                'missing_doi_count'       => $missingDoiCount,
-                'out_of_year_range_count' => $outOfYearRangeCount,
+                'raw_article_ids'      => $records,
+                'duplicate_count'      => $totalDuplicateCount,
+                'unmatched_tier_count' => $unmatchedTierCount,
+                'missing_doi_count'    => $missingDoiCount,
             ];
 
             cache()->put($key, $cachePayload, now()->endOfDay());

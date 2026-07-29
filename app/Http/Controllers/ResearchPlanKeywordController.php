@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ResearchPlanKeyword\ResearchPlanKeywordStoreRequest;
-use App\Http\Requests\ResearchPlanKeyword\ResearchPlanKeywordUpdateRequest;
+use App\Http\Requests\ResearchPlanKeywordStoreRequest;
+use App\Http\Requests\ResearchPlanKeywordUpdateRequest;
 use App\Services\ResearchPlanKeyword\ResearchPlanKeywordService;
 
 class ResearchPlanKeywordController extends Controller

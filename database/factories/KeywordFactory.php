@@ -18,7 +18,7 @@ class KeywordFactory extends Factory
     public function definition(): array
     {
         return [
-            'keyword' => $this->faker->unique()->word(),
+            'keyword' => fake()->uuid(),
         ];
     }
 }

@@ -34,46 +34,38 @@ class ScopusApiService
      * @return string The formatted Scopus API query string.
      */
     public function buildScopusQuery(string $keyword): string
-    {
-        $keyword = trim($keyword);
+    {   
+        $keyword = preg_replace('/\bAND NOT\b/', 'NOT', $keyword);
+        $keyword = preg_replace('/\bNOT\b/', 'AND NOT', $keyword);
+
+        $keyword = preg_replace('/\s+/', ' ', trim($keyword));
+
+        $tokens = preg_split('/\b(AND NOT|AND|OR)\b/', $keyword, -1, PREG_SPLIT_DELIM_CAPTURE);
         
-        $isSingleWord = !str_contains($keyword, ' ');
-
-        if (!str_contains($keyword, ';') && !str_contains($keyword, '!') && !$isSingleWord) {
-            if (!str_starts_with($keyword, '"') && !str_ends_with($keyword, '"')) {
-                $keyword = '"' . $keyword . '"';
-            }
-
-            return 'TITLE(' . $keyword . ')';
-        }
-
-        $parts = array_filter(array_map('trim', explode(';', $keyword)));
         $queryBuilder = [];
-        $index = 0;
 
-        foreach ($parts as $part) {
-            $isNot = str_starts_with($part, '!');
-            
-            if ($isNot) {
-                $part = ltrim($part, '!');
+        foreach ($tokens as $token) {
+            $token = trim($token);
+
+            if (empty($token)) {
+                continue;
             }
 
-            if (str_contains($part, ' ') && !str_starts_with($part, '"') && !str_ends_with($part, '"')) {
-                $part = '"' . $part . '"';
-            }
-
-            if ($isNot) {
-                $queryBuilder[] = $index === 0 ? "NOT {$part}" : "AND NOT {$part}";
+            if (in_array($token, ['AND', 'OR', 'AND NOT'])) {
+                $queryBuilder[] = $token;
             } else {
-                $queryBuilder[] = $index === 0 ? $part : "AND {$part}";
+                if (str_contains($token, ' ') && !str_starts_with($token, '"') && !str_ends_with($token, '"')) {
+                    $token = '"' . $token . '"';
+                }
+                
+                $queryBuilder[] = $token;
             }
-            
-            $index++;
         }
 
         $formattedKeyword = implode(' ', $queryBuilder);
+        $finalQuery = 'TITLE-ABS-KEY(' . $formattedKeyword . ')';
 
-        return 'TITLE-ABS-KEY(' . $formattedKeyword . ')';
+        return $finalQuery;
     }
 
     /**

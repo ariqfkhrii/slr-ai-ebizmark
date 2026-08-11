@@ -170,39 +170,7 @@ export default function FetchPreviewDialog({
                   {sourceLabel}
                 </Typography>
               </Box>
-
-              <Typography
-                sx={{
-                  fontSize: 10,
-                  fontWeight: 900,
-                  color: 'text.secondary',
-                  mb: 1,
-                }}
-              >
-                JUMLAH DATA
-              </Typography>
-
-              <Box
-                sx={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  borderRadius: 2,
-                  px: 1.25,
-                  py: 0.75,
-                  fontSize: 12,
-                  fontWeight: 800,
-                  bgcolor: isRecommended ? '#ccfbf1' : '#fee2e2',
-                  color: isRecommended ? '#0f766e' : '#991b1b',
-                  border: '1px solid',
-                  borderColor: isRecommended ? '#5eead4' : '#fecaca',
-                  mb: 1.25,
-                }}
-              >
-                {isRecommended
-                  ? '✓ Dalam Rentang Ideal'
-                  : 'Di luar Rentang Ideal'}
-              </Box>
-
+              
               <Typography
                 sx={{
                   fontSize: 12,

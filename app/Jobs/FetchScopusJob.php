@@ -17,15 +17,13 @@ class FetchScopusJob implements ShouldQueue
     public array $backoff = [1, 2, 3, 5];
 
     protected array $validatedRequest;
-    protected int $startPage;
-    protected int $endPage;
+    protected int $page;
     protected string $cacheKey;
 
-    public function __construct(array $validatedRequest, int $startPage, int $endPage, string $cacheKey)
+    public function __construct(array $validatedRequest, int $page, string $cacheKey)
     {
         $this->validatedRequest = $validatedRequest;
-        $this->startPage = $startPage;
-        $this->endPage = $endPage;
+        $this->page = $page;
         $this->cacheKey = $cacheKey;
     }
 
@@ -43,8 +41,7 @@ class FetchScopusJob implements ShouldQueue
         try {
             $service->ingest(
                 $this->validatedRequest,
-                $this->startPage,
-                $this->endPage,
+                $this->page,
                 $this->batch()?->id,
                 $this->cacheKey
             );

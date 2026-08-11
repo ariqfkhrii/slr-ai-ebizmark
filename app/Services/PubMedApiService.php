@@ -111,6 +111,7 @@ class PubMedApiService
             'retmode'  => 'json',
             'retstart' => 0,
             'retmax'   => $count,
+            'sort'     => 'pub_date',
             'api_key'  => config('services.pubmed.key'),
         ]);
 
@@ -231,6 +232,7 @@ class PubMedApiService
             'retmode'  => 'json',
             'retstart' => $retstart,
             'retmax'   => $retmax,
+            'sort'     => 'pub_date',
             'api_key'  => config('services.pubmed.key'),
         ]);
 

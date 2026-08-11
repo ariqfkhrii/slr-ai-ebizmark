@@ -1,6 +1,7 @@
 'use client';
 
 import { showSuccess } from '@/store/slices/snackbarSlice';
+import { Lightbulb } from 'lucide-react';
 import { router, useForm } from '@inertiajs/react';
 import {
   Avatar,
@@ -199,29 +200,43 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
               alignItems: { xs: 'stretch', md: 'center' },
             }}
           >
-            <Box>
-              <Stack
-                spacing={1}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  position: 'relative',
-                }}
-              >
-                <Typography variant="h5" sx={{ fontWeight: 800 }}>
-                  Topik SLR
-                </Typography>
-              </Stack>
+          <Box>
+            <Stack direction="row" sx={{ alignItems: 'center' }} spacing={1}>
+              <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                Topik SLR
+              </Typography>
+            </Stack>
 
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ mt: 0.5 }}
-              >
-                {researchPlans.length} topik
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ mt: 0.5 }}
+            >
+              {researchPlans.length} topik
+            </Typography>
+
+            {/* Pesan Bantuan / Tip Panduan */}
+            <Box
+              sx={{
+                mt: 1.5,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 1,
+                px: 1.5,
+                py: 0.75,
+                bgcolor: '#fffbe3',
+                border: '1px solid',
+                borderColor: '#fde047',
+                borderRadius: 2,
+                color: '#854d0e',
+              }}
+            >
+              <Lightbulb size={16} className="text-amber-500 shrink-0" />
+              <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                Tombol panduan di kanan atas siap membandu Anda dalam memahami halaman ini.
               </Typography>
             </Box>
+          </Box>
 
             <Stack
               spacing={1.5}

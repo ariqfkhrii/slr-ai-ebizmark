@@ -244,12 +244,6 @@ export default function Spar(props: any) {
               extractionMode={extractionMode}
               onExtractionModeChange={setExtractionMode}
               onStepClick={(step) => {
-                if (step === 1 && !canOpenScreening) return;
-                if (step === 2 && !canOpenRetrieval) return;
-                if (step === 3 && !canOpenClassification) return;
-                if (step === 4 && !canOpenExtraction) return;
-                if (step === 5 && !canOpenReport) return;
-
                 setActiveStep(step);
               }}
             />

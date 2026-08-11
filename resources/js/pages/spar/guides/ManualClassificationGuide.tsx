@@ -12,7 +12,6 @@ export default function ManualClassificationGuide() {
         Klasifikasi manual dilakukan dengan mengisi kategori tematik pada setiap
         artikel secara langsung berdasarkan hasil pembacaan konten artikel.
       </GuideInfo>
-
       <GuideSection title="Setup Kategori">
         <GuideStep
           number={1}
@@ -32,7 +31,6 @@ export default function ManualClassificationGuide() {
           description="Klik 'Save Setup' untuk menyimpan konfigurasi kategori sebelum melakukan klasifikasi manual."
         />
       </GuideSection>
-
       <GuideSection title="Proses Klasifikasi Manual">
         <GuideStep
           number={1}
@@ -52,56 +50,41 @@ export default function ManualClassificationGuide() {
           description="Simpan klasifikasi untuk setiap artikel dengan mengklik ikon centang (✔) pada kolom Action."
         />
       </GuideSection>
-
-      <GuideSection title="Informasi yang Ditampilkan">
+      <GuideSection title="Contoh Kategori Tematik yang Dapat Digunakan">
         <GuideStep
           number={1}
-          title="Authors & Tahun"
-          description="Nama penulis dan tahun publikasi artikel."
+          title="Technology & Infrastructure"
+          description="Membahas teknologi, arsitektur, infrastruktur, atau platform yang digunakan dalam penerapan sistem."
         />
 
         <GuideStep
           number={2}
-          title="Negara"
-          description="Negara asal penulis atau afiliasi penelitian."
+          title="Methods & Algorithms"
+          description="Berfokus pada metode, algoritma, model, atau pendekatan yang digunakan untuk menyelesaikan permasalahan penelitian."
         />
 
         <GuideStep
           number={3}
-          title="Metode Penelitian"
-          description="Metode penelitian yang digunakan dalam artikel."
+          title="Implementation & Applications"
+          description="Membahas penerapan metode atau teknologi pada sistem, aplikasi, atau lingkungan tertentu."
         />
 
         <GuideStep
           number={4}
-          title="Kategori Tematik"
-          description="Kategori yang dipilih secara manual berdasarkan setup yang telah dibuat."
-        />
-      </GuideSection>
-
-      <GuideSection title="Tips Klasifikasi Manual">
-        <GuideStep
-          number={1}
-          title="Baca dengan Teliti"
-          description="Pastikan membaca konten artikel secara keseluruhan sebelum menentukan kategori."
+          title="Evaluation & Performance"
+          description="Membahas evaluasi, pengujian, kinerja, efektivitas, atau perbandingan metode dan sistem."
         />
 
         <GuideStep
-          number={2}
-          title="Konsistensi Kategori"
-          description="Gunakan kategori yang konsisten untuk artikel-artikel dengan tema yang serupa."
+          number={5}
+          title="Challenges & Limitations"
+          description="Membahas permasalahan, tantangan, keterbatasan, atau hambatan dalam penerapan metode atau teknologi."
         />
 
         <GuideStep
-          number={3}
-          title="Catat Teori Pendukung"
-          description="Gunakan fitur teori/notes untuk mencatat alasan pemilihan kategori tertentu."
-        />
-
-        <GuideStep
-          number={4}
-          title="Review Klasifikasi"
-          description="Periksa kembali semua klasifikasi untuk memastikan tidak ada artikel yang terlewat."
+          number={6}
+          title="Trends & Future Development"
+          description="Membahas perkembangan, tren penelitian, inovasi, atau arah pengembangan penelitian di masa mendatang."
         />
       </GuideSection>
     </Box>

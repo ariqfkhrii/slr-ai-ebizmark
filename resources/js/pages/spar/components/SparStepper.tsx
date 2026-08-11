@@ -103,12 +103,7 @@ export default function SparStepper({
               : 'Extraction'
             : step;
 
-        const isUnlocked =
-          isAcquisition ||
-          (isPurification && canOpenScreening) ||
-          (isClassification && canOpenClassification) ||
-          (isExtraction && canOpenExtraction) ||
-          (isReport && canOpenReport);
+        const isUnlocked = true;
 
         const isClickable = isUnlocked;
 

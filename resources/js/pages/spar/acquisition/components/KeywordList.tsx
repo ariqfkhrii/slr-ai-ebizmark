@@ -119,9 +119,7 @@ export default function KeywordList({ keyword, onSave }: Props) {
         bgcolor: 'background.paper',
       }}
     >
-      <Typography sx={{ fontSize: 16, fontWeight: 700 }}>
-        Kata Kunci / Judul
-      </Typography>
+      <Typography sx={{ fontSize: 16, fontWeight: 700 }}>Kata Kunci</Typography>
 
       {/* Input Builder */}
       <Box sx={{ display: 'flex', gap: 1 }}>

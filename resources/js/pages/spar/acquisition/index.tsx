@@ -25,11 +25,13 @@ import { FetchHistory, Keyword } from './types';
 type Props = {
   researchPlanId: number;
   sourceDatabase: string;
+  onFetchSuccess?: () => void;
 };
 
 export default function AcquisitionPage({
   researchPlanId,
   sourceDatabase,
+  onFetchSuccess,
 }: Props) {
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
@@ -182,6 +184,10 @@ export default function AcquisitionPage({
         queryKey: ['filtered-articles', researchPlanId],
       });
       refreshArticles();
+
+      if (onFetchSuccess) {
+        onFetchSuccess();
+      }
 
       window.setTimeout(() => {
         dispatch(hideProgressSnackbar());

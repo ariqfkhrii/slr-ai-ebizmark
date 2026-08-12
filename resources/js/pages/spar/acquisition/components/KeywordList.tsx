@@ -1,4 +1,5 @@
 import AddIcon from '@mui/icons-material/Add';
+import { Lightbulb } from 'lucide-react';
 import {
   Box,
   Button,
@@ -120,6 +121,28 @@ export default function KeywordList({ keyword, onSave }: Props) {
       }}
     >
       <Typography sx={{ fontSize: 16, fontWeight: 700 }}>Kata Kunci</Typography>
+      
+      {/* Box Penawaran Panduan Interaktif */}
+      <Box
+        sx={{
+          p: 1.5,
+          bgcolor: '#fffbe3',
+          border: '1px solid',
+          borderColor: '#fde047',
+          borderRadius: 2,
+          color: '#854d0e',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Lightbulb size={16} className="text-amber-500 shrink-0" />
+          <Typography variant="caption" sx={{ fontWeight: 700, fontSize: 11 }}>
+            Tombol panduan di kanan atas siap membantu Anda.
+          </Typography>
+        </Box>
+      </Box>
 
       {/* Input Builder */}
       <Box sx={{ display: 'flex', gap: 1 }}>

@@ -219,11 +219,12 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
             <Box
               sx={{
                 mt: 1.5,
-                display: 'inline-flex',
-                alignItems: 'center',
+                display: 'flex', // Diubah ke flex agar layout responsif terhadap wrap teks
+                alignItems: 'flex-start', // Mengubah alignment ke atas agar icon tetap sejajar dengan baris pertama teks
                 gap: 1,
                 px: 1.5,
                 py: 0.75,
+                maxWidth: 450, // Batasi batas lebar maksimum (bisa disesuaikan, misal 240–300)
                 bgcolor: '#fffbe3',
                 border: '1px solid',
                 borderColor: '#fde047',
@@ -231,9 +232,9 @@ export default function DashboardPage({ auth, researchPlans = [] }: any) {
                 color: '#854d0e',
               }}
             >
-              <Lightbulb size={16} className="text-amber-500 shrink-0" />
-              <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                Tombol panduan di kanan atas siap membandu Anda dalam memahami halaman ini.
+              <Lightbulb size={16} className="text-amber-500 shrink-0 mt-0.5" />
+              <Typography variant="caption" sx={{ fontWeight: 600, lineHeight: 1.4 }}>
+                Tombol panduan di kanan atas siap membantu Anda dalam memahami halaman ini.
               </Typography>
             </Box>
           </Box>
